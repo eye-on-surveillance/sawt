@@ -43,15 +43,10 @@ def get_response_from_query(db, query, k=4):
     docs = db.similarity_search(query, k=k)
     docs_page_content = " ".join([d.page_content for d in docs])
 
-    timestamps = [
-        datetime.datetime.fromtimestamp(d.timestamp).strftime("%Y-%m-%d %H:%M:%S")
-        for d in docs
-    ]
-
     llm = OpenAI(model_name="text-davinci-003")
 
     prompt = PromptTemplate(
-        input_variables=["question", "docs", "timestamps"],
+        input_variables=["question", "docs"],
         template="""
         You are a helpful assistant that can answer questions about New Orleans City Council meetings
         based on the provided Youtube transcripts.
@@ -65,20 +60,17 @@ def get_response_from_query(db, query, k=4):
         
         Your response should be verbose and detailed.
         
-        Timestamps:
-        {timestamps}
         """,
     )
 
     chain = LLMChain(llm=llm, prompt=prompt)
 
-    response = chain.run(question=query, docs=docs_page_content, timestamps=timestamps)
+    response = chain.run(question=query, docs=docs_page_content)
     response = response.replace("\n", "")
     return response, docs
 
 
 if __name__ == "__main__":
-    # Example usage:
     video_urls = [
         {
             "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
@@ -95,6 +87,12 @@ if __name__ == "__main__":
         {
             "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
         },
+        {
+            "url": "https://www.youtube.com/watch?v=8moPWzrdPiQ&ab_channel=NewOrleansCityCouncil"
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
+        },
     ]
 
     databases = []
@@ -104,7 +102,7 @@ if __name__ == "__main__":
         db = create_db_from_youtube_video_url(video_url)
         databases.append(db)
 
-    query = "What does the police chief say about crime?"
+    query = "Please outline instances where the police describe how often they use facial recognition and its results"
 
     responses = []
     for i, db in enumerate(databases):
@@ -112,7 +110,6 @@ if __name__ == "__main__":
         response, _ = get_response_from_query(db, query)
         responses.append(response)
 
-    for i, response in enumerate(responses):
         print(f"Response from video {i+1}:")
         print(textwrap.fill(response, width=85))
         print("=" * 85)
