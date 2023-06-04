@@ -1,10 +1,8 @@
 # The Great Inquirer
 
-The X app is an platform that aims to provide the New Orleanians with direct communication channels to their city council representatives. This app allows citizens to ask questions of their city council members by leveraging the power of previous statements made during these meetings. 
+The Great Inquirer is a platform designed to facilitate direct communication between New Orleanians and their city council representatives. Our app aims to empower citizens by providing them with a comprehensive understanding of their city council members' stances on various issues. By leveraging publicly available statements made by council members, users can query the app to access valuable insights and informed perspectives.
 
 Features
-Transcription: The app utilizes speech-to-text technology to transcribe New Orleans City Council meetings accurately. These transcriptions serve as a foundation for the app's functionalities.
+Transcription: Our app utilizes advanced speech-to-text technology to accurately transcribe New Orleans City Council meetings. These transcriptions are meticulously processed to extract valuable insights and information.
 
-Community Engagement: Users of the app have the ability to communicate directly with their city council representatives. They can ask questions and provide feedback through the app's intuitive interface.
-
-Notifications: Users can opt-in to receive notifications about upcoming City Council meetings, important updates, or responses from council members. This ensures that the community stays informed and engaged in local governance. (??)
+Community Engagement: Users can easily search and query the app based on specific topics or issues of interest. The Great Inquirer scans the transcriptions and provides relevant statements made by city council members, enabling users to gain deeper insights into their perspectives.
