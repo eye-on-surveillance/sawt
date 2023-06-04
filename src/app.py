@@ -8,13 +8,17 @@ from langchain import PromptTemplate
 from langchain.chains import LLMChain
 from dotenv import find_dotenv, load_dotenv
 import textwrap
+import datetime
 
 load_dotenv(find_dotenv())
 embeddings = OpenAIEmbeddings()
 
 # Set up logging configuration
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
+
 
 def create_db_from_youtube_video_url(video_url: str) -> FAISS:
     logger.info(f"Loading video URL: {video_url}")
@@ -29,6 +33,7 @@ def create_db_from_youtube_video_url(video_url: str) -> FAISS:
     logger.info(f"Database created for video URL: {video_url}")
     return db
 
+
 def get_response_from_query(db, query, k=4):
     """
     text-davinci-003 can handle up to 4097 tokens. Setting the chunksize to 1000 and k to 4 maximizes
@@ -38,10 +43,15 @@ def get_response_from_query(db, query, k=4):
     docs = db.similarity_search(query, k=k)
     docs_page_content = " ".join([d.page_content for d in docs])
 
+    timestamps = [
+        datetime.datetime.fromtimestamp(d.timestamp).strftime("%Y-%m-%d %H:%M:%S")
+        for d in docs
+    ]
+
     llm = OpenAI(model_name="text-davinci-003")
 
     prompt = PromptTemplate(
-        input_variables=["question", "docs"],
+        input_variables=["question", "docs", "timestamps"],
         template="""
         You are a helpful assistant that can answer questions about New Orleans City Council meetings
         based on the provided Youtube transcripts.
@@ -54,12 +64,15 @@ def get_response_from_query(db, query, k=4):
         If you feel like you don't have enough information to answer the question, say "I don't know".
         
         Your response should be verbose and detailed.
+        
+        Timestamps:
+        {timestamps}
         """,
     )
 
     chain = LLMChain(llm=llm, prompt=prompt)
 
-    response = chain.run(question=query, docs=docs_page_content)
+    response = chain.run(question=query, docs=docs_page_content, timestamps=timestamps)
     response = response.replace("\n", "")
     return response, docs
 
@@ -67,11 +80,21 @@ def get_response_from_query(db, query, k=4):
 if __name__ == "__main__":
     # Example usage:
     video_urls = [
-        {"url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"},
-        {"url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"},
-        {"url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"},
-        {"url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"},
-        {"url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"},
+        {
+            "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"
+        },
+        {
+            "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
+        },
     ]
 
     databases = []
@@ -82,7 +105,7 @@ if __name__ == "__main__":
         databases.append(db)
 
     query = "What does the police chief say about crime?"
-    
+
     responses = []
     for i, db in enumerate(databases):
         logger.info(f"Processing query for video {i+1}")
