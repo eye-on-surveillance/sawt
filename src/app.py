@@ -1,4 +1,5 @@
 import logging
+import csv
 from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -9,6 +10,7 @@ from langchain.chains import LLMChain
 from dotenv import find_dotenv, load_dotenv
 import textwrap
 import datetime
+import os
 
 load_dotenv(find_dotenv())
 embeddings = OpenAIEmbeddings()
@@ -20,7 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def create_db_from_youtube_video_url(video_url: str) -> FAISS:
+def create_db_from_youtube_video_url(video_url: str) -> (FAISS, list):
     logger.info(f"Loading video URL: {video_url}")
     loader = YoutubeLoader.from_youtube_url(video_url)
     transcript = loader.load()
@@ -31,7 +33,20 @@ def create_db_from_youtube_video_url(video_url: str) -> FAISS:
 
     db = FAISS.from_documents(docs, embeddings)
     logger.info(f"Database created for video URL: {video_url}")
-    return db
+    return db, docs
+
+
+def write_docs_to_csv(docs, filename):
+    directory = os.path.join(os.path.dirname(__file__), "csv")
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    file_path = os.path.join(directory, filename)
+
+    with open(file_path, "w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile)
+        for doc in docs:
+            writer.writerow([doc])
 
 
 def get_response_from_query(db, query, k=4):
@@ -96,11 +111,15 @@ if __name__ == "__main__":
     ]
 
     databases = []
-    for video_info in video_urls:
+    for i, video_info in enumerate(video_urls):
         video_url = video_info["url"]
         logger.info(f"Processing video URL: {video_url}")
-        db = create_db_from_youtube_video_url(video_url)
+        db, docs = create_db_from_youtube_video_url(video_url)
         databases.append(db)
+
+        csv_filename = f"docs_{i+1}.csv"
+        write_docs_to_csv(docs, csv_filename)
+        print(f"CSV file created for video {i+1}: {csv_filename}")
 
     query = "Please outline instances where the police describe how often they use facial recognition and its results"
 
