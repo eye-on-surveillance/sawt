@@ -7,7 +7,7 @@ import google.cloud.logging
 import functions_framework
 
 from helper import parse_field
-from inquirer import answer_question
+from inquirer_csv import answer_query
 logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
 
@@ -41,7 +41,7 @@ def getanswer(request):
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")
-    answer = answer_question(question)
+    answer = answer_query(question)
 
     # return new uri
     end = time.time()

@@ -4,13 +4,14 @@ from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
 from dotenv import find_dotenv, load_dotenv
 import textwrap
 import datetime
 import os
+from langchain.document_loaders.csv_loader import CSVLoader
 
 load_dotenv(find_dotenv())
 embeddings = OpenAIEmbeddings()
@@ -36,7 +37,10 @@ def create_db_from_youtube_video_url(video_url: str) -> (FAISS, list):
     return db, docs
 
 
-def write_docs_to_csv(docs, filename):
+def write_docs_to_csv(docs, video_url):
+    video_id = video_url.split("=")[-1]
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = f"transcript_{video_id}_{timestamp}.csv"
     directory = os.path.join(os.path.dirname(__file__), "csv")
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -58,7 +62,7 @@ def get_response_from_query(db, query, k=4):
     docs = db.similarity_search(query, k=k)
     docs_page_content = " ".join([d.page_content for d in docs])
 
-    llm = OpenAI(model_name="text-davinci-003")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -85,7 +89,7 @@ def get_response_from_query(db, query, k=4):
     return response, docs
 
 
-if __name__ == "__main__":
+def answer_query(query: str) -> str:
     video_urls = [
         {
             "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
@@ -117,11 +121,8 @@ if __name__ == "__main__":
         db, docs = create_db_from_youtube_video_url(video_url)
         databases.append(db)
 
-        csv_filename = f"docs_{i+1}.csv"
-        write_docs_to_csv(docs, csv_filename)
-        print(f"CSV file created for video {i+1}: {csv_filename}")
-
-    query = "Please outline instances where the police describe how often they use facial recognition and its results"
+        write_docs_to_csv(docs, video_url)
+        print(f"CSV file created for video {i+1}: transcript_{video_url.split('=')[-1]}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.csv")
 
     responses = []
     for i, db in enumerate(databases):
@@ -133,3 +134,5 @@ if __name__ == "__main__":
         print(textwrap.fill(response, width=85))
         print("=" * 85)
         logger.info(f"Response from video {i+1}:\n{response}\n{'=' * 85}")
+
+    return "\n".join(responses)
