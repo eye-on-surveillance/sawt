@@ -7,11 +7,13 @@ import google.cloud.logging
 import functions_framework
 
 from helper import parse_field
-from inquirer_csv import answer_query
+from inquirer import answer_query
+
 logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
 
-API_VERSION = '0.0.1'
+API_VERSION = "0.0.1"
+
 
 @functions_framework.http
 def getanswer(request):
@@ -28,16 +30,16 @@ def getanswer(request):
         Functions, see the `Writing HTTP functions` page.
         <https://cloud.google.com/functions/docs/writing/http#http_frameworks>
     """
-    logging.info(f'getanswer {API_VERSION}')
+    logging.info(f"getanswer {API_VERSION}")
     start = time.time()
 
     # Parse args
-    content_type = request.headers['content-type']
-    if content_type == 'application/json':
+    content_type = request.headers["content-type"]
+    if content_type == "application/json":
         request_json = request.get_json(silent=True)
         logging.info(request_json)
 
-        question = parse_field(request_json, 'question')
+        question = parse_field(request_json, "question")
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")

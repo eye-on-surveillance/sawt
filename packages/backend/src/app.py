@@ -1,5 +1,8 @@
 import logging
-import csv
+import datetime
+import os
+import pickle
+import hashlib
 from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -9,9 +12,6 @@ from langchain import PromptTemplate
 from langchain.chains import LLMChain
 from dotenv import find_dotenv, load_dotenv
 import textwrap
-import datetime
-import os
-from langchain.document_loaders.csv_loader import CSVLoader
 
 load_dotenv(find_dotenv())
 embeddings = OpenAIEmbeddings()
@@ -22,35 +22,63 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+cached_databases = {}  # Dictionary to store cached databases
+CACHE_DIRECTORY = "cache"  # Cache directory name
 
-def create_db_from_youtube_video_url(video_url: str) -> (FAISS, list):
+
+def generate_cache_filename(video_url: str) -> str:
+    # Generate an MD5 hash of the video URL
+    md5_hash = hashlib.md5(video_url.encode()).hexdigest()
+
+    # Create the cache directory if it doesn't exist
+    if not os.path.exists(CACHE_DIRECTORY):
+        os.makedirs(CACHE_DIRECTORY)
+
+    return os.path.join(CACHE_DIRECTORY, f"{md5_hash}.pickle")
+
+
+def load_content_from_cache(video_url: str) -> str:
+    cache_file = generate_cache_filename(video_url)
+    if os.path.exists(cache_file):
+        with open(cache_file, "rb") as f:
+            return pickle.load(f)
+    return None
+
+
+def save_content_to_cache(video_url: str, content: str) -> None:
+    cache_file = generate_cache_filename(video_url)
+    with open(cache_file, "wb") as f:
+        pickle.dump(content, f)
+
+
+def create_db_from_youtube_video_url(video_url: str) -> FAISS:
     logger.info(f"Loading video URL: {video_url}")
-    loader = YoutubeLoader.from_youtube_url(video_url)
-    transcript = loader.load()
-    logger.info(f"Transcript loaded for video URL: {video_url}")
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    docs = text_splitter.split_documents(transcript)
+    # Check if the content is already cached
+    cached_content = load_content_from_cache(video_url)
+    if cached_content:
+        logger.info(f"Using cached content for video URL: {video_url}")
+        docs = cached_content
+    else:
+        loader = YoutubeLoader.from_youtube_url(video_url)
+        transcript = loader.load()
+        logger.info(f"Transcript loaded for video URL: {video_url}")
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=100
+        )
+        docs = text_splitter.split_documents(transcript)
+
+        # Cache the content
+        save_content_to_cache(video_url, docs)
 
     db = FAISS.from_documents(docs, embeddings)
     logger.info(f"Database created for video URL: {video_url}")
-    return db, docs
 
+    # Cache the database
+    cached_databases[video_url] = db
 
-def write_docs_to_csv(docs, video_url):
-    video_id = video_url.split("=")[-1]
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"transcript_{video_id}_{timestamp}.csv"
-    directory = os.path.join(os.path.dirname(__file__), "csv")
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    file_path = os.path.join(directory, filename)
-
-    with open(file_path, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
-        for doc in docs:
-            writer.writerow([doc])
+    return db
 
 
 def get_response_from_query(db, query, k=4):
@@ -114,19 +142,16 @@ def answer_query(query: str) -> str:
         },
     ]
 
-    databases = []
+    responses = []
     for i, video_info in enumerate(video_urls):
         video_url = video_info["url"]
         logger.info(f"Processing video URL: {video_url}")
-        db, docs = create_db_from_youtube_video_url(video_url)
-        databases.append(db)
+        if video_url in cached_databases:
+            db = cached_databases[video_url]
+            logger.info(f"Using cached database for video URL: {video_url}")
+        else:
+            db = create_db_from_youtube_video_url(video_url)
 
-        write_docs_to_csv(docs, video_url)
-        print(f"CSV file created for video {i+1}: transcript_{video_url.split('=')[-1]}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.csv")
-
-    responses = []
-    for i, db in enumerate(databases):
-        logger.info(f"Processing query for video {i+1}")
         response, _ = get_response_from_query(db, query)
         responses.append(response)
 
