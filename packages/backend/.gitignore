@@ -1,4 +1,4 @@
 .env
 .log
 wiki/
-.csv
+__pycache__/
