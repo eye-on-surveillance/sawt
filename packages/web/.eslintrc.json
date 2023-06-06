@@ -1,3 +1,31 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": ["next/core-web-vitals", "plugin:tailwindcss/recommended"],
+  "plugins": ["prettier", "tailwindcss", "unused-imports"],
+  "rules": {
+    "prettier/prettier": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "settings": {
+    "tailwindcss": {
+      "config": "./tailwind.config.js",
+      "callees": ["cx"]
+    },
+    "tailwindcss/classnames-order": [
+      true,
+      {
+        "callees": ["cx"],
+        "config": "./tailwind.config.js"
+      }
+    ]
+  }
 }
