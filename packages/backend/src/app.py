@@ -16,21 +16,19 @@ import textwrap
 load_dotenv(find_dotenv())
 embeddings = OpenAIEmbeddings()
 
-# Set up logging configuration
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-cached_databases = {}  # Dictionary to store cached databases
-CACHE_DIRECTORY = "cache"  # Cache directory name
+cached_databases = {}
+CACHE_DIRECTORY = "cache"
+query_memory = []
 
 
 def generate_cache_filename(video_url: str) -> str:
-    # Generate an MD5 hash of the video URL
     md5_hash = hashlib.md5(video_url.encode()).hexdigest()
 
-    # Create the cache directory if it doesn't exist
     if not os.path.exists(CACHE_DIRECTORY):
         os.makedirs(CACHE_DIRECTORY)
 
@@ -51,32 +49,39 @@ def save_content_to_cache(video_url: str, content: str) -> None:
         pickle.dump(content, f)
 
 
-def create_db_from_youtube_video_url(video_url: str) -> FAISS:
-    logger.info(f"Loading video URL: {video_url}")
+def create_db_from_youtube_urls(video_urls) -> FAISS:
+    all_docs = []
+    for video_info in video_urls:
+        video_url = video_info["url"]
+        logger.info(f"Processing video URL: {video_url}")
+        cached_content = load_content_from_cache(video_url)
 
-    # Check if the content is already cached
-    cached_content = load_content_from_cache(video_url)
-    if cached_content:
-        logger.info(f"Using cached content for video URL: {video_url}")
-        docs = cached_content
-    else:
-        loader = YoutubeLoader.from_youtube_url(video_url)
-        transcript = loader.load()
-        logger.info(f"Transcript loaded for video URL: {video_url}")
+        if cached_content:
+            logger.info(f"Using cached content for video URL: {video_url}")
+            docs = cached_content
+        else:
+            loader = YoutubeLoader.from_youtube_url(video_url)
+            transcript = loader.load()
+            logger.info(f"Transcript loaded for video URL: {video_url}")
 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(transcript)
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=100
+            )
+            docs = text_splitter.split_documents(transcript)
 
-        # Cache the content
-        save_content_to_cache(video_url, docs)
+            save_content_to_cache(video_url, docs)
 
-    db = FAISS.from_documents(docs, embeddings)
-    logger.info(f"Database created for video URL: {video_url}")
+        all_docs.extend(docs)
 
-    # Cache the database
-    cached_databases[video_url] = db
+        if video_url not in cached_databases:
+            db = FAISS.from_documents(docs, embeddings)
+            logger.info(f"Database created for video URL: {video_url}")
+
+            # Cache the database
+            cached_databases[video_url] = db
+
+    db = FAISS.from_documents(all_docs, embeddings)
+    logger.info("Combined database created from all video URLs")
 
     return db
 
@@ -117,47 +122,53 @@ def get_response_from_query(db, query, k=4):
     return response, docs
 
 
+video_urls = [
+    {
+        "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=8moPWzrdPiQ&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
+    },
+]
+
+
 def answer_query(query: str) -> str:
-    video_urls = [
-        {
-            "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=8moPWzrdPiQ&ab_channel=NewOrleansCityCouncil"
-        },
-        {
-            "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
-        },
-    ]
+    if len(cached_databases) == 0:
+        db = create_db_from_youtube_urls(video_urls)
+    else:
+        db = next(iter(cached_databases.values()))
 
-    responses = []
-    for i, video_info in enumerate(video_urls):
-        video_url = video_info["url"]
-        logger.info(f"Processing video URL: {video_url}")
-        if video_url in cached_databases:
-            db = cached_databases[video_url]
-            logger.info(f"Using cached database for video URL: {video_url}")
-        else:
-            db = create_db_from_youtube_video_url(video_url)
+    response, _ = get_response_from_query(db, query)
+    print("Bot response:")
+    print(textwrap.fill(response, width=85))
+    print()
 
-        response, _ = get_response_from_query(db, query)
-        responses.append(response)
+    query_memory.append(query)
 
-        print(f"Response from video {i+1}:")
-        print(textwrap.fill(response, width=85))
-        print("=" * 85)
-        logger.info(f"Response from video {i+1}:\n{response}\n{'=' * 85}")
+    return response
 
-    return "\n".join(responses)
+
+while True:
+    query = input("Enter your query (or 'quit' to exit): ")
+    if query == "quit":
+        break
+
+    response = answer_query(query)
+
+print("Query memory:")
+print(query_memory)
