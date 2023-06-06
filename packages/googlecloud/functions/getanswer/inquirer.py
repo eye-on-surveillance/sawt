@@ -163,12 +163,12 @@ def answer_query(query: str) -> str:
     return response
 
 
-while True:
-    query = input("Enter your query (or 'quit' to exit): ")
-    if query == "quit":
-        break
+# while True:
+#     query = input("Enter your query (or 'quit' to exit): ")
+#     if query == "quit":
+#         break
 
-    response = answer_query(query)
+#     response = answer_query(query)
 
-print("Query memory:")
-print(query_memory)
+# print("Query memory:")
+# print(query_memory)

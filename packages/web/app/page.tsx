@@ -3,7 +3,8 @@
 import { ChangeEvent, useState } from "react"
 
 export default function Home() {
-  const apiEndpoint = "https://getanswer2-q5odwl64qa-ue.a.run.app"
+  // const apiEndpoint = "https://getanswer2-q5odwl64qa-ue.a.run.app"
+  const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!
   const [isProcessing, setIsProcessing] = useState(false)
   const [query, setQuery] = useState("")
   const [history, setHistory] = useState<any>([])
