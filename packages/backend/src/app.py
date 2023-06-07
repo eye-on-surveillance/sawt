@@ -41,7 +41,11 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
 
     db = FAISS.from_documents(all_docs, embeddings)
 
-    db.save_local("cache/faiss_index")
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+
+    db.save_local(os.path.join(cache_dir, "faiss_index"))
     logger.info("Combined database created from all video URLs")
     return db
 

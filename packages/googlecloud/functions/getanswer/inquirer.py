@@ -41,7 +41,11 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
 
     db = FAISS.from_documents(all_docs, embeddings)
 
-    db.save_local("cache/faiss_index")
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+
+    db.save_local(os.path.join(cache_dir, "faiss_index"))
     logger.info("Combined database created from all video URLs")
     return db
 
@@ -123,12 +127,12 @@ def answer_query(query: str) -> str:
     return response
 
 
-# while True:
-#     query = input("Enter your query (or 'quit' to exit): ")
-#     if query == "quit":
-#         break
+while True:
+    query = input("Enter your query (or 'quit' to exit): ")
+    if query == "quit":
+        break
 
-#     response = answer_query(query)
+    response = answer_query(query)
 
-# print("Query memory:")
-# print(query_memory)
+print("Query memory:")
+print(query_memory)
