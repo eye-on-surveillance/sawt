@@ -22,34 +22,6 @@ logger = logging.getLogger(__name__)
 query_memory = []
 
 
-def create_db_from_youtube_urls(video_urls) -> FAISS:
-    all_docs = []
-    for video_info in video_urls:
-        video_url = video_info["url"]
-        logger.info(f"Processing video URL: {video_url}")
-
-        loader = YoutubeLoader.from_youtube_url(video_url)
-        transcript = loader.load()
-        logger.info(f"Transcript loaded for video URL: {video_url}")
-
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(transcript)
-
-        all_docs.extend(docs)
-
-    db = FAISS.from_documents(all_docs, embeddings)
-
-    cache_dir = "cache"
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-
-    db.save_local(os.path.join(cache_dir, "faiss_index"))
-    logger.info("Combined database created from all video URLs")
-    return db
-
-
 def get_response_from_query(db, query, k=4):
     """
     text-davinci-003 can handle up to 4097 tokens. Setting the chunksize to 1000 and k to 4 maximizes
@@ -85,38 +57,10 @@ def get_response_from_query(db, query, k=4):
     return response, docs
 
 
-video_urls = [
-    {
-        "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=8moPWzrdPiQ&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
-    },
-]
-
-
 def answer_query(query: str) -> str:
-    faiss_index_path = "cache/faiss_index"
-    if os.path.exists(faiss_index_path):
-        db = FAISS.load_local(faiss_index_path, embeddings)
-        logger.info("Loaded database from faiss_index")
-    else:
-        db = create_db_from_youtube_urls(video_urls)
+    faiss_index_path = "../../../backend/src/cache/faiss_index"
+    db = FAISS.load_local(faiss_index_path, embeddings)
+    logger.info("Loaded database from faiss_index")
 
     response, _ = get_response_from_query(db, query)
     print("Bot response:")
