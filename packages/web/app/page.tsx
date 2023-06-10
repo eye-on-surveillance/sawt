@@ -70,7 +70,7 @@ export default function Home() {
      </div>
      <div className="w-full max-w-xl mt-8">
       <form onSubmit={submitQuery} className="space-y-4">
-        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 rounded-lg" placeholder="Please outline instances where the police describe how often they use facial recognition and its results"></input>
+        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 rounded-lg"></input>
         <button type="submit" disabled={isProcessing} className="w-full bg-teal-500 hover:bg-teal-700 rounded-md p-2 text-white">{isProcessing? "Processing..." : "Ask"}</button>
       </form>
       {!hasHistory ? null : <button onClick={downloadTranscript} className="mt-4 bg-green-500 hover:bg-green-700 rounded-md p-2 w-full text-white">Download Transcript</button>}
