@@ -107,6 +107,78 @@ video_urls = [
     {
         "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
     },
+    {
+        "url": "https://www.youtube.com/watch?v=9uiSYTvYWBs&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=aAE3-9byYYg&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=KZe2IU2VpU0&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=6-X1dXLVb84&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=JlbhsQ9kb0I&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=ZX00_-VUSrM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Sb2LWKCt1IM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=sI6ttAClxKI&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=OZR01o_gXak&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=wamAbUcQ06s&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=XCLEd5zxC2o&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=eDxRR8An03g&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=HYzqzJzS9zc&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=st0z9N9Zn5Y&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=c5gExu_qOeA&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=GTF6pyUhAFU&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=TUQ8MxcIWQI&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=UjjRKptF6QM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=JGnHXt8IeP8&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=cKJm3hu-cL8&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=50nPsBXCnrg&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=I83StQ2nF4A&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=iRapue6Bgx4&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=mf1MnljjPvc&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
+    }
 ]
 
 
