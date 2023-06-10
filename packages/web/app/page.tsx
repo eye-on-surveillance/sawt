@@ -64,13 +64,13 @@ export default function Home() {
   const hasHistory = history.length > 0
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 text-center">
-     <div>
+    <main className="flex min-h-screen flex-col items-center p-4 md:p-24 text-center">
+     <div className="w-full md:w-2/3">
       <h1 className="text-3xl font-bold">Curious about the happenings in the New Orleans City Council? Ask away!</h1>
      </div>
-     <div className="w-full max-w-xl mt-8">
+     <div className="w-full md:w-2/3 mt-8">
       <form onSubmit={submitQuery} className="space-y-4">
-        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 rounded-lg"></input>
+        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 rounded-lg" ></input>
         <button type="submit" disabled={isProcessing} className="w-full bg-teal-500 hover:bg-teal-700 rounded-md p-2 text-white">{isProcessing? "Processing..." : "Ask"}</button>
       </form>
       {!hasHistory ? null : <button onClick={downloadTranscript} className="mt-4 bg-green-500 hover:bg-green-700 rounded-md p-2 w-full text-white">Download Transcript</button>}
