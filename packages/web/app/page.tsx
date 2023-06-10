@@ -1,9 +1,8 @@
-"use client"
-
+"use client";
+import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react"
 
 export default function Home() {
-  // const apiEndpoint = "https://getanswer5-q5odwl64qa-ue.a.run.app"
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!
   const [isProcessing, setIsProcessing] = useState(false)
   const [query, setQuery] = useState("")
@@ -35,21 +34,29 @@ export default function Home() {
     setIsProcessing(false)
   }
 
+  const downloadTranscript = () => {
+    const doc = new jsPDF();
+    let cursor = 10;
+    for (let i = history.length - 1; i >= 0; i--) {
+      let lines = doc.splitTextToSize('Query: ' + history[i].query, 180);
+      doc.text(lines, 10, cursor);
+      cursor += (lines.length * 7);
+      lines = doc.splitTextToSize('Response: ' + history[i].answer, 180);
+      doc.text(lines, 10, cursor);
+      cursor += (lines.length * 7) + 10;
+    }
+    doc.save('Transcript.pdf');
+  }
+
   const renderSingleHistory = (singleHistory: any) => (
-    <div className="flex flex-row text-left my-3 p-4 border rounded-lg bg-gray-100" key={singleHistory.query}>
-      <div>
-        <span className="font-bold text-blue-600">Query: {singleHistory.query}</span>
-        <span className="text-gray-500 text-xs"> (asked on {singleHistory.timestamp.toLocaleDateString()})</span>
-      </div>
-      <div className="ml-6">
-        <span>Answer: {singleHistory.answer}</span>
-      </div>
+    <div className="my-4 p-4 border rounded-lg bg-gray-100" key={singleHistory.query}>
+      <p className="font-bold text-blue-600">{singleHistory.query}</p>
+      <p className="ml-6">{singleHistory.answer}</p>
     </div>
   )
 
   const renderHistory = () => (
     <div className="mt-10">
-      <h2 className="text-lg font-bold text-gray-700">Query history</h2>
       {history.map(renderSingleHistory)}
     </div>
   )
@@ -59,13 +66,14 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-24 text-center">
      <div>
-      <h1 className="text-3xl font-bold">Enter your question about New Orleans City Council meetings</h1>
+      <h1 className="text-3xl font-bold">Curious about the happenings in the New Orleans City Council? Ask away!</h1>
      </div>
-     <div className="w-full mt-8">
-      <form onSubmit={submitQuery}>
-        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 my-5 rounded-lg" placeholder="Please outline instances where the police describe how often they use facial recognition and its results"></input>
-        <button type="submit" disabled={isProcessing} className="bg-teal-500 hover:bg-teal-700 rounded-md p-2 w-1/2 text-white">{isProcessing? "Processing..." : "Submit"}</button>
+     <div className="w-full max-w-xl mt-8">
+      <form onSubmit={submitQuery} className="space-y-4">
+        <input value={query} onChange={handleQueryChange} disabled={isProcessing} type="text" className="w-full p-2 border-2 border-indigo-500 rounded-lg" placeholder="Please outline instances where the police describe how often they use facial recognition and its results"></input>
+        <button type="submit" disabled={isProcessing} className="w-full bg-teal-500 hover:bg-teal-700 rounded-md p-2 text-white">{isProcessing? "Processing..." : "Ask"}</button>
       </form>
+      {!hasHistory ? null : <button onClick={downloadTranscript} className="mt-4 bg-green-500 hover:bg-green-700 rounded-md p-2 w-full text-white">Download Transcript</button>}
      </div>
      {!hasHistory ? null : renderHistory()}
     </main>

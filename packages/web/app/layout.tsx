@@ -1,11 +1,11 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import Image from 'next/image'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'The Great Inquirer',
-  description: 'Ask anything about New Orleans City Council meetings',
+  title: 'The Great New Orleanian Inquirer by the Eye on Surveillance',
 }
 
 export default function RootLayout({
@@ -15,17 +15,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <header className="p-4 bg-blue-500 text-white">
-          <h1>{metadata.title}</h1>
-          <p>{metadata.description}</p>
-          <input type="search" placeholder="Search transcripts" className="mt-2 p-2 w-full" />
+      <body className={inter.className + " bg-gray-50"}>
+        <header className="p-4 bg-blue-600 text-white flex flex-col items-center space-y-4">
+          <Image src="/photos/nolaflag.png" alt="New Orleans Flag" width={200} height={133} />
+          <h1 className="font-bold text-xl">{metadata.title}</h1>
         </header>
         <main className="p-4">
           {children}
         </main>
-        <footer className="p-4 bg-blue-500 text-white">
-          <p>© {new Date().getFullYear()} The Great Inquirer</p>
+        <footer className="p-4 bg-blue-600 text-white flex justify-center items-center">
+          <p className="font-light">© {new Date().getFullYear()} The Great Inquirer</p>
         </footer>
       </body>
     </html>
