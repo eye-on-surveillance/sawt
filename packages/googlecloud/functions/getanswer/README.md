@@ -1,5 +1,10 @@
 # Getting started
-pip3 install -r requirements.txt
+
+```
+cd functions
+pip3.10 install -r getanswer/requirements.txt
+python3.10 getanswer
+```
 
 ## Running locally
 [Docs](https://cloud.google.com/functions/docs/running/function-frameworks)

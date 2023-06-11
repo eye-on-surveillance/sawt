@@ -4,6 +4,10 @@ Work in Progress
 
 The Great Inquirer is a platform designed to facilitate direct communication between New Orleanians and their city council representatives. 
 
+## Quickstart (no web)
+1. `cd packages/backend && pip install -r requirements && python src`
+2. `cd packages/googlecloud/functions && pip install -r requirements && python getanswer`
+
 ## Project structure
 - `backend`: Python code for executing queries
 - `web`: NextJS web site
