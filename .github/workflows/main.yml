@@ -28,7 +28,7 @@ jobs:
               --runtime=python310 \
               --memory=1GB \
               --region=us-east1 \
-              --source=. \
+              --source=packages/googlecloud/functions/getanswer \
               --entry-point=getanswer \
               --trigger-http \
               --allow-unauthenticated \
