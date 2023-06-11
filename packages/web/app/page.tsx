@@ -1,6 +1,6 @@
 "use client";
 import { jsPDF } from "jspdf";
-import { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, FormEvent, useState } from "react";
 
 export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
@@ -23,7 +23,7 @@ export default function Home() {
     setQuery(query);
   };
 
-  const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
+  const submitQuery = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsProcessing(true);
     try {
