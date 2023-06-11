@@ -1,0 +1,35 @@
+name: Deploy to Google Cloud Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
+
+      - name: Deploy to Cloud Functions
+        run: |
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud functions deploy getanswer \
+              --gen2 \
+              --runtime=python310 \
+              --memory=1GB \
+              --region=us-east1 \
+              --source=. \
+              --entry-point=getanswer \
+              --trigger-http \
+              --allow-unauthenticated \
+              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
