@@ -8,6 +8,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
 
+
 def get_response_from_query(db, query, k=4):
     """
     text-davinci-003 can handle up to 4097 tokens. Setting the chunksize to 1000 and k to 4 maximizes
@@ -22,18 +23,11 @@ def get_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-        You are a helpful assistant that can answer questions about New Orleans City Council meetings
-        based on the provided Youtube transcripts.
-        
-        Answer the following question: {question}
-        By searching the following video transcripts: {docs}
-        
-        Only use the factual information from the transcripts to answer the question.
-        
-        If you feel like you don't have enough information to answer the question, say "I don't know".
-        
-        Your response should be verbose and detailed.
-        
+        As an assistant proficient in New Orleans City Council meetings, your task is to answer the question: {question}
+        Use the video transcripts provided here: {docs}
+        Your answers should only be based on the factual details from these transcripts. 
+        If the details aren't sufficient to answer the question, please respond with "Insufficient information is contained in the transcripts."
+        Your answer should be as comprehensive and detailed as possible.
         """,
     )
 
@@ -41,6 +35,7 @@ def get_response_from_query(db, query, k=4):
     response = chain.run(question=query, docs=docs_page_content)
     response = response.replace("\n", "")
     return response, docs
+
 
 def answer_query(query: str, embeddings: any) -> str:
     faiss_index_path = dir.joinpath("cache/faiss_index")
