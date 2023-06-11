@@ -2,8 +2,8 @@ name: Deploy to Google Cloud Functions
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
 
 jobs:
   deploy:
