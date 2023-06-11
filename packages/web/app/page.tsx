@@ -9,7 +9,7 @@ export default function Home() {
   const [history, setHistory] = useState<any>([]);
 
   const sampleQueries = [
-    "Is NOPD's use of facial recogntition effective?",
+    "Is NOPD's use of facial recognition effective?",
     "Were there any decisions made about the education budget in the last meeting?",
     "Has the issue of public transport been brought up in recent meetings?",
   ];
@@ -59,7 +59,7 @@ export default function Home() {
   };
 
   const renderSingleHistory = (singleHistory: any) => (
-    <div className="my-4 p-4 border rounded-lg bg-gray-100" key={singleHistory.query}>
+    <div className="my-4 rounded-lg border bg-gray-100 p-4" key={singleHistory.query}>
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
       <p className="ml-6">{singleHistory.answer}</p>
     </div>
@@ -95,25 +95,25 @@ export default function Home() {
             disabled={isProcessing}
             type="text"
             className="w-full p-2 border-2 border-indigo-500 rounded-lg"
-          ></input>
+          />
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-teal-500 hover:bg-teal-700 rounded-md p-2 text-white"
+            className="w-full rounded-md bg-teal-500 hover:bg-teal-700 p-2 text-white"
           >
             {isProcessing ? "Processing..." : "Ask"}
           </button>
         </form>
-        {!hasHistory ? null : (
+        {hasHistory && (
           <button
             onClick={downloadTranscript}
-            className="mt-4 bg-green-500 hover:bg-green-700 rounded-md p-2 w-full text-white"
+            className="mt-4 rounded-md bg-green-500 hover:bg-green-700 p-2 w-full text-white"
           >
             Download Transcript
           </button>
         )}
       </div>
-      {!hasHistory ? null : renderHistory()}
+      {hasHistory && renderHistory()}
     </main>
   );
 }
