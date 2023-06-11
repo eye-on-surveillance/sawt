@@ -1,5 +1,4 @@
 import logging
-import uuid
 import time
 import math
 
@@ -8,9 +7,11 @@ import functions_framework
 
 from helper import parse_field
 from inquirer import answer_query
+from langchain.embeddings.openai import OpenAIEmbeddings
 
 logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
+embeddings = OpenAIEmbeddings()
 
 API_VERSION = "0.0.1"
 
@@ -59,7 +60,7 @@ def getanswer(request):
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")
-    answer = answer_query(query)
+    answer = answer_query(query, embeddings)
 
     # return new uri
     end = time.time()

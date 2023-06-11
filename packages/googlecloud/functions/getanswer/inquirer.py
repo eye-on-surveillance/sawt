@@ -1,26 +1,12 @@
 import logging
-import datetime
-import os
-from langchain.document_loaders import YoutubeLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
-from dotenv import find_dotenv, load_dotenv
-import textwrap
+from pathlib import Path
 
-load_dotenv(find_dotenv())
-embeddings = OpenAIEmbeddings()
-
-logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
-)
 logger = logging.getLogger(__name__)
-
-query_memory = []
-
+dir = Path(__file__).parent.absolute()
 
 def get_response_from_query(db, query, k=4):
     """
@@ -56,27 +42,11 @@ def get_response_from_query(db, query, k=4):
     response = response.replace("\n", "")
     return response, docs
 
-
-def answer_query(query: str) -> str:
-    faiss_index_path = "../../../backend/src/cache/faiss_index"
+def answer_query(query: str, embeddings: any) -> str:
+    faiss_index_path = dir.joinpath("cache/faiss_index")
     db = FAISS.load_local(faiss_index_path, embeddings)
     logger.info("Loaded database from faiss_index")
 
     response, _ = get_response_from_query(db, query)
-    print("Bot response:")
-    print(textwrap.fill(response, width=85))
-    print()
 
-    query_memory.append(query)
     return response
-
-
-# while True:
-#     query = input("Enter your query (or 'quit' to exit): ")
-#     if query == "quit":
-#         break
-
-#     response = answer_query(query)
-
-# print("Query memory:")
-# print(query_memory)
