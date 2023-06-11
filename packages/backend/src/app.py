@@ -12,7 +12,7 @@ from dotenv import find_dotenv, load_dotenv
 import textwrap
 
 load_dotenv(find_dotenv())
-embeddings = OpenAIEmbeddings()
+embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -28,7 +28,7 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
         video_url = video_info["url"]
         logger.info(f"Processing video URL: {video_url}")
 
-        loader = YoutubeLoader.from_youtube_url(video_url)
+        loader = YoutubeLoader.from_youtube_url(video_url, add_video_info=True)
         transcript = loader.load()
         logger.info(f"Transcript loaded for video URL: {video_url}")
 
@@ -36,6 +36,7 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
             chunk_size=1000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(transcript)
+        print(docs)
 
         all_docs.extend(docs)
 
@@ -87,99 +88,242 @@ def get_response_from_query(db, query, k=4):
 
 video_urls = [
     {
+        "url": "https://www.youtube.com/watch?v=XDMh4kiWRnM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=b0zOzYK5Nvg&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=9uiSYTvYWBs&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=kyHwQ-8yXPc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=aAE3-9byYYg&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=KZe2IU2VpU0&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=6-X1dXLVb84&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=JlbhsQ9kb0I&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=ZX00_-VUSrM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
         "url": "https://www.youtube.com/watch?v=kqfTCmIlvjw&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=keVQuKFQExE&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Sb2LWKCt1IM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=sI6ttAClxKI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=OZR01o_gXak&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=wamAbUcQ06s&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=XCLEd5zxC2o&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=B5ZOrOy3ZzQ&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=eDxRR8An03g&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=HYzqzJzS9zc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=st0z9N9Zn5Y&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=c5gExu_qOeA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=GTF6pyUhAFU&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=mLpe1Pp9-lQ&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=TUQ8MxcIWQI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=VRdqvjz76-w&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=BdORXbpqGVI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=UjjRKptF6QM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=cKJm3hu-cL8&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=50nPsBXCnrg&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=I83StQ2nF4A&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=iRapue6Bgx4&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=mf1MnljjPvc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=9PTtwGpfmbo&ab_channel=NewOrleansCityCouncil"
     },
     {
         "url": "https://www.youtube.com/watch?v=CRgme-Yh1yg&ab_channel=NewOrleansCityCouncil"
     },
     {
+        "url": "https://www.youtube.com/watch?v=2DTyhHb90YU&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=4TXVbnbQReI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=0FGxbwt66f0&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=sgST8k9xXsI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Ntm_NaIZvFE&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=RWFX5_stJss&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=xVZ-oOFqv70&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=uBjf7Mshx3A&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=-5X7bUC8qeU&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=lRIFLrozXk4&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=qTNPq_Gv5-E&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=1bEdJTtry-k&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=QiLMjqGrHOc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
         "url": "https://www.youtube.com/watch?v=zdn-xkuc6y4&ab_channel=NewOrleansCityCouncil"
     },
     {
-        "url": "https://www.youtube.com/watch?v=PwiJYkLNzZA&ab_channel=NewOrleansCityCouncil"
+        "url": "https://www.youtube.com/watch?v=jcsll1fr6cU&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=1WzRXI5Wkzc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=nBJtAqbFxKM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Q4HFI5CHa34&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=SlDa3tN2_Rc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=w65XOQnAjM8&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=KiFnlChEBHw&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=p7qO1hT8CLA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=p7qO1hT8CLA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=TlEwLQxxxm4&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=kJ25K9fdVKc&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Bl-Tv5yuUTw&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=MNUaOO3Pei0&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=q-Ts04cq1jI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=95faDMjbrlE&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=cc-5P9EAtEA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=7EoBFRwTaeE&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=rvQXZCFxgp8&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=ABsfv6bzOBA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=7Nro7f26oEo&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=1NtrSv6iI8I&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=Cj-lbl_Y--o&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=WbeWxla4zUI&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=sRKCfArsTqA&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=VCHShl728y8&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=bTR53b05t50&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=yC5a099fbSU&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=U5AvDFjGvG8&ab_channel=NewOrleansCityCouncil"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=re8yHWpkRO4&ab_channel=NewOrleansCityCouncil"
     },
     {
         "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=8moPWzrdPiQ&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=bEhdi86jsuY&ab_channel=NewOrleansCityCouncil"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=9uiSYTvYWBs&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=aAE3-9byYYg&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=KZe2IU2VpU0&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=6-X1dXLVb84&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=JlbhsQ9kb0I&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=ZX00_-VUSrM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=Sb2LWKCt1IM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=sI6ttAClxKI&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=OZR01o_gXak&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=wamAbUcQ06s&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=XCLEd5zxC2o&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=eDxRR8An03g&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=HYzqzJzS9zc&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=st0z9N9Zn5Y&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=c5gExu_qOeA&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=GTF6pyUhAFU&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=TUQ8MxcIWQI&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=UjjRKptF6QM&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=JGnHXt8IeP8&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=cKJm3hu-cL8&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=50nPsBXCnrg&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=I83StQ2nF4A&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=iRapue6Bgx4&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
-    },
-    {
-        "url": "https://www.youtube.com/watch?v=mf1MnljjPvc&pp=ygUxImNpdHkgY291bmNpbCBtZWV0aW5nIiAibmV3IG9ybGVhbnMgY2l0eSBjb3VuY2lsIg%3D%3D"
     }
 ]
+
+
 
 
 def answer_query(query: str) -> str:
