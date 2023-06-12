@@ -4,6 +4,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
 from pathlib import Path
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
@@ -15,25 +16,28 @@ def get_response_from_query(db, query, k=4):
     the number of tokens to analyze.
     """
     logger.info("Performing query...")
-    docs = db.similarity_search(query, k=k)
-    docs_page_content = " ".join([d.page_content for d in docs])
-
     llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 
-    prompt = PromptTemplate(
-        input_variables=["question", "docs"],
-        template="""
-        As an assistant proficient in New Orleans City Council meetings, your task is to answer the question: {question}
-        Use the video transcripts provided here: {docs}
-        Your answers should only be based on the factual details from these transcripts. 
-        If the details aren't sufficient to answer the question, please respond with "Insufficient information is contained in the transcripts."
-        Your answer should be as comprehensive and detailed as possible.
-        """,
-    )
+    docs = db.similarity_search(query, k=k)
 
-    chain = LLMChain(llm=llm, prompt=prompt)
-    response = chain.run(question=query, docs=docs_page_content)
-    response = response.replace("\n", "")
+    # docs_page_content = " ".join([d.page_content for d in docs])
+    # prompt = PromptTemplate(
+    #     input_variables=["question", "docs"],
+    #     template="""
+    #     As an assistant proficient in New Orleans City Council meetings, your task is to answer the question: {question}
+    #     Use the video transcripts provided here: {docs}
+    #     Your answers should only be based on the factual details from these transcripts. 
+    #     If the details aren't sufficient to answer the question, please respond with "Insufficient information is contained in the transcripts."
+    #     Your answer should be as comprehensive and detailed as possible.
+    #     """,
+    # )
+    # chain = LLMChain(llm=llm, prompt=prompt)
+    # response = chain.run(question=query, docs=docs_page_content)
+   
+    chain = load_qa_with_sources_chain(llm, chain_type="stuff")
+    response = chain({"input_documents": docs, "question": query}, return_only_outputs=True)
+    response = response['output_text'].replace("\n", "")
+    logger.info(response)
     return response, docs
 
 

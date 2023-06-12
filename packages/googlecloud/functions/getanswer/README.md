@@ -17,7 +17,7 @@ gcloud auth login
 gcloud auth application-default login
 
 # Start function
-OPENAPI_API_KEY=XXX functions-framework --target=getanswer --debug
+OPENAI_API_KEY=XXX functions-framework --target=getanswer --debug
 
 # Invoke function
 curl -XPOST localhost:8080 -H "Content-Type: application/json" \
