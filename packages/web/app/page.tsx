@@ -1,6 +1,7 @@
 "use client";
 import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react"
+import ALL_SOURCES from "public/metadata.json" assert { type: "json" };
 
 export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!
@@ -25,8 +26,10 @@ export default function Home() {
           "Content-Type": "application/json",
         },
       })
-      const answer = await answerResp.text()
-      setHistory([{query, answer, timestamp: new Date()}, ...history])
+      const answerWSources = await answerResp.text()
+      const [answer, _sources] = answerWSources.split("SOURCES: ")
+      const sources = !_sources ||  _sources === "N/A" ? [] : _sources.split(",")
+      setHistory([{query, answer, timestamp: new Date(), sources}, ...history])
       setQuery("")
     } catch (error) {
       console.error("Failed to fetch answer:", error)
@@ -48,10 +51,23 @@ export default function Home() {
     doc.save('Transcript.pdf');
   }
 
+  const renderSource = (sourceId: string) => {
+    const sourceIdStripped = sourceId.replaceAll(" ", "")
+    const source = (ALL_SOURCES as any)[sourceIdStripped]
+
+    return (
+      <li key={crypto.randomUUID()}><a href={source?.video_url}>{source?.title}; uploaded on {source?.publish_date}</a></li>
+    )
+  }
+
   const renderSingleHistory = (singleHistory: any) => (
-    <div className="my-4 p-4 border rounded-lg bg-gray-100" key={singleHistory.query}>
+    <div className="my-4 p-4 border rounded-lg bg-gray-100" key={crypto.randomUUID()}>
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
-      <p className="ml-6">{singleHistory.answer}</p>
+      <p className="mx-6">{singleHistory.answer}</p>
+      <ul className="text-sm mt-3 list-disc list-inside">
+        <p><strong>Sources:</strong></p>
+        {singleHistory.sources.length === 0 ? <p>None</p> : singleHistory.sources.map(renderSource)}
+      </ul>
     </div>
   )
 
