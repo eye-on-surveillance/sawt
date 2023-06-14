@@ -20,8 +20,10 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
     llm = OpenAI()
 
     prompt_template = """
-    Please provide a detailed summary and respond to potential inquiries about the most recent New Orleans City Council meeting.
-    Question: {question}
+    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and law enforcement stakeholders based on the transcripts from New Orleans City Council meetings. 
+    In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. 
+    For each statement and response, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved.
+    If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.
     Answer:"""
     prompt = PromptTemplate(input_variables=["question"], template=prompt_template)
 
@@ -41,6 +43,10 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
 
         loader = YoutubeLoader.from_youtube_url(video_url, add_video_info=True)
         transcript = loader.load()
+        if not transcript:  # Check if transcript is empty
+            logger.error(f"No transcript found for video URL: {video_url}")
+            continue
+
         logger.debug(f"Transcript loaded for video URL: {video_url}")
 
         source_id = transcript[0].metadata["source"]
@@ -53,9 +59,10 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
         }
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3000, chunk_overlap=1000
+            chunk_size=2000, chunk_overlap=500
         )
         docs = text_splitter.split_documents(transcript)
+        print(docs)
         all_docs.extend(docs)
         logger.info(f"Finished processing {source_id}: {all_metadata[source_id]}")
 

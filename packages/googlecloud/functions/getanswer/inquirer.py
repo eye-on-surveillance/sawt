@@ -16,7 +16,7 @@ def get_response_from_query(db, query, k=4):
     the number of tokens to analyze.
     """
     logger.info("Performing query...")
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
     docs = db.similarity_search(query, k=k)
 
@@ -24,20 +24,18 @@ def get_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-        You are a helpful assistant that can answer questions about New Orleans City Council meetings 
-        based on the provided Youtube transcripts.
-        
-        Answer the following question: {question}
-        By searching the following video transcripts: {docs}
-        
-        Your response should be verbose and detailed. Please review the metadata and include the title of the video in the last sentence.
-        Also, please provide at least one direct quote. 
-        Only use the factual information from the transcripts to answer the question.
-        
-        If you feel like you don't have enough information to answer the question, say "I don't know".
-        
-      
+        As an AI assistant, you are to recreate the actual dialogue that occurred between city council members and law enforcement stakeholders, based on the transcripts from New Orleans City Council meetings provided in "{docs}".
 
+        In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. As such, please generate as many pairs of statements and responses as necessary to completely answer the query. 
+
+        For each statement and response, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved. Your response should take the following format:
+
+        1. Summary of Statement from City Council Member. After the summary, include a direct quote from the city council member that supports the summary. 
+        2. Summary of Response or Statement from law enforcement stakeholders. After the summary, include a direct quote from the law enforcement stakeholder that supports the summary. 
+        3. Continue this pattern, including additional statements and responses from both parties as necessary to provide a comprehensive answer.
+
+        Note: If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
+        
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
@@ -57,7 +55,7 @@ def answer_query(query: str, embeddings: any) -> str:
     logger.info("Loaded database from faiss_index")
 
     response_llm, response_qa, _ = get_response_from_query(db, query)
-    
+
     final_response = f"{response_llm}\n\n\n{response_qa}"
 
     return final_response
