@@ -39,14 +39,23 @@ def get_response_from_query(db, query, k=4):
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    response_llm = chain_llm.run(question=query, docs=docs_page_content)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content)
 
-    chain_qa = load_qa_with_sources_chain(llm, chain_type="stuff")
-    response_qa = chain_qa(
-        {"input_documents": docs, "question": query}, return_only_outputs=True
-    )
+    generated_responses = responses_llm.split("\n\n")
 
-    return response_llm, response_qa, docs
+    generated_titles = [doc.metadata["title"] for doc in docs]
+    publish_dates = [doc.metadata["publish_date"].strftime("%Y-%m-%d") for doc in docs]
+
+    final_response = ""
+    for response, title, publish_date in zip(
+        generated_responses, generated_titles, publish_dates
+    ):
+        final_response += (
+            response
+            + f"\n\nSourced from Youtube: {title} (Published on: {publish_date})\n\n"
+        )
+
+    return final_response
 
 
 def answer_query(query: str, embeddings: any) -> str:
@@ -54,8 +63,6 @@ def answer_query(query: str, embeddings: any) -> str:
     db = FAISS.load_local(faiss_index_path, embeddings)
     logger.info("Loaded database from faiss_index")
 
-    response_llm, response_qa, _ = get_response_from_query(db, query)
-
-    final_response = f"{response_llm}\n\n\n{response_qa}"
+    final_response = get_response_from_query(db, query)
 
     return final_response
