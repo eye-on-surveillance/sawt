@@ -8,9 +8,9 @@ import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 
 // Predefined queries
 const predefinedQueries = [
-  "How has crime increased in New Orleans",
-  "What is the city doing to mitigate the rise of crime?",
-  "Is NOPD's use of facial recognition effective?",
+  "Why is crime increasing in New Orleans?",
+  "What is the NOPD doing to mitigate the rise of crime?",
+  "Accordingly to quarterly reports, is NOPD's use of facial recognition working effectively",
 ];
 
 export default function Home() {
@@ -144,7 +144,7 @@ export default function Home() {
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-sm text-gray-500">
-            Enter your question and let us find the answer for you.
+            Type or choose a question from one of the prompts below and let us find the answer for you.
           </p>
           <div className="my-4">
             {predefinedQueries.map((predefinedQuery, index) => (
@@ -166,7 +166,7 @@ export default function Home() {
                 disabled={isProcessing}
                 type="text"
                 className="w-full rounded-lg border-2 border-indigo-500 p-2 pl-10 shadow-lg"
-                placeholder="Type your question here or select a predefined query from above"
+                placeholder="Type your question here"
               />
               <FontAwesomeIcon
                 icon={faSearch}

@@ -52,7 +52,7 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
         source_id = transcript[0].metadata["title"]
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=1000
+            chunk_size=1000, chunk_overlap=500
         )
         docs = text_splitter.split_documents(transcript)
         all_docs.extend(docs)
