@@ -38,7 +38,7 @@ gcloud functions deploy getanswer \
     --entry-point=getanswer \
     --trigger-http \
     --allow-unauthenticated \
-    --set-env-vars OPENAI_API_KEY='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'
+    --set-env-vars OPENAI_API_KEY=''
 
 gcloud functions describe highlight-to-nft --gen2 --region us-east1 --format="value(serviceConfig.uri)"
 
