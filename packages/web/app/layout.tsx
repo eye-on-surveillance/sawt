@@ -1,39 +1,19 @@
-"use strict";
-import { Inter } from "next/font/google";
+"use client";
 import Image from "next/image";
 import Link from "next/link";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import "./globals.css";
-0;
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const MetadataContext = createContext({
+const MetadataContext = createContext({
   title: "The Great New Orleanian Inquirer by the Eye on Surveillance",
 });
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const metadata = useContext(MetadataContext);
 
   useEffect(() => {
-    setIsDarkMode(
-      window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
+    document.documentElement.classList.add("dark");
   }, []);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDarkMode]);
 
   return (
     <>
@@ -56,12 +36,6 @@ export default function RootLayout({
         <Link href="/about" className="ml-4 text-xs text-gray-200 underline">
           About Us
         </Link>
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="ml-4 rounded bg-gray-200 p-1"
-        >
-          Toggle Dark Mode
-        </button>
       </footer>
     </>
   );

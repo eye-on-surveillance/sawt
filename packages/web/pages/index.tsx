@@ -33,13 +33,14 @@ export default function Home() {
       const [answer, _sources] = answerWSources.split("SOURCES: ");
       const sources =
         !_sources || _sources === "N/A" ? [] : _sources.split(",");
-      setHistory([
+      setHistory((prevHistory: any) => [
+        ...prevHistory,
         { query, answer, timestamp: new Date(), sources },
-        ...history,
       ]);
       setQuery("");
     } catch (error) {
       console.error("Failed to fetch answer:", error);
+      // TODO: Handle error and display appropriate message to the user
     }
     setIsProcessing(false);
   };
@@ -47,15 +48,32 @@ export default function Home() {
   const downloadTranscript = () => {
     const doc = new jsPDF();
     let cursor = 10;
+    let pageNumber = 1;
+  
     for (let i = history.length - 1; i >= 0; i--) {
       let lines = doc.splitTextToSize("Query: " + history[i].query, 180);
+      const queryPageHeight = lines.length * 7;
+      const responsePageHeight = 7; // Assuming a single line response for simplicity
+  
+      if (cursor + queryPageHeight + responsePageHeight > doc.internal.pageSize.getHeight()) {
+        doc.addPage();
+        cursor = 10;
+        pageNumber++;
+      }
+  
       doc.text(lines, 10, cursor);
-      cursor += lines.length * 7;
+      cursor += queryPageHeight;
+  
       lines = doc.splitTextToSize("Response: " + history[i].answer, 180);
       doc.text(lines, 10, cursor);
       cursor += lines.length * 7 + 10;
     }
-    doc.save("Transcript.pdf");
+  
+    doc.save(`Transcript_Page_${pageNumber}.pdf`);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
   };
 
   const renderSource = (sourceId: string) => {
@@ -92,7 +110,15 @@ export default function Home() {
   );
 
   const renderHistory = () => (
-    <div className="mt-10">{history.map(renderSingleHistory)}</div>
+    <div className="mt-10">
+      {history.map(renderSingleHistory)}
+      <button
+        onClick={clearHistory}
+        className="mt-4 text-sm text-red-500 underline"
+      >
+        Clear History
+      </button>
+    </div>
   );
 
   const hasHistory = history.length > 0;
@@ -107,6 +133,7 @@ export default function Home() {
           <p className="text-sm text-gray-500">
             Enter your question below and let us find the answer for you.
           </p>
+          {hasHistory && renderHistory()}
           <form onSubmit={submitQuery} className="space-y-4">
             <div className="relative">
               <input
@@ -130,7 +157,7 @@ export default function Home() {
               {isProcessing ? "Searching" : "Ask"}
             </button>
           </form>
-          {!hasHistory ? null : (
+          {hasHistory && (
             <button
               onClick={downloadTranscript}
               className="mt-4 flex w-full items-center justify-center space-x-2 rounded-md bg-green-500 p-2 text-white shadow-lg hover:bg-green-700"
@@ -140,7 +167,6 @@ export default function Home() {
             </button>
           )}
         </div>
-        {!hasHistory ? null : renderHistory()}
       </main>
     </RootLayout>
   );
