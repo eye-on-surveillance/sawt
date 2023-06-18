@@ -6,6 +6,13 @@ import { ChangeEvent, useState } from "react";
 import RootLayout from "../app/layout";
 import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 
+// Predefined queries
+const predefinedQueries = [
+  "How has crime increased in New Orleans",
+  "What is the city doing to mitigate the rise of crime?",
+  "Is the New Orleans Police Department's use of facial recognition technology effective?",
+];
+
 export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,6 +22,10 @@ export default function Home() {
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setQuery(e.target.value);
+  };
+
+  const handlePredefinedQueryClick = (predefinedQuery: string) => {
+    setQuery(predefinedQuery);
   };
 
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
@@ -40,7 +51,6 @@ export default function Home() {
       setQuery("");
     } catch (error) {
       console.error("Failed to fetch answer:", error);
-      // TODO: Handle error and display appropriate message to the user
     }
     setIsProcessing(false);
   };
@@ -53,7 +63,7 @@ export default function Home() {
     for (let i = history.length - 1; i >= 0; i--) {
       let lines = doc.splitTextToSize("Query: " + history[i].query, 180);
       const queryPageHeight = lines.length * 7;
-      const responsePageHeight = 7; // Assuming a single line response for simplicity
+      const responsePageHeight = 7;
 
       if (
         cursor + queryPageHeight + responsePageHeight >
@@ -134,8 +144,19 @@ export default function Home() {
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-sm text-gray-500">
-            Enter your question below and let us find the answer for you.
+            Enter your question and let us find the answer for you.
           </p>
+          <div className="my-4">
+            {predefinedQueries.map((predefinedQuery, index) => (
+              <button
+                key={index}
+                onClick={() => handlePredefinedQueryClick(predefinedQuery)}
+                className="m-2 rounded-full bg-gray-200 p-1 text-sm text-blue-500 hover:bg-gray-300"
+              >
+                {predefinedQuery}
+              </button>
+            ))}
+          </div>
           {hasHistory && renderHistory()}
           <form onSubmit={submitQuery} className="space-y-4">
             <div className="relative">
@@ -145,7 +166,7 @@ export default function Home() {
                 disabled={isProcessing}
                 type="text"
                 className="w-full rounded-lg border-2 border-indigo-500 p-2 pl-10 shadow-lg"
-                placeholder="Type your question here"
+                placeholder="Type your question here or select a predefined query from above"
               />
               <FontAwesomeIcon
                 icon={faSearch}
