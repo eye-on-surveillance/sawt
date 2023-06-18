@@ -8,7 +8,11 @@ const MetadataContext = createContext({
   title: "The Great New Orleanian Inquirer by the Eye on Surveillance",
 });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const metadata = useContext(MetadataContext);
 
   useEffect(() => {

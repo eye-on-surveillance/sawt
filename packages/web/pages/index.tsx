@@ -49,26 +49,29 @@ export default function Home() {
     const doc = new jsPDF();
     let cursor = 10;
     let pageNumber = 1;
-  
+
     for (let i = history.length - 1; i >= 0; i--) {
       let lines = doc.splitTextToSize("Query: " + history[i].query, 180);
       const queryPageHeight = lines.length * 7;
       const responsePageHeight = 7; // Assuming a single line response for simplicity
-  
-      if (cursor + queryPageHeight + responsePageHeight > doc.internal.pageSize.getHeight()) {
+
+      if (
+        cursor + queryPageHeight + responsePageHeight >
+        doc.internal.pageSize.getHeight()
+      ) {
         doc.addPage();
         cursor = 10;
         pageNumber++;
       }
-  
+
       doc.text(lines, 10, cursor);
       cursor += queryPageHeight;
-  
+
       lines = doc.splitTextToSize("Response: " + history[i].answer, 180);
       doc.text(lines, 10, cursor);
       cursor += lines.length * 7 + 10;
     }
-  
+
     doc.save(`Transcript_Page_${pageNumber}.pdf`);
   };
 
