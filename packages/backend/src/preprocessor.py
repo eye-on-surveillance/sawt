@@ -49,22 +49,14 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
 
         logger.debug(f"Transcript loaded for video URL: {video_url}")
 
-        source_id = transcript[0].metadata["source"]
-        all_metadata[source_id] = {
-            "title": transcript[0].metadata["title"],
-            "publish_date": transcript[0].metadata["publish_date"].isoformat()
-            if isinstance(transcript[0].metadata["publish_date"], datetime.datetime)
-            else transcript[0].metadata["publish_date"],
-            "video_url": video_url,
-        }
+        source_id = transcript[0].metadata["title"]
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=500
+            chunk_size=2000, chunk_overlap=1000
         )
         docs = text_splitter.split_documents(transcript)
-        print(docs)
         all_docs.extend(docs)
-        logger.info(f"Finished processing {source_id}: {all_metadata[source_id]}")
+        logger.info(f"Finished processing {source_id}")
 
     db = FAISS.from_documents(all_docs, embeddings)
 
@@ -80,12 +72,6 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
         "googlecloud/functions/getanswer/cache/faiss_index"
     )
     shutil.copytree(save_dir, dest_dir, dirs_exist_ok=True)
-
-    # write metadata
-    metadata_path = dir.parent.parent.joinpath("web/public/metadata.json")
-    j = json.dumps(all_metadata, indent=4)
-    with open(metadata_path, "w") as f:
-        print(j, file=f)
 
     logger.info(f"Combined database created from all video URLs saved to {save_dir}")
     return db

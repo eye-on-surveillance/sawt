@@ -38,10 +38,6 @@ INPUT_VIDEO_URLS = [
     {
         "url": "https://www.youtube.com/watch?v=nXTTzGU1iT4&ab_channel=NewOrleansCityCouncil"
     },
-    {
-        "url": "https://www.youtube.com/watch?v=Y-xhKDm260M&ab_channel=Jon-DevinCarrere"
-    },
-    {
-    "url": "https://www.youtube.com/watch?v=mkojZ6j7b_Q&ab_channel=Jon-DevinCarrere"
-    },
+    {"url": "https://www.youtube.com/watch?v=Y-xhKDm260M&ab_channel=Jon-DevinCarrere"},
+    {"url": "https://www.youtube.com/watch?v=mkojZ6j7b_Q&ab_channel=Jon-DevinCarrere"},
 ]

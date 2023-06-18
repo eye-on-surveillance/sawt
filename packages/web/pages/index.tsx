@@ -10,7 +10,7 @@ import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 const predefinedQueries = [
   "How has crime increased in New Orleans",
   "What is the city doing to mitigate the rise of crime?",
-  "Is the New Orleans Police Department's use of facial recognition technology effective?",
+  "Is NOPD's use of facial recognition effective?",
 ];
 
 export default function Home() {
@@ -108,7 +108,7 @@ export default function Home() {
       key={crypto.randomUUID()}
     >
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
-      <p className="mx-6">{singleHistory.answer}</p>
+      <p className="mx-6" style={{ whiteSpace: 'pre-line' }}>{singleHistory.answer}</p>
       <ul className="mt-3 list-inside list-disc text-sm">
         <p>
           <strong>Sources:</strong>
