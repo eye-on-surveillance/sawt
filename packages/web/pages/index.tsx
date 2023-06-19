@@ -108,7 +108,9 @@ export default function Home() {
       key={crypto.randomUUID()}
     >
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
-      <p className="mx-6" style={{ whiteSpace: 'pre-line' }}>{singleHistory.answer}</p>
+      <p className="mx-6" style={{ whiteSpace: "pre-line" }}>
+        {singleHistory.answer}
+      </p>
       <ul className="mt-3 list-inside list-disc text-sm">
         <p>
           <strong>Sources:</strong>
@@ -140,11 +142,12 @@ export default function Home() {
     "Discover What's Happening Behind Closed Doors at the New Orleans City Council";
   return (
     <RootLayout>
-      <main className="flex flex-col items-center space-y-10 p-4 text-center md:space-y-20 md:p-24">
+      <main className="flex flex-col items-center space-y-4 p-4 text-center md:space-y-6 md:p-24">
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-sm text-gray-500">
-            Type or choose a question from one of the prompts below and let us find the answer for you.
+            Type or choose a question from one of the prompts below and let us
+            find the answer for you.
           </p>
           <div className="my-4">
             {predefinedQueries.map((predefinedQuery, index) => (

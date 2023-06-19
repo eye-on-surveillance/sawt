@@ -32,6 +32,12 @@ module.exports = {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
+      width: {  // added custom width
+        '42': '10 rem',
+      },
+      height: {  // added custom height
+        '42': '10 rem',
+      },
     },
   },
   darkMode: 'class', // or 'media'
