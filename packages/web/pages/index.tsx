@@ -140,7 +140,7 @@ export default function Home() {
     "Discover What's Happening Behind Closed Doors at the New Orleans City Council";
   return (
     <RootLayout>
-      <main className="flex flex-col items-center space-y-10 p-4 text-center md:space-y-20 md:p-24">
+      <main className="flex flex-col items-center space-y-4 p-4 text-center md:space-y-6 md:p-24">
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-sm text-gray-500">
