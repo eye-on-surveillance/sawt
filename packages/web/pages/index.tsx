@@ -6,6 +6,13 @@ import { ChangeEvent, useState } from "react";
 import RootLayout from "../app/layout";
 import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 
+// Predefined queries
+const predefinedQueries = [
+  "Why is crime increasing in New Orleans?",
+  "What is the NOPD doing to mitigate the rise of crime?",
+  "According to quarterly reports, is NOPD's use of facial recognition working effectively?",
+];
+
 export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,6 +22,10 @@ export default function Home() {
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setQuery(e.target.value);
+  };
+
+  const handlePredefinedQueryClick = (predefinedQuery: string) => {
+    setQuery(predefinedQuery);
   };
 
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
@@ -33,9 +44,9 @@ export default function Home() {
       const [answer, _sources] = answerWSources.split("SOURCES: ");
       const sources =
         !_sources || _sources === "N/A" ? [] : _sources.split(",");
-      setHistory([
+      setHistory((prevHistory: any) => [
+        ...prevHistory,
         { query, answer, timestamp: new Date(), sources },
-        ...history,
       ]);
       setQuery("");
     } catch (error) {
@@ -47,15 +58,35 @@ export default function Home() {
   const downloadTranscript = () => {
     const doc = new jsPDF();
     let cursor = 10;
+    let pageNumber = 1;
+
     for (let i = history.length - 1; i >= 0; i--) {
       let lines = doc.splitTextToSize("Query: " + history[i].query, 180);
+      const queryPageHeight = lines.length * 7;
+      const responsePageHeight = 7;
+
+      if (
+        cursor + queryPageHeight + responsePageHeight >
+        doc.internal.pageSize.getHeight()
+      ) {
+        doc.addPage();
+        cursor = 10;
+        pageNumber++;
+      }
+
       doc.text(lines, 10, cursor);
-      cursor += lines.length * 7;
+      cursor += queryPageHeight;
+
       lines = doc.splitTextToSize("Response: " + history[i].answer, 180);
       doc.text(lines, 10, cursor);
       cursor += lines.length * 7 + 10;
     }
-    doc.save("Transcript.pdf");
+
+    doc.save(`Transcript_Page_${pageNumber}.pdf`);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
   };
 
   const renderSource = (sourceId: string) => {
@@ -77,7 +108,7 @@ export default function Home() {
       key={crypto.randomUUID()}
     >
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
-      <p className="mx-6">{singleHistory.answer}</p>
+      <p className="mx-6" style={{ whiteSpace: 'pre-line' }}>{singleHistory.answer}</p>
       <ul className="mt-3 list-inside list-disc text-sm">
         <p>
           <strong>Sources:</strong>
@@ -92,7 +123,15 @@ export default function Home() {
   );
 
   const renderHistory = () => (
-    <div className="mt-10">{history.map(renderSingleHistory)}</div>
+    <div className="mt-10">
+      {history.map(renderSingleHistory)}
+      <button
+        onClick={clearHistory}
+        className="mt-4 text-sm text-red-500 underline"
+      >
+        Clear History
+      </button>
+    </div>
   );
 
   const hasHistory = history.length > 0;
@@ -105,8 +144,20 @@ export default function Home() {
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-sm text-gray-500">
-            Enter your question below and let us find the answer for you.
+            Type or choose a question from one of the prompts below and let us find the answer for you.
           </p>
+          <div className="my-4">
+            {predefinedQueries.map((predefinedQuery, index) => (
+              <button
+                key={index}
+                onClick={() => handlePredefinedQueryClick(predefinedQuery)}
+                className="m-2 rounded-full bg-gray-200 p-1 text-sm text-blue-500 hover:bg-gray-300"
+              >
+                {predefinedQuery}
+              </button>
+            ))}
+          </div>
+          {hasHistory && renderHistory()}
           <form onSubmit={submitQuery} className="space-y-4">
             <div className="relative">
               <input
@@ -130,7 +181,7 @@ export default function Home() {
               {isProcessing ? "Searching" : "Ask"}
             </button>
           </form>
-          {!hasHistory ? null : (
+          {hasHistory && (
             <button
               onClick={downloadTranscript}
               className="mt-4 flex w-full items-center justify-center space-x-2 rounded-md bg-green-500 p-2 text-white shadow-lg hover:bg-green-700"
@@ -140,7 +191,6 @@ export default function Home() {
             </button>
           )}
         </div>
-        {!hasHistory ? null : renderHistory()}
       </main>
     </RootLayout>
   );
