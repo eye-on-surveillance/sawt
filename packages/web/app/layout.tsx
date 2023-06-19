@@ -38,7 +38,18 @@ export default function RootLayout({
             {metadata.title}
           </h1>
           <p className="my-0 text-sm text-gray-200 md:text-base">
-          Introducing the Great New Orleanian Inquirer—an innovative platform designed to bridge the gap between the residents of New Orleans and their city council representatives. Our mission is to provide an efficient and reliable channel for citizens to access accurate information based on the rich dataset derived from transcripts of city council meetings. Through our advanced language model (LLM), we aim to address the community's inquiries by leveraging the comprehensive knowledge gained from analyzing and understanding the discussions and decisions made during these meetings. The Great New Orleanian Inquirer empowers residents to obtain reliable insights, clarifications, and factual information, ensuring that their concerns are met with an informed and data-driven response.
+            Introducing the Great New Orleanian Inquirer—an innovative platform
+            designed to bridge the gap between the residents of New Orleans and
+            their city council representatives. Our mission is to provide an
+            efficient and reliable channel for citizens to access accurate
+            information based on the rich dataset derived from transcripts of
+            city council meetings. Through our advanced language model (LLM), we
+            aim to address the community&apos;s inquiries by leveraging the
+            comprehensive knowledge gained from analyzing and understanding the
+            discussions and decisions made during these meetings. The Great New
+            Orleanian Inquirer empowers residents to obtain reliable insights,
+            clarifications, and factual information, ensuring that their
+            concerns are met with an informed and data-driven response.
           </p>
         </div>
         <div className="flex flex-col items-start text-sm">
