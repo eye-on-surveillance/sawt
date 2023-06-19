@@ -10,7 +10,7 @@ import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 const predefinedQueries = [
   "Why is crime increasing in New Orleans?",
   "What is the NOPD doing to mitigate the rise of crime?",
-  "According to quarterly reports, is NOPD's use of facial recognition working effectively",
+  "According to quarterly reports, is NOPD's use of facial recognition working effectively?",
 ];
 
 export default function Home() {
