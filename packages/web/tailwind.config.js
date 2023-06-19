@@ -33,10 +33,10 @@ module.exports = {
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       width: {  // added custom width
-        '42': '6.5 rem',
+        '42': '10 rem',
       },
       height: {  // added custom height
-        '42': '6.5 rem',
+        '42': '10 rem',
       },
     },
   },
