@@ -1,10 +1,9 @@
 "use client";
+
 import { faDownload, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
-import RootLayout from "../app/layout";
-import ALL_SOURCES from "../public/metadata.json" assert { type: "json" };
 
 // Predefined queries
 const predefinedQueries = [
@@ -30,6 +29,7 @@ export default function Home() {
 
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("submit query")
     setIsProcessing(true);
     try {
       const answerResp = await fetch(apiEndpoint, {
@@ -40,13 +40,12 @@ export default function Home() {
           "Content-Type": "application/json",
         },
       });
-      const answerWSources = await answerResp.text();
-      const [answer, _sources] = answerWSources.split("SOURCES: ");
-      const sources =
-        !_sources || _sources === "N/A" ? [] : _sources.split(",");
+      const answer = await answerResp.text();
+      console.log("got response")
+      console.log(answer)
       setHistory((prevHistory: any) => [
         ...prevHistory,
-        { query, answer, timestamp: new Date(), sources },
+        { query, answer, timestamp: new Date() },
       ]);
       setQuery("");
     } catch (error) {
@@ -111,16 +110,6 @@ export default function Home() {
       <p className="mx-6" style={{ whiteSpace: "pre-line" }}>
         {singleHistory.answer}
       </p>
-      <ul className="mt-3 list-inside list-disc text-sm">
-        <p>
-          <strong>Sources:</strong>
-        </p>
-        {singleHistory.sources.length === 0 ? (
-          <p>None</p>
-        ) : (
-          singleHistory.sources.map(renderSource)
-        )}
-      </ul>
     </div>
   );
 
@@ -141,7 +130,6 @@ export default function Home() {
   const title =
     "Discover What's Happening Behind Closed Doors at the New Orleans City Council";
   return (
-    <RootLayout>
       <main className="flex flex-col items-center space-y-4 p-4 text-center md:space-y-6 md:p-24">
         <div className="w-full space-y-8 md:w-2/3">
           <h1 className="text-3xl font-bold">{title}</h1>
@@ -173,7 +161,7 @@ export default function Home() {
               />
               <FontAwesomeIcon
                 icon={faSearch}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 text-indigo-500"
               />
             </div>
             <button
@@ -195,6 +183,5 @@ export default function Home() {
           )}
         </div>
       </main>
-    </RootLayout>
   );
 }

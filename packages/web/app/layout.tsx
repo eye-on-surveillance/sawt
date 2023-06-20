@@ -1,26 +1,18 @@
 "use strict";
+
 import Image from "next/image";
 import Link from "next/link";
-import React, { createContext, useContext, useEffect } from "react";
 import "./globals.css";
-
-const MetadataContext = createContext({
-  title: "The Great New Orleanian Inquirer",
-});
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const metadata = useContext(MetadataContext);
-
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
 
   return (
-    <>
+    <html lang="en">
+      <body>
       <header className="flex items-center justify-between bg-red-500 px-6 py-2 text-white">
         <div className="self-center">
           <div className="h-42 w-42 md:h-42 md:w-42">
@@ -34,9 +26,12 @@ export default function RootLayout({
           </div>
         </div>
         <div className="mx-6 grow text-center">
-          <h1 className="mb-2 text-xs font-bold md:text-base">
-            {metadata.title}
+          <h1 className="mb-2 text-sm font-bold md:text-base">
+            The Great Inquirer
           </h1>
+          <h2 className="mb-2 text-xs font-bold md:text-sm">
+            by Eye on Surveillance
+          </h2>
           <p className="my-0 text-sm text-gray-200 md:text-base">
             Introducing the Great New Orleanian Inquirer—an innovative platform
             designed to bridge the gap between the residents of New Orleans and
@@ -72,6 +67,7 @@ export default function RootLayout({
           &copy; {new Date().getFullYear()} The Great Inquirer
         </p>
       </footer>
-    </>
+      </body>
+    </html>
   );
 }

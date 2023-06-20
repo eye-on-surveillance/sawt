@@ -1,10 +1,7 @@
-"use client";
 import React from "react";
-import RootLayout from "../app/layout";
 
 const AboutPage: React.FC = () => {
   return (
-    <RootLayout>
       <section className="space-y-4 p-6">
         <h2 className="text-2xl font-bold">About The Great Inquirer</h2>
         <p>
@@ -74,7 +71,6 @@ const AboutPage: React.FC = () => {
           possible experience for our users.
         </p>
       </section>
-    </RootLayout>
   );
 };
 
