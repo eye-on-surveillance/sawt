@@ -38,11 +38,21 @@ gcloud functions deploy getanswer \
     --entry-point=getanswer \
     --trigger-http \
     --allow-unauthenticated \
-    --set-env-vars OPENAI_API_KEY=''
+    --set-env-vars OPENAI_API_KEY=XXX
 
 gcloud functions describe highlight-to-nft --gen2 --region us-east1 --format="value(serviceConfig.uri)"
 
 curl -XPOST hhttps://getanswer-q5odwl64qa-ue.a.run.app \
     -H "Content-Type: application/json" \
     -d '{"question":"Outline concerns raised during the meeting? What were the responses to those concerns?"}'
+```
+
+**Note**: If OPENAI_API_KEY is set with quotes, `OPENAI_API_KEY='XXX'`, then the following work around could be used:
+
+```
+# https://github.com/openai/openai-python/issues/464#issuecomment-1593751169
+import openai
+import os
+key = os.environ.get("OPENAI_API_KEY").replace("'", "")
+openai.api_key = key
 ```

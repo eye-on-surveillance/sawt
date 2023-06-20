@@ -29,7 +29,6 @@ export default function Home() {
 
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("submit query")
     setIsProcessing(true);
     try {
       const answerResp = await fetch(apiEndpoint, {
@@ -41,8 +40,6 @@ export default function Home() {
         },
       });
       const answer = await answerResp.text();
-      console.log("got response")
-      console.log(answer)
       setHistory((prevHistory: any) => [
         ...prevHistory,
         { query, answer, timestamp: new Date() },
@@ -86,19 +83,6 @@ export default function Home() {
 
   const clearHistory = () => {
     setHistory([]);
-  };
-
-  const renderSource = (sourceId: string) => {
-    const sourceIdStripped = sourceId.replaceAll(" ", "");
-    const source = (ALL_SOURCES as any)[sourceIdStripped];
-
-    return (
-      <li key={crypto.randomUUID()}>
-        <a href={source?.video_url}>
-          {source?.title}; uploaded on {source?.publish_date}
-        </a>
-      </li>
-    );
   };
 
   const renderSingleHistory = (singleHistory: any) => (
