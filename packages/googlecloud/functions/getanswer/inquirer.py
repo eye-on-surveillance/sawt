@@ -127,19 +127,16 @@ def get_general_summary_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-    As an AI assistant, you are to recreate the actual dialogue that occurred between city council members and external stakeholders, based on the transcripts from New Orleans City Council meetings provided in "{docs}".
+        As an AI assistant, you have access to the transcripts from New Orleans City Council meetings provided in "{docs}".
 
-    In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. As such, please generate as many pairs of statements and responses as necessary to completely answer the query. 
+        In response to the question "{question}", provide a succinct summary of the City Council's stance on the issue. Avoid recreating the dialogue. 
 
-    For each statement and response, provide a summary. The response should take the following format:
+        Your response should take the following format:
 
-    1. Summary of Statement from City Council Member.
-    2. Summary of Response or Statement external stakeholder
-    3. Continue this pattern, including additional statements and responses from both parties as necessary to provide a comprehensive answer.
-    4. No direct quotes should be included, only summaries.
+        1. Overview of City Council's position.
 
-    Note: If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
-    """,
+        Note: If the available information from the transcripts is insufficient to accurately answer the question or summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
+        """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content)
