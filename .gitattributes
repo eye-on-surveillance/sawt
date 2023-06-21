@@ -1,0 +1,2 @@
+packages/backend/src/cache/faiss_index/index.faiss filter=lfs diff=lfs merge=lfs -text
+packages/googlecloud/functions/getanswer/cache/faiss_index/index.faiss filter=lfs diff=lfs merge=lfs -text
