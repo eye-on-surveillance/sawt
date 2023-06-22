@@ -9,9 +9,9 @@ import { ChangeEvent, useState } from "react";
 
 // Predefined queries
 const predefinedQueries = [
-  "Why is crime increasing in New Orleans?",
-  "What is the NOPD doing to mitigate the rise of crime?",
-  "According to quarterly reports, is NOPD's use of facial recognition working effectively?",
+  "Why is crime on the rise in New Orleans?",
+  "What is the city doing to mitigate the rise of crime?",
+  "Provide a detailed report on NOPD's use of facial recognition according to quarterly reports",
 ];
 
 export default function Home() {
