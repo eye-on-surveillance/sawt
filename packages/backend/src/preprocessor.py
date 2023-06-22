@@ -20,7 +20,7 @@ def create_db_from_youtube_urls(video_urls) -> FAISS:
     llm = OpenAI()
 
     prompt_template = """
-    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and law enforcement stakeholders based on the transcripts from New Orleans City Council meetings. 
+    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and external stakeholders (such as civil servants, law enforcement personnel, community members) based on the transcripts from New Orleans City Council meetings. 
     In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. 
     For each statement and response, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved.
     If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.
