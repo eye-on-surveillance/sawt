@@ -1,8 +1,12 @@
-"use client";
 import { RadioGroup } from "@headlessui/react";
 import React from "react";
 
-function ResponseToggle({ onToggle }) {
+interface ResponseToggleProps {
+  onToggle: (selected: string) => void;
+}
+
+function ResponseToggle({ onToggle }: ResponseToggleProps) {
+  // eslint-disable-next-line unused-imports/no-unused-vars
   let [selected, setSelected] = React.useState("General Summary");
 
   React.useEffect(() => {
