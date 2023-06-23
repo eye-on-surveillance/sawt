@@ -44,8 +44,10 @@ gcloud functions describe highlight-to-nft --gen2 --region us-east1 --format="va
 
 curl -XPOST hhttps://getanswer-q5odwl64qa-ue.a.run.app \
     -H "Content-Type: application/json" \
-    -d '{"question":"Outline concerns raised during the meeting? What were the responses to those concerns?"}'
+    -d '{"question":"Outline concerns raised during the meeting? What were the responses to those concerns?","response_type":"general"}'
 ```
+
+response_types = 'general' or 'in_depth'
 
 **Note**: If OPENAI_API_KEY is set with quotes, `OPENAI_API_KEY='XXX'`, then the following work around could be used:
 

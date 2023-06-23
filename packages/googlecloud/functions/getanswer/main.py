@@ -57,10 +57,13 @@ def getanswer(request):
         logging.info(request_json)
 
         query = parse_field(request_json, "query")
+        response_type = parse_field(request_json, "response_type")
+        print(f"Processing {response_type} query: {query}" )
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")
-    answer = answer_query(query, embeddings)
+
+    answer = answer_query(query, response_type, embeddings)
 
     # return new uri
     end = time.time()

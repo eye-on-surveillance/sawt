@@ -6,6 +6,8 @@ from langchain.chains import LLMChain
 from pathlib import Path
 import re
 
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
 
@@ -92,19 +94,19 @@ def get_general_summary_response_from_query(db, query, k=4):
     return responses_llm
 
 def route_question(db, query, query_type, k=4):
-    if query_type == "In-Depth Report":
+    if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(db, query, k)
-    elif query_type == "General Summary":
+    elif query_type == RESPONSE_TYPE_GENERAL:
         return get_general_summary_response_from_query(db, query, k)
     else:
-        raise ValueError("Invalid query_type. Expected 'In-Depth Report' or 'General Summary', got: {}".format(query_type))
+        raise ValueError(f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}")
 
 
-def answer_query(query: str, responseMode: str, embeddings: any) -> str:
+def answer_query(query: str, response_type: str, embeddings: any) -> str:
     faiss_index_path = dir.joinpath("cache/faiss_index")
     db = FAISS.load_local(faiss_index_path, embeddings)
     logger.info("Loaded database from faiss_index")
 
-    final_response = route_question(db, query, responseMode)
+    final_response = route_question(db, query, response_type)
 
     return final_response
