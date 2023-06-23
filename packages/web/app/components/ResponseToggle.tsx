@@ -1,3 +1,4 @@
+import { RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL } from "@/lib/api";
 import { RadioGroup } from "@headlessui/react";
 import React from "react";
 
@@ -7,7 +8,7 @@ interface ResponseToggleProps {
 
 function ResponseToggle({ onToggle }: ResponseToggleProps) {
   // eslint-disable-next-line unused-imports/no-unused-vars
-  let [selected, setSelected] = React.useState("General Summary");
+  let [selected, setSelected] = React.useState(RESPONSE_TYPE_GENERAL);
 
   React.useEffect(() => {
     onToggle(selected);
@@ -16,7 +17,7 @@ function ResponseToggle({ onToggle }: ResponseToggleProps) {
   return (
     <div>
       <RadioGroup value={selected} onChange={setSelected}>
-        <RadioGroup.Option value="General Summary">
+        <RadioGroup.Option value={RESPONSE_TYPE_GENERAL}>
           {({ checked }) => (
             <>
               <span
@@ -29,7 +30,7 @@ function ResponseToggle({ onToggle }: ResponseToggleProps) {
             </>
           )}
         </RadioGroup.Option>
-        <RadioGroup.Option value="In-Depth Report">
+        <RadioGroup.Option value={RESPONSE_TYPE_DEPTH}>
           {({ checked }) => (
             <>
               <span

@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
 import ResponseToggle from "./components/ResponseToggle";
+import { RESPONSE_TYPE_GENERAL } from "@/lib/api";
 
 // Predefined queries
 const predefinedQueries = [
@@ -19,7 +20,7 @@ export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  const [responseMode, setResponseMode] = useState("General Summary");
+  const [responseMode, setResponseMode] = useState(RESPONSE_TYPE_GENERAL);
   const [history, setHistory] = useState<any>([]);
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -34,6 +35,7 @@ export default function Home() {
   const recordQueryAsked = async () => {
     const newQuery = {
       query,
+      response_type: responseMode
     };
     const { data: queryData, error } = await supabase
       .from(TABLES.USER_QUERIES)
@@ -88,7 +90,7 @@ export default function Home() {
       // Start processing questiong
       const answerResp = await fetch(apiEndpoint, {
         method: "POST",
-        body: JSON.stringify({ query, responseMode }), // Pass responseMode to your API endpoint
+        body: JSON.stringify({ query, response_type: responseMode }), // Pass responseMode to your API endpoint
         mode: "cors",
         headers: {
           "Content-Type": "application/json",
