@@ -1,14 +1,12 @@
 "use client";
+
+import { TABLES } from "@/lib/supabase/db";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { faDownload, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
 import ResponseToggle from "./components/ResponseToggle";
-
-interface HistoryItem {
-  query: string;
-  answer: string;
-}
 
 // Predefined queries
 const predefinedQueries = [
@@ -18,10 +16,11 @@ const predefinedQueries = [
 ];
 
 export default function Home() {
+  const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [responseMode, setResponseMode] = useState("General Summary");
+  const [history, setHistory] = useState<any>([]);
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -32,32 +31,80 @@ export default function Home() {
     setQuery(predefinedQuery);
   };
 
-  const handleResponseModeToggle = (selected: string) => {
-    setResponseMode(selected);
+  const recordQueryAsked = async () => {
+    const newQuery = {
+      query,
+    };
+    const { data: queryData, error } = await supabase
+      .from(TABLES.USER_QUERIES)
+      .insert([newQuery])
+      .select();
+
+    if (error) {
+      console.warn("Could not record query");
+      console.warn(error);
+      return "";
+    } else {
+      const { id } = queryData[0];
+      return id;
+    }
+  };
+
+  const updateQueryResponded = async (
+    response: string,
+    queryId: string,
+    startedProcessingAt: number
+  ) => {
+    if (queryId.length <= 0) return;
+
+    const genResponseSecs = Math.ceil(
+      (Date.now() - startedProcessingAt) / 1000
+    );
+    const queryUpdate = {
+      response,
+      gen_response_secs: genResponseSecs,
+    };
+    const { error } = await supabase
+      .from(TABLES.USER_QUERIES)
+      .update(queryUpdate)
+      .eq("id", queryId);
+
+    if (error) {
+      console.warn("Could not record query");
+      console.warn(error);
+      return;
+    } else {
+    }
   };
 
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsProcessing(true);
+    try {
+      // Record question in DB
+      const startedProcessingAt = Date.now();
+      const queryId = await recordQueryAsked();
 
-    const res = await fetch("/api/query", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: query,
-        responseMode: responseMode,
-      }),
-    });
-
-    const { answer } = await res.json();
+      // Start processing questiong
+      const answerResp = await fetch(apiEndpoint, {
+        method: "POST",
+        body: JSON.stringify({ query, responseMode }), // Pass responseMode to your API endpoint
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const answer = await answerResp.text();
+      await updateQueryResponded(answer, queryId, startedProcessingAt);
+      setHistory((prevHistory: any) => [
+        ...prevHistory,
+        { query, answer, timestamp: new Date() },
+      ]);
+      setQuery("");
+    } catch (error) {
+      console.error("Failed to fetch answer:", error);
+    }
     setIsProcessing(false);
-
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      { query: query, answer: answer },
-    ]);
   };
 
   const downloadTranscript = () => {
@@ -94,10 +141,10 @@ export default function Home() {
     setHistory([]);
   };
 
-  const renderSingleHistory = (singleHistory: HistoryItem) => (
+  const renderSingleHistory = (singleHistory: any) => (
     <div
       className="my-4 rounded-lg border bg-gray-100 p-4"
-      key={singleHistory.query}
+      key={crypto.randomUUID()}
     >
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
       <p className="mx-6" style={{ whiteSpace: "pre-line" }}>
@@ -130,6 +177,7 @@ export default function Home() {
           Type or choose a question from one of the prompts below and let us
           find the answer for you.
         </p>
+        <ResponseToggle onToggle={setResponseMode} />
         <div className="my-4">
           {predefinedQueries.map((predefinedQuery, index) => (
             <button
@@ -141,7 +189,6 @@ export default function Home() {
             </button>
           ))}
         </div>
-        <ResponseToggle onToggle={handleResponseModeToggle} />
         <form onSubmit={submitQuery} className="space-y-4">
           <div className="relative">
             <input
