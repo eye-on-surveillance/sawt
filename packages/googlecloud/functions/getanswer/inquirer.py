@@ -91,19 +91,20 @@ def get_general_summary_response_from_query(db, query, k=4):
 
     return responses_llm
 
-
-def route_question(db, query, k=4):
-    if query.startswith("Provide a detailed report"):
+def route_question(db, query, query_type, k=4):
+    if query_type == "In-Depth Report":
         return get_indepth_response_from_query(db, query, k)
-    else:
+    elif query_type == "General Summary":
         return get_general_summary_response_from_query(db, query, k)
+    else:
+        raise ValueError("Invalid query_type. Expected 'In-Depth Report' or 'General Summary', got: {}".format(query_type))
 
 
-def answer_query(query: str, embeddings: any) -> str:
+def answer_query(query: str, responseMode: str, embeddings: any) -> str:
     faiss_index_path = dir.joinpath("cache/faiss_index")
     db = FAISS.load_local(faiss_index_path, embeddings)
     logger.info("Loaded database from faiss_index")
 
-    final_response = route_question(db, query)
+    final_response = route_question(db, query, responseMode)
 
     return final_response
