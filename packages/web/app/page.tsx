@@ -5,6 +5,11 @@ import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
 import ResponseToggle from "./components/ResponseToggle";
 
+interface HistoryItem {
+  query: string;
+  answer: string;
+}
+
 // Predefined queries
 const predefinedQueries = [
   "Why is crime on the rise in New Orleans?",
@@ -13,10 +18,9 @@ const predefinedQueries = [
 ];
 
 export default function Home() {
-  // Removed unused variables apiEndpoint, answer, recordQueryAsked, updateQueryResponded
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  const [history, setHistory] = useState<any>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [responseMode, setResponseMode] = useState("General Summary");
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -90,10 +94,10 @@ export default function Home() {
     setHistory([]);
   };
 
-  const renderSingleHistory = (singleHistory: any) => (
+  const renderSingleHistory = (singleHistory: HistoryItem) => (
     <div
       className="my-4 rounded-lg border bg-gray-100 p-4"
-      key={crypto.randomUUID()}
+      key={singleHistory.query}
     >
       <p className="font-bold text-blue-600">{singleHistory.query}</p>
       <p className="mx-6" style={{ whiteSpace: "pre-line" }}>
