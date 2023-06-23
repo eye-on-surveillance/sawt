@@ -1,5 +1,6 @@
 "use client";
 
+import { RESPONSE_TYPE_GENERAL } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faDownload, faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -7,7 +8,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
 import ResponseToggle from "./components/ResponseToggle";
-import { RESPONSE_TYPE_GENERAL } from "@/lib/api";
 
 // Predefined queries
 const predefinedQueries = [
@@ -35,7 +35,7 @@ export default function Home() {
   const recordQueryAsked = async () => {
     const newQuery = {
       query,
-      response_type: responseMode
+      response_type: responseMode,
     };
     const { data: queryData, error } = await supabase
       .from(TABLES.USER_QUERIES)
@@ -169,28 +169,17 @@ export default function Home() {
 
   const hasHistory = history.length > 0;
 
-  const title =
-    "Discover What's Happening Behind Closed Doors at the New Orleans City Council";
   return (
-    <main className="flex flex-col items-center space-y-4 p-4 text-center md:space-y-6 md:p-24">
+    <div className="flex flex-col items-center p-4 text-center md:space-y-6">
       <div className="w-full space-y-8 md:w-2/3">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <p className="text-2xl">
+          Curious about New Orleans City Council?
+        </p>
         <p className="text-sm text-gray-500">
           Type or choose a question from one of the prompts below and let us
           find the answer for you.
         </p>
-        <ResponseToggle onToggle={setResponseMode} />
-        <div className="my-4">
-          {predefinedQueries.map((predefinedQuery, index) => (
-            <button
-              key={index}
-              onClick={() => handlePredefinedQueryClick(predefinedQuery)}
-              className="m-2 rounded-full bg-gray-200 p-1 text-sm text-blue-500 hover:bg-gray-300"
-            >
-              {predefinedQuery}
-            </button>
-          ))}
-        </div>
+
         <form onSubmit={submitQuery} className="space-y-4">
           <div className="relative">
             <input
@@ -206,12 +195,24 @@ export default function Home() {
               className="absolute left-3 top-1/2 h-7 w-7 -translate-y-1/2 text-indigo-500"
             />
           </div>
+          <div className="my-4">
+          {predefinedQueries.map((predefinedQuery, index) => (
+            <button
+              key={index}
+              onClick={() => handlePredefinedQueryClick(predefinedQuery)}
+              className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
+            >
+              {predefinedQuery}
+            </button>
+          ))}
+        </div>
+          <ResponseToggle onToggle={setResponseMode} />
           <button
             type="submit"
             disabled={isProcessing}
             className="w-full rounded-md bg-teal-500 p-2 text-white shadow-lg hover:bg-teal-700"
           >
-            {isProcessing ? "Searching" : "Ask"}
+            {isProcessing ? "Searching for your answer..." : "Ask"}
           </button>
         </form>
         {hasHistory && (
@@ -225,6 +226,6 @@ export default function Home() {
         )}
         {hasHistory && renderHistory()}
       </div>
-    </main>
+    </div>
   );
 }

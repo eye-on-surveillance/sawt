@@ -23,7 +23,7 @@ function ResponseToggle({ onToggle }: ResponseToggleProps) {
               <span
                 className={` ${
                   checked ? "bg-blue-900 text-white" : "bg-white text-black"
-                } inline-flex items-center rounded-full px-4 py-2 text-sm font-medium capitalize`}
+                } inline-flex items-center rounded-full px-4 py-2 text-sm font-medium capitalize cursor-pointer`}
               >
                 General Summary
               </span>
@@ -36,7 +36,7 @@ function ResponseToggle({ onToggle }: ResponseToggleProps) {
               <span
                 className={` ${
                   checked ? "bg-blue-900 text-white" : "bg-white text-black"
-                } inline-flex items-center rounded-full px-4 py-2 text-sm font-medium capitalize`}
+                } inline-flex items-center rounded-full px-4 py-2 text-sm font-medium capitalize cursor-pointer`}
               >
                 In-Depth Report
               </span>

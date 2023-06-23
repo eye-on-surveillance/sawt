@@ -5,6 +5,20 @@ const AboutPage: React.FC = () => {
     <section className="space-y-4 p-6">
       <h2 className="text-2xl font-bold">About The Great Inquirer</h2>
       <p>
+        Introducing the Great New Orleanian Inquirer—an innovative platform
+        designed to bridge the gap between the residents of New Orleans and
+        their city council representatives. Our mission is to provide an
+        efficient and reliable channel for citizens to access accurate
+        information based on the rich dataset derived from transcripts of city
+        council meetings. Through our advanced language model (LLM), we aim to
+        address the community&apos;s inquiries by leveraging the comprehensive
+        knowledge gained from analyzing and understanding the discussions and
+        decisions made during these meetings. The Great New Orleanian Inquirer
+        empowers residents to obtain reliable insights, clarifications, and
+        factual information, ensuring that their concerns are met with an
+        informed and data-driven response.
+      </p>
+      <p>
         The Great Inquirer is a groundbreaking platform designed to foster
         direct communication between the residents of New Orleans and their city
         council representatives. Our mission is to empower the community by
