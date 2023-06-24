@@ -55,7 +55,7 @@ def create_db_from_pdfs(pdf_directory):
             0
         ]  # Using file name without extension as source_id
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=500
+            chunk_size=3000, chunk_overlap=1000
         )
         docs = text_splitter.split_documents(document)
         all_docs.extend(docs)
@@ -75,7 +75,7 @@ def create_db_from_youtube_urls(video_urls):
             continue
         source_id = transcript[0].metadata["title"]
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=500
+            chunk_size=3000, chunk_overlap=1000
         )
         docs = text_splitter.split_documents(transcript)
         all_docs.extend(docs)
