@@ -18,11 +18,18 @@ export default function RootLayout({
             </h1>
           </div>
           <div className="flex flex-col items-start text-sm">
-            <span><Link href="/about">Learn more</Link> / <Link href="https://github.com/eye-on-surveillance/the-great-inquirer">Github</Link>
-            </span></div>
+            <span>
+              <Link href="/about">Learn more</Link> /{" "}
+              <Link href="https://github.com/eye-on-surveillance/the-great-inquirer">
+                Github
+              </Link>
+            </span>
+          </div>
         </header>
-        <main className="bg-white p-6 text-black min-h-screen mb-12">{children}</main>
-        <footer className="flex flex-col items-center justify-center bg-red-500 p-6 text-xs text-white fixed bottom-0 w-screen mt-48">
+        <main className="mb-12 min-h-screen bg-white p-6 text-black">
+          {children}
+        </main>
+        <footer className="fixed bottom-0 mt-48 flex w-screen flex-col items-center justify-center bg-red-500 p-6 text-xs text-white">
           <div>
             <p className="md:sm text-sm font-light">
               &copy; {new Date().getFullYear()} The Great Inquirer
