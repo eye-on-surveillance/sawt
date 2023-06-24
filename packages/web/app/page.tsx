@@ -197,7 +197,10 @@ export default function Home() {
             {predefinedQueries.map((predefinedQuery, index) => (
               <button
                 key={index}
-                onClick={() => handlePredefinedQueryClick(predefinedQuery)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePredefinedQueryClick(predefinedQuery);
+                }}
                 className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
               >
                 {predefinedQuery}
