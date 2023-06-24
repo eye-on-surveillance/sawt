@@ -81,11 +81,11 @@ def get_general_summary_response_from_query(db, query, k=4):
         template="""
         As an AI assistant, you have access to the transcripts from New Orleans City Council meetings provided in "{docs}".
 
-        In response to the question "{question}", provide a succinct summary of the City Council's stance on the issue or voting details if it pertains to a specific vote. Avoid recreating the dialogue. 
+        In response to the question "{question}", provide a comprehensive summary of the City Council's stance on the issue or voting details if it pertains to a specific vote. Avoid recreating the dialogue. 
 
         Your response should take the following format:
 
-        1. Overview of City Council's position or voting summary including the ordinance number, who moved and seconded it, and how each council member voted if the query is about a specific vote.
+        1. A comprehensive overview of City Council's position or voting summary including the ordinance number, who moved and seconded it, and how each council member voted if the query is about a specific vote. Your response should not exceed one paragraph. 
 
         Note: If the available information from the transcripts is insufficient to accurately answer the question or summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
         """,
