@@ -61,7 +61,7 @@ def get_indepth_response_from_query(db, query, k=4):
     ):
         final_response += (
             remove_numbering_prefix(response)
-            + f"\n\nSourced from Youtube: {title} (Published on: {publish_date})\n\n"
+            + f"\n\nSource: {title} (Published on: {publish_date})\n\n"
         )
 
     return final_response
@@ -83,7 +83,7 @@ def get_general_summary_response_from_query(db, query, k=4):
 
         Your response should take the following format:
 
-        1. Overview of City Council's position.
+        Overview of City Council's position.
 
         Note: If the available information from the transcripts is insufficient to accurately answer the question or summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
         """,
