@@ -32,17 +32,19 @@ def get_indepth_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-    As an AI assistant, you are to recreate the actual dialogue that occurred between city council members and external stakeholders, based on the transcripts from New Orleans City Council meetings provided in "{docs}".
+    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and external stakeholders, based on the transcripts from New Orleans City Council meetings provided in "{docs}". In addition, also provide information about any votes that took place, such as the ordinance number, who moved and seconded it, and how each council member voted.
 
-    In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. As such, please generate as many pairs of statements and responses as necessary to completely answer the query. 
+    In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. 
 
-    For each key point and response, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved. Your response should take the following format:
+    For each key point, response, and voting action, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved. 
 
-    1. Summarize a key point raised by City Council Member. 
+    Your response should take the following format:
+    1. Summarize a key point raised by City Council Member.
     2. Accompany this key point with a direct quote the city council member that supports the key point. Please prefix the quote with "Quote from City Council Member". 
     3. Summarize a key point made by external stakeholders in response to the key point made by the City Council Member. 
     4. Accompany this key point with a direct quote from the external stakeholder that supports the key point. Please prefix the quote with "Quote from External Stakeholder". 
-    5. Continue this pattern, for each key point and each quote from both parties, until a comprehensive answer is reached.
+    5. For any votes that took place during the discussion, summarize the voting action including the ordinance number, who moved and seconded it, and how each council member voted. Accompany this summary with a direct quote from the meeting transcript.
+    6. Continue this pattern, for each key point, quote, and voting action until a comprehensive answer is reached.
 
     Note: If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
     """,
@@ -79,11 +81,11 @@ def get_general_summary_response_from_query(db, query, k=4):
         template="""
         As an AI assistant, you have access to the transcripts from New Orleans City Council meetings provided in "{docs}".
 
-        In response to the question "{question}", provide a succinct summary of the City Council's stance on the issue. Avoid recreating the dialogue. 
+        In response to the question "{question}", provide a succinct summary of the City Council's stance on the issue or voting details if it pertains to a specific vote. Avoid recreating the dialogue. 
 
         Your response should take the following format:
 
-        Overview of City Council's position.
+        1. Overview of City Council's position or voting summary including the ordinance number, who moved and seconded it, and how each council member voted if the query is about a specific vote.
 
         Note: If the available information from the transcripts is insufficient to accurately answer the question or summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
         """,
@@ -93,13 +95,16 @@ def get_general_summary_response_from_query(db, query, k=4):
 
     return responses_llm
 
+
 def route_question(db, query, query_type, k=4):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(db, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
         return get_general_summary_response_from_query(db, query, k)
     else:
-        raise ValueError(f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}")
+        raise ValueError(
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
+        )
 
 
 def answer_query(query: str, response_type: str, embeddings: any) -> str:

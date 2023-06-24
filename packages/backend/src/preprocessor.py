@@ -22,11 +22,14 @@ def create_embeddings():
     llm = OpenAI()
 
     prompt_template = """
-    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and external stakeholders (such as civil servants, law enforcement personnel, community members) based on the transcripts from New Orleans City Council meetings. 
+    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and external stakeholders (such as civil servants, law enforcement personnel, community members) based on the transcripts from New Orleans City Council meetings. In addition to the dialogue, your response should also include information about any votes that took place, such as the ordinance number, who moved and seconded it, and how each council member voted.
+    
     In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. 
-    For each statement and response, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved.
+    For each statement, response, and voting action, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved.
+    
     If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.
     Answer:"""
+
     prompt = PromptTemplate(input_variables=["question"], template=prompt_template)
 
     llm_chain = LLMChain(llm=llm, prompt=prompt)
