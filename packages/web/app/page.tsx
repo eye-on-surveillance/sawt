@@ -172,9 +172,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center p-4 text-center md:space-y-6">
       <div className="w-full space-y-8 md:w-2/3">
-        <p className="text-2xl">
-          Curious about New Orleans City Council?
-        </p>
+        <p className="text-2xl">Curious about New Orleans City Council?</p>
         <p className="text-sm text-gray-500">
           Type or choose a question from one of the prompts below and let us
           find the answer for you.
@@ -196,16 +194,19 @@ export default function Home() {
             />
           </div>
           <div className="my-4">
-          {predefinedQueries.map((predefinedQuery, index) => (
-            <button
-              key={index}
-              onClick={() => handlePredefinedQueryClick(predefinedQuery)}
-              className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
-            >
-              {predefinedQuery}
-            </button>
-          ))}
-        </div>
+            {predefinedQueries.map((predefinedQuery, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePredefinedQueryClick(predefinedQuery);
+                }}
+                className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
+              >
+                {predefinedQuery}
+              </button>
+            ))}
+          </div>
           <ResponseToggle onToggle={setResponseMode} />
           <button
             type="submit"

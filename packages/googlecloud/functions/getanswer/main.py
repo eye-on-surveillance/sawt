@@ -15,6 +15,7 @@ embeddings = OpenAIEmbeddings()
 
 API_VERSION = "0.0.1"
 
+
 @functions_framework.http
 def getanswer(request):
     """HTTP Cloud Function.
@@ -31,22 +32,20 @@ def getanswer(request):
         <https://cloud.google.com/functions/docs/writing/http#http_frameworks>
     """
     # Set CORS headers for the preflight request
-    if request.method == 'OPTIONS':
+    if request.method == "OPTIONS":
         # Allows POST requests from any origin with the Content-Type
         # header and caches preflight response for an 3600s
         headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Max-Age": "3600",
         }
 
-        return ('', 204, headers)
+        return ("", 204, headers)
 
     # Set CORS headers for the main request
-    headers = {
-        'Access-Control-Allow-Origin': '*'
-    }
+    headers = {"Access-Control-Allow-Origin": "*"}
     logging.info(f"getanswer {API_VERSION}")
     start = time.time()
 
@@ -58,7 +57,7 @@ def getanswer(request):
 
         query = parse_field(request_json, "query")
         response_type = parse_field(request_json, "response_type")
-        print(f"Processing {response_type} query: {query}" )
+        print(f"Processing {response_type} query: {query}")
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")

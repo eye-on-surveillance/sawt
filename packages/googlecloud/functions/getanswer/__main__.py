@@ -10,6 +10,7 @@ logging.basicConfig(
 
 load_dotenv(find_dotenv())
 
+
 def main():
     embeddings = OpenAIEmbeddings()
     query_memory = []
@@ -25,6 +26,7 @@ def main():
 
     print("Query memory:")
     print(query_memory)
+
 
 if __name__ == "__main__":
     main()
