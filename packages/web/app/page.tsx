@@ -13,7 +13,7 @@ import ResponseToggle from "./components/ResponseToggle";
 const predefinedQueries = [
   "Why is crime on the rise in New Orleans?",
   "What is the city doing to mitigate the rise of crime?",
-  "Provide a detailed report on NOPD's use of facial recognition according to quarterly reports",
+  "Is NOPD's use of facial recognition effective according to quarterly reports",
 ];
 
 export default function Home() {

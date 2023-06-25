@@ -12,7 +12,7 @@ logging.basicConfig(
 
 
 def main():
-    pdf_directory = "agenda_minutes_pdfs"
+    pdf_directory = "agendas_minutes_pdfs"
     print(f"Preprocessing videos, agendas, and minutes to generate a cache.")
 
     create_db_from_youtube_urls_and_pdfs(
