@@ -3,9 +3,8 @@
 import { RESPONSE_TYPE_GENERAL } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { faDownload, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { jsPDF } from "jspdf";
 import { ChangeEvent, useState } from "react";
 import ResponseToggle from "./components/ResponseToggle";
 
@@ -109,36 +108,6 @@ export default function Home() {
     setIsProcessing(false);
   };
 
-  const downloadTranscript = () => {
-    const doc = new jsPDF();
-    let cursor = 10;
-    let pageNumber = 1;
-
-    for (let i = history.length - 1; i >= 0; i--) {
-      let lines = doc.splitTextToSize("Query: " + history[i].query, 180);
-      const queryPageHeight = lines.length * 7;
-      const responsePageHeight = 7;
-
-      if (
-        cursor + queryPageHeight + responsePageHeight >
-        doc.internal.pageSize.getHeight()
-      ) {
-        doc.addPage();
-        cursor = 10;
-        pageNumber++;
-      }
-
-      doc.text(lines, 10, cursor);
-      cursor += queryPageHeight;
-
-      lines = doc.splitTextToSize("Response: " + history[i].answer, 180);
-      doc.text(lines, 10, cursor);
-      cursor += lines.length * 7 + 10;
-    }
-
-    doc.save(`Transcript_Page_${pageNumber}.pdf`);
-  };
-
   const clearHistory = () => {
     setHistory([]);
   };
@@ -216,15 +185,6 @@ export default function Home() {
             {isProcessing ? "Searching for your answer..." : "Ask"}
           </button>
         </form>
-        {hasHistory && (
-          <button
-            onClick={downloadTranscript}
-            className="mt-4 flex w-full items-center justify-center space-x-2 rounded-md bg-green-500 p-2 text-white shadow-lg hover:bg-green-700"
-          >
-            <FontAwesomeIcon icon={faDownload} />
-            <span>Download Transcript</span>
-          </button>
-        )}
         {hasHistory && renderHistory()}
       </div>
     </div>
