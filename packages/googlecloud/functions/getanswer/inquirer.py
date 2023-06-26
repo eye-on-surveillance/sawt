@@ -18,12 +18,7 @@ def remove_numbering_prefix(text):
 
 
 def get_indepth_response_from_query(db, query, k=4):
-    """
-    This function generates a detailed response (including direct quotes)
-    of the dialogue between city council members and external stakeholders such as community members,
-    civil servants, bureaucrats, law enforcement, etc.
-    """
-    logger.info("Performing in-depth query into public policy discussions...")
+    logger.info("Performing in-depth summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
     docs = db.similarity_search(query, k=k)
@@ -54,16 +49,20 @@ def get_indepth_response_from_query(db, query, k=4):
 
     generated_responses = responses_llm.split("\n\n")
 
-    generated_titles = [doc.metadata["title"] for doc in docs]
-    publish_dates = [doc.metadata["publish_date"].strftime("%Y-%m-%d") for doc in docs]
+    generated_sources = [
+        doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+    ]
+    publish_dates = [
+        doc.metadata.get("publish_date", "Date not available") for doc in docs
+    ]
 
     final_response = ""
-    for response, title, publish_date in zip(
-        generated_responses, generated_titles, publish_dates
+    for response, source, publish_date in zip(
+        generated_responses, generated_sources, publish_dates
     ):
         final_response += (
             remove_numbering_prefix(response)
-            + f"\n\nSource: {title} (Published on: {publish_date})\n\n"
+            + f"\n\nSource: {source} (Published on: {publish_date})\n\n"
         )
 
     return final_response
