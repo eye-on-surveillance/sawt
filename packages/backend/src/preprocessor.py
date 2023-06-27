@@ -92,10 +92,9 @@ def create_db_from_youtube_urls_and_pdfs(video_urls, doc_directory,  embeddings)
     video_docs = create_db_from_youtube_urls(video_urls)
     pdf_docs = create_db_from_docx(doc_directory)
 
-    weighted_pdfs = pdf_docs * 2
-    weighted_video_docs = video_docs * 3
+    weighted_video_docs = video_docs * 2
 
-    all_docs = weighted_video_docs + weighted_pdfs
+    all_docs = weighted_video_docs + pdf_docs
     db = FAISS.from_documents(all_docs, embeddings)
 
     cache_dir = dir.joinpath("cache")
