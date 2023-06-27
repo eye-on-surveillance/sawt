@@ -24,25 +24,39 @@ def get_indepth_response_from_query(db, query, k=4):
     docs = db.similarity_search(query, k=k)
 
     docs_page_content = " ".join([d.page_content for d in docs])
+
+    if "ordinance" in query.lower():
+        template = """
+        As an AI assistant, your task is to provide an in-depth response to the question "{question}" focusing on the ordinance, using the provided transcripts from New Orleans City Council meetings in "{docs}".
+
+        The response should include the following elements:
+        1. A succinct summary of the ordinance, outlining its key points and potential implications.
+        2. A balanced description of the discussion around the ordinance, including equal number of key points raised by City Council Members and external stakeholders.
+        3. Direct quotes from City Council Members and external stakeholders to support the key points, ensuring equal representation from both sides.
+        4. Details of any voting actions regarding the ordinance, such as who moved and seconded it, how each council member voted, and the final outcome. Include a quote from the meeting transcript to provide context.
+
+        Note: If the transcripts do not provide sufficient information for any of the above points, simply skip the incomplete point and continue with the others. Only provide information based on available and verified data from the transcripts.
+    """
+    else:
+        template = """
+        As an AI assistant, your task is to generate an in-depth response to the question "{question}" using the transcripts from New Orleans City Council meetings provided in "{docs}". 
+
+        Your response should resemble the structure of a real conversation, involving multiple exchanges between the parties. You should also include information about any voting actions that took place. 
+
+        To format your response:
+        1. Summarize a key point raised by a City Council Member.
+        2. Provide a direct quote from the city council member that supports the key point. Prefix the quote with "Quote from City Council Member".
+        3. Summarize a key point made by external stakeholders in response to the key point made by the City Council Member. 
+        4. Provide a direct quote from the external stakeholder that supports the key point. Prefix the quote with "Quote from External Stakeholder". 
+        5. Repeat steps 1-4 to ensure an equal representation of the City Council Members and external stakeholders.
+        6. For any votes that took place during the discussion, summarize the voting action, including the ordinance number, who moved and seconded it, and how each council member voted. Accompany this summary with a direct quote from the meeting transcript.
+
+        Note: If the transcripts do not provide sufficient information for any of the above points, simply skip that point and continue with the others. Only provide information that is supported by the transcripts.
+        """
+
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
-        template="""
-    As an AI assistant, your role is to recreate the actual dialogue that occurred between city council members and external stakeholders, based on the transcripts from New Orleans City Council meetings provided in "{docs}". In addition, also provide information about any votes that took place, such as the ordinance number, who moved and seconded it, and how each council member voted.
-
-    In response to the question "{question}", your output should mimic the structure of a real conversation, which often involves more than two exchanges between the parties. 
-
-    For each key point, response, and voting action, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved. 
-
-    Your response should take the following format:
-    1. Summarize a key point raised by City Council Member.
-    2. Accompany this key point with a direct quote the city council member that supports the key point. Please prefix the quote with "Quote from City Council Member". 
-    3. Summarize a key point made by external stakeholders in response to the key point made by the City Council Member. 
-    4. Accompany this key point with a direct quote from the external stakeholder that supports the key point. Please prefix the quote with "Quote from External Stakeholder". 
-    5. For any votes that took place during the discussion, summarize the voting action including the ordinance number, who moved and seconded it, and how each council member voted. Accompany this summary with a direct quote from the meeting transcript.
-    6. Continue this pattern, for each key point, quote, and voting action until a comprehensive answer is reached.
-
-    Note: If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
-    """,
+        template=template,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content)
@@ -78,18 +92,19 @@ def get_general_summary_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-        As an AI assistant, you have access to the transcripts from New Orleans City Council meetings provided in "{docs}".
+        As an AI assistant, you have access to the transcripts from New Orleans City Council meetings and associated minutes and agendas provided in "{docs}".
 
-        In response to the question "{question}", your primary task is to provide a comprehensive summary of the City Council's stance on the issue. Details of voting, including the ordinance number, who moved and seconded it, and how each council member voted should only be included if pertinent and available. Avoid recreating the dialogue. 
+        In response to the question "{question}", your primary task is to provide a balanced and comprehensive summary that equally represents information from the transcripts and minutes/agendas, as well as perspectives of both the City Council and external stakeholders.
 
         Your response should take the following format:
 
-        1. A comprehensive summary of City Council's position on the issue. 
-        2. If the query is about a specific vote and the information is available, provide a voting summary including the ordinance number, who moved and seconded it, and how each council member voted. 
+        1. A balanced summary of the City Council's position and external stakeholders' views on the issue based on the provided transcripts and minutes/agendas. 
 
-        Your response should not exceed one paragraph. 
+        2. If the query is about a specific vote and the information is available, provide a balanced voting summary including the ordinance number, who moved and seconded it, how each council member voted, and any significant viewpoints from external stakeholders. 
 
-        Note: If the available information from the transcripts is insufficient to accurately summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
+        Your response should not exceed one paragraph and should equally represent information from the transcripts and minutes/agendas. 
+
+        Note: If the available information from the transcripts and minutes/agendas is insufficient to accurately summarize the issue in a balanced manner, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts and minutes/agendas, state 'I don't know.'
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
