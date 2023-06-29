@@ -7,7 +7,7 @@ from inquirer import answer_query
 from langchain.embeddings.openai import OpenAIEmbeddings
 
 # Add the relative path of the directory where preprocessor.py is located
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../backend/src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../../backend/src"))
 
 # Now you should be able to import create_embeddings
 from preprocessor import create_embeddings

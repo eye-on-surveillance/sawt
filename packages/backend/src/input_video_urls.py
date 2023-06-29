@@ -14,17 +14,19 @@ CJ_INPUT_VIDEO_URLS = [
     {
         "url": "https://www.youtube.com/watch?v=ABsfv6bzOBA&ab_channel=NewOrleansCityCouncil"
     },
-        {
+    {
         "url": "https://www.youtube.com/watch?v=fxbVwYjIaok&ab_channel=NewOrleansCityCouncil"
     },
 ]
 
 FC_INPUT_VIDEO_URLS = [
-    {"url": "https://www.youtube.com/watch?v=XDMh4kiWRnM&ab_channel=NewOrleansCityCouncil"},
-        {
+    {
+        "url": "https://www.youtube.com/watch?v=XDMh4kiWRnM&ab_channel=NewOrleansCityCouncil"
+    },
+    {
         "url": "https://www.youtube.com/watch?v=ZX00_-VUSrM&ab_channel=NewOrleansCityCouncil"
     },
-        {
+    {
         "url": "https://www.youtube.com/watch?v=TUQ8MxcIWQI&ab_channel=NewOrleansCityCouncil"
     },
     {
