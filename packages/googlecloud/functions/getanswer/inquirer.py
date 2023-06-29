@@ -28,10 +28,9 @@ def get_indepth_response_from_query(db, query, k=4):
     template = """
         As an AI assistant, your task is to provide an in-depth response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        Your response should resemble the structure of a real conversation and highlight key points from the discussion, including significant quotes from City Council Members and external stakeholders. If relevant, include any voting actions, but only provide information that is supported by the transcripts.
+        Your response should resemble the structure of a real conversation and highlight key points from the discussion. If relevant, include any voting actions, but only provide information that is supported by the transcripts.
         
-        Note: If the transcripts do not provide sufficient information for a detailed response, summarize the key points that are covered in the documents. If the question extends significantly beyond the scope of the provided documents, state 'The provided documents do not contain sufficient information to fully answer this question.'
-    """
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    """
 
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -73,7 +72,7 @@ def get_general_summary_response_from_query(db, query, k=4):
         template="""
         As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        Note: If the documents do not cover all aspects of the question, focus on summarizing the key points from the information available. In the event that the question is beyond the scope of the provided documents, please state 'The provided documents do not contain sufficient information to fully answer this question.'
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
