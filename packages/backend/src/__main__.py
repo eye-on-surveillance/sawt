@@ -1,6 +1,6 @@
 import logging
 
-from input_video_urls import INPUT_VIDEO_URLS
+from input_video_urls import CJ_INPUT_VIDEO_URLS, FC_INPUT_VIDEO_URLS
 from dotenv import find_dotenv, load_dotenv
 from preprocessor import create_db_from_youtube_urls_and_pdfs, create_embeddings
 
@@ -14,9 +14,14 @@ logging.basicConfig(
 def main():
     pdf_directory = "agendas_minutes_pdfs"
     print(f"Preprocessing videos, agendas, and minutes to generate a cache.")
+    general_embeddings, in_depth_embeddings = create_embeddings()
 
     create_db_from_youtube_urls_and_pdfs(
-        INPUT_VIDEO_URLS, pdf_directory, create_embeddings()
+        FC_INPUT_VIDEO_URLS,
+        CJ_INPUT_VIDEO_URLS,
+        pdf_directory,
+        general_embeddings,
+        in_depth_embeddings,
     )
 
 

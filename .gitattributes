@@ -1,2 +1,6 @@
 packages/backend/src/cache/faiss_index/index.faiss filter=lfs diff=lfs merge=lfs -text
 packages/googlecloud/functions/getanswer/cache/faiss_index/index.faiss filter=lfs diff=lfs merge=lfs -text
+packages/backend/src/cache/faiss_index_general/index.faiss filter=lfs diff=lfs merge=lfs -text
+packages/backend/src/cache/faiss_index_in_depth/index.faiss filter=lfs diff=lfs merge=lfs -text
+packages/googlecloud/functions/getanswer/cache/faiss_index_general/index.faiss filter=lfs diff=lfs merge=lfs -text
+packages/googlecloud/functions/getanswer/cache/faiss_index_in_depth/index.faiss filter=lfs diff=lfs merge=lfs -text

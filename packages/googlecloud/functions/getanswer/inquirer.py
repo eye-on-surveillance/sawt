@@ -25,34 +25,12 @@ def get_indepth_response_from_query(db, query, k=4):
 
     docs_page_content = " ".join([d.page_content for d in docs])
 
-    if "ordinance" in query.lower():
-        template = """
-        As an AI assistant, your task is to provide an in-depth response to the question "{question}" focusing on the ordinance, using the provided transcripts from New Orleans City Council meetings in "{docs}".
+    template = """
+        As an AI assistant, your task is to provide an in-depth response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        The response should include the following elements:
-        1. A succinct summary of the ordinance, outlining its key points and potential implications.
-        2. A balanced description of the discussion around the ordinance, including equal number of key points raised by City Council Members and external stakeholders.
-        3. Direct quotes from City Council Members and external stakeholders to support the key points, ensuring equal representation from both sides.
-        4. Details of any voting actions regarding the ordinance, such as who moved and seconded it, how each council member voted, and the final outcome. Include a quote from the meeting transcript to provide context.
-
-        Note: If the transcripts do not provide sufficient information for any of the above points, simply skip the incomplete point and continue with the others. Only provide information based on available and verified data from the transcripts.
-    """
-    else:
-        template = """
-        As an AI assistant, your task is to generate an in-depth response to the question "{question}" using the transcripts from New Orleans City Council meetings provided in "{docs}". 
-
-        Your response should resemble the structure of a real conversation, involving multiple exchanges between the parties. You should also include information about any voting actions that took place. 
-
-        To format your response:
-        1. Summarize a key point raised by a City Council Member.
-        2. Provide a direct quote from the city council member that supports the key point. Prefix the quote with "Quote from City Council Member".
-        3. Summarize a key point made by external stakeholders in response to the key point made by the City Council Member. 
-        4. Provide a direct quote from the external stakeholder that supports the key point. Prefix the quote with "Quote from External Stakeholder". 
-        5. Repeat steps 1-4 to ensure an equal representation of the City Council Members and external stakeholders.
-        6. For any votes that took place during the discussion, summarize the voting action, including the ordinance number, who moved and seconded it, and how each council member voted. Accompany this summary with a direct quote from the meeting transcript.
-
-        Note: If the transcripts do not provide sufficient information for any of the above points, simply skip that point and continue with the others. Only provide information that is supported by the transcripts.
-        """
+        Your response should resemble the structure of a real conversation and highlight key points from the discussion. If relevant, include any voting actions, but only provide information that is supported by the transcripts.
+        
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    """
 
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -92,19 +70,9 @@ def get_general_summary_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-        As an AI assistant, you have access to the transcripts from New Orleans City Council meetings and associated minutes and agendas provided in "{docs}".
+        As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        In response to the question "{question}", your primary task is to provide a balanced and comprehensive summary that equally represents information from the transcripts and minutes/agendas, as well as perspectives of both the City Council and external stakeholders.
-
-        Your response should take the following format:
-
-        1. A balanced summary of the City Council's position and external stakeholders' views on the issue based on the provided transcripts and minutes/agendas. 
-
-        2. If the query is about a specific vote and the information is available, provide a balanced voting summary including the ordinance number, who moved and seconded it, how each council member voted, and any significant viewpoints from external stakeholders. 
-
-        Your response should not exceed one paragraph and should equally represent information from the transcripts and minutes/agendas. 
-
-        Note: If the available information from the transcripts and minutes/agendas is insufficient to accurately summarize the issue in a balanced manner, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts and minutes/agendas, state 'I don't know.'
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
@@ -113,22 +81,28 @@ def get_general_summary_response_from_query(db, query, k=4):
     return responses_llm
 
 
-def route_question(db, query, query_type, k=4):
+def route_question(db_general, db_in_depth, query, query_type, k=4):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(db, query, k)
+        return get_indepth_response_from_query(db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
-        return get_general_summary_response_from_query(db, query, k)
+        return get_general_summary_response_from_query(db_general, query, k)
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
         )
 
 
-def answer_query(query: str, response_type: str, embeddings: any) -> str:
-    faiss_index_path = dir.joinpath("cache/faiss_index")
-    db = FAISS.load_local(faiss_index_path, embeddings)
-    logger.info("Loaded database from faiss_index")
+def answer_query(
+    query: str, response_type: str, general_embeddings: any, in_depth_embeddings: any
+) -> str:
+    general_faiss_index_path = dir.joinpath("cache/faiss_index_general")
+    in_depth_faiss_index_path = dir.joinpath("cache/faiss_index_in_depth")
 
-    final_response = route_question(db, query, response_type)
+    db_general = FAISS.load_local(general_faiss_index_path, general_embeddings)
+    db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
+
+    logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
+
+    final_response = route_question(db_general, db_in_depth, query, response_type)
 
     return final_response
