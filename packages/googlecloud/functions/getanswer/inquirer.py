@@ -71,11 +71,9 @@ def get_general_summary_response_from_query(db, query, k=4):
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template="""
-    As an AI assistant, you have access to the transcripts from New Orleans City Council meetings and associated minutes and agendas provided in "{docs}".
+    As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-    Your task is to answer the question "{question}" using only the information contained in the available documents. 
-
-    Note: It's alright if the documents do not provide comprehensive information for a detailed answer. In this case, try to summarize the key points or aspects that are covered in the documents. If the question extends significantly beyond the scope of the provided documents, please state 'The provided documents do not contain sufficient information to fully answer this question.'
+    Note: It's alright if the documents do not provide comprehensive information for a detailed answer. In this case, summarize the key points or aspects that are covered in the documents. If the question extends the scope of the provided documents, please state 'The provided documents do not contain sufficient information to fully answer this question.'
     """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
