@@ -1,15 +1,12 @@
 import logging
-from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
-from pathlib import Path
 import re
 
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
-dir = Path(__file__).parent.absolute()
 
 
 def remove_numbering_prefix(text):
@@ -93,16 +90,8 @@ def route_question(db_general, db_in_depth, query, query_type, k=4):
 
 
 def answer_query(
-    query: str, response_type: str, general_embeddings: any, in_depth_embeddings: any
+    query: str, response_type: str, db_general: any, db_in_depth: any
 ) -> str:
-    general_faiss_index_path = dir.joinpath("cache/faiss_index_general")
-    in_depth_faiss_index_path = dir.joinpath("cache/faiss_index_in_depth")
-
-    db_general = FAISS.load_local(general_faiss_index_path, general_embeddings)
-    db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
-
-    logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
-
     final_response = route_question(db_general, db_in_depth, query, response_type)
 
     return final_response

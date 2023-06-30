@@ -147,6 +147,8 @@ export default function Home() {
           find the answer for you.
         </p>
 
+        <ResponseToggle onToggle={setResponseMode} />
+
         <form onSubmit={submitQuery} className="space-y-4">
           <div className="relative">
             <input
@@ -162,7 +164,15 @@ export default function Home() {
               className="absolute left-3 top-1/2 h-7 w-7 -translate-y-1/2 text-indigo-500"
             />
           </div>
-          <div className="my-4">
+          <button
+            type="submit"
+            disabled={isProcessing}
+            className="w-full rounded-md bg-teal-500 p-2 text-white shadow-lg hover:bg-teal-700"
+          >
+            {isProcessing ? "Searching for your answer..." : "Ask"}
+          </button>
+        </form>
+        <div className="my-4">
             {predefinedQueries.map((predefinedQuery, index) => (
               <button
                 key={index}
@@ -176,15 +186,6 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <ResponseToggle onToggle={setResponseMode} />
-          <button
-            type="submit"
-            disabled={isProcessing}
-            className="w-full rounded-md bg-teal-500 p-2 text-white shadow-lg hover:bg-teal-700"
-          >
-            {isProcessing ? "Searching for your answer..." : "Ask"}
-          </button>
-        </form>
         {hasHistory && renderHistory()}
       </div>
     </div>

@@ -29,10 +29,11 @@ curl -XPOST localhost:8080 -H "Content-Type: application/json" \
 ```
 gcloud config set project the-great-inquirer
 
+# https://cloud.google.com/functions/docs/configuring/memory
 gcloud functions deploy getanswer \
     --gen2 \
     --runtime=python310 \
-    --memory=1GB \
+    --memory=4GB \
     --region=us-east1 \
     --source=. \
     --entry-point=getanswer \
