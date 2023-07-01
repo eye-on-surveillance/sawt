@@ -14,7 +14,24 @@ import datetime
 
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
+TIMESTAMP_ERROR_MARGIN = 0.2
+CHUNK_SIZE = 2000
+CHUNK_OVERLAP = 100
 
+# Append timestamp and url to metadata
+# Expected metadata before execution
+# {'source': 'Bl-Tv5yuUTw', 'title': 'City Council Meeting 2-2-2023', 'description': 'Unknown', 'view_count': 1327, 'thumbnail_url': 'https://i.ytimg.com/vi/Bl-Tv5yuUTw/hq720.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGEwgRCh_MA8=&rs=AOn4CLCZWmHMCG2b0OtTkv7lknmoR7o7wA', 'publish_date': '2023-02-02 00:00:00', 'length': 24949, 'author': 'New Orleans City Council'}
+def append_metadata(doc, i, num_docs, total_length, url):
+    timestamp = i / num_docs * total_length
+    error_margin = total_length * TIMESTAMP_ERROR_MARGIN / 2
+    start = max(0, timestamp - error_margin)
+    end = min(total_length, timestamp + error_margin)
+    start_str = str(datetime.timedelta(seconds=start)).split(".")[0]
+    end_str = str(datetime.timedelta(seconds=end)).split(".")[0]
+    doc.metadata["timestamp"] = f"{start_str} - {end_str}"
+    doc.metadata["url"] = url
+    # print(f"Timestamp {timestamp} of {total_length}")
+    return doc
 
 def create_embeddings():
     llm = OpenAI()
@@ -62,7 +79,7 @@ def create_db_from_docx(doc_directory):
             continue
         source_id = os.path.splitext(doc_file)[0]
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2500, chunk_overlap=1250
+            chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
         docs = text_splitter.split_documents(document)
         all_docs.extend(docs)
@@ -82,9 +99,11 @@ def create_db_from_fc_youtube_urls(video_urls):
             continue
         source_id = transcript[0].metadata["title"]
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000, chunk_overlap=2000
+            chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
         docs = text_splitter.split_documents(transcript)
+        total_length = transcript[0].metadata["length"]        
+        docs = [append_metadata(doc, i, len(docs), total_length, video_url) for i, doc in enumerate(docs)] 
         all_docs.extend(docs)
         logger.info(f"Finished processing {source_id}")
     return all_docs
@@ -102,9 +121,11 @@ def create_db_from_cj_youtube_urls(video_urls):
             continue
         source_id = transcript[0].metadata["title"]
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000, chunk_overlap=2000
+            chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
         )
         docs = text_splitter.split_documents(transcript)
+        total_length = transcript[0].metadata["length"]        
+        docs = [append_metadata(doc, i, len(docs), total_length, video_url) for i, doc in enumerate(docs)] 
         all_docs.extend(docs)
         logger.info(f"Finished processing {source_id}")
     return all_docs
@@ -115,11 +136,11 @@ def create_db_from_youtube_urls_and_pdfs(
 ):
     fc_video_docs = create_db_from_fc_youtube_urls(fc_video_urls)
     cj_video_docs = create_db_from_cj_youtube_urls(cj_video_urls)
-    pdf_docs = create_db_from_docx(doc_directory)
+    # pdf_docs = create_db_from_docx(doc_directory)
 
     fc_weighted_video_docs = fc_video_docs * 2
 
-    all_docs = fc_weighted_video_docs + cj_video_docs + pdf_docs
+    all_docs = fc_weighted_video_docs + cj_video_docs # + pdf_docs
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)
 
