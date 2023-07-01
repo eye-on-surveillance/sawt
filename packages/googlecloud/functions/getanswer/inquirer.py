@@ -45,13 +45,21 @@ def get_indepth_response_from_query(db, query, k=4):
         doc.metadata.get("publish_date", "Date not available") for doc in docs
     ]
 
+    timestamps = [
+        doc.metadata.get("timestamp", "Timestamp not available") for doc in docs
+    ]
+
+    urls = [
+        doc.metadata.get("url", "Video URL not available") for doc in docs
+    ]
+
     final_response = ""
-    for response, source, publish_date in zip(
-        generated_responses, generated_sources, publish_dates
+    for response, source, publish_date, timestamp, url in zip(
+        generated_responses, generated_sources, publish_dates, timestamps, urls
     ):
         final_response += (
             remove_numbering_prefix(response)
-            + f"\n\nSource: {source} (Published on: {publish_date})\n\n"
+            + f"\n\nSource: {source} (Published on: {publish_date})\n{url}\nProbably around {timestamp}. Note these times are very rough estimates based on word counts.\n\n"
         )
 
     return final_response

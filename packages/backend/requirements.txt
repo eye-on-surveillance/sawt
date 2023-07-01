@@ -9,3 +9,4 @@ tiktoken
 faiss-cpu
 wikipedia
 pytube
+docx2txt
