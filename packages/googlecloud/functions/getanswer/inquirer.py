@@ -218,7 +218,7 @@ def route_question(db_general, db_in_depth, db_voting, query, query_type, k=4):
     elif query_type == RESPONSE_TYPE_GENERAL:
         return get_general_summary_response_from_query(db_general, query, k)
     elif query_type == RESPONSE_TYPE_VOTING:
-        return get_voting_summary_response_from_query(db_voting, query, k=4)
+        return get_voting_summary_response_from_query(db_voting, query, k=1)
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
