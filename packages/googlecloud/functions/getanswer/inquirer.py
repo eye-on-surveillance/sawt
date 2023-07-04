@@ -59,7 +59,7 @@ def get_indepth_response_from_query(db, query, k=4):
     ):
         final_response += (
             remove_numbering_prefix(response)
-            + f"\n\nSource: {source} (Published on: {publish_date})\n{url}\nProbably around {timestamp}. Note these times are very rough estimates based on word counts.\n\n"
+            + f"\n\nSource: {source} (Published on: {publish_date}) with an approximate timestamp of {timestamp} (±5 minutes margin of error).\nLink: {url}\n\n"
         )
 
     return final_response
