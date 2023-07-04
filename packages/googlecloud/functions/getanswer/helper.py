@@ -10,13 +10,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 """Parse field from JSON or raise error if missing"""
+
+
 def parse_field(request_json, field: str):
     if request_json and field in request_json:
         return request_json[field]
     else:
         raise ValueError(f"JSON is invalid, or missing a '${field}' property")
+
 
 def get_dbs():
     dir = Path(__file__).parent.absolute()
@@ -29,6 +31,7 @@ def get_dbs():
     db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
     logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
     return db_general, db_in_depth
+
 
 def create_embeddings():
     llm = OpenAI()
