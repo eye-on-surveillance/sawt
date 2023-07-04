@@ -15,6 +15,7 @@ API_VERSION = "0.0.1"
 
 db_general, db_in_depth = get_dbs()
 
+
 @functions_framework.http
 def getanswer(request):
     """HTTP Cloud Function.

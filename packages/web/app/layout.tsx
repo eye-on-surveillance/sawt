@@ -14,7 +14,7 @@ export default function RootLayout({
         <header className="flex flex-col items-center justify-between bg-red-500 px-6 py-2 text-white">
           <div className="mx-6 grow text-center">
             <h1 className="mb-2 text-xl font-bold md:text-2xl">
-              <Link href="/">The Great Inquirer</Link>
+              <Link href="/">Sawt</Link>
             </h1>
           </div>
           <div className="flex flex-col items-start text-sm">
@@ -32,7 +32,7 @@ export default function RootLayout({
         <footer className="fixed bottom-0 mt-48 flex w-screen flex-col items-center justify-center bg-red-500 p-6 text-xs text-white">
           <div>
             <p className="md:sm text-sm font-light">
-              &copy; {new Date().getFullYear()} The Great Inquirer
+              &copy; {new Date().getFullYear()} Sawt
             </p>
           </div>
           <div className="mt-2">

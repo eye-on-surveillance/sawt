@@ -3,15 +3,11 @@ from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
 import re
+from itertools import zip_longest
 
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
-
-
-def remove_numbering_prefix(text):
-    # Remove numbering prefixes like "1. ", "2. ", etc.
-    return re.sub(r"^\d+\.\s+", "", text)
 
 
 def get_indepth_response_from_query(db, query, k=4):
@@ -24,17 +20,17 @@ def get_indepth_response_from_query(db, query, k=4):
 
     template = """
         As an AI assistant, your task is to provide an in-depth response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
-
-        Your response should resemble the structure of a real conversation and highlight key points from the discussion. If relevant, include any voting actions, but only provide information that is supported by the transcripts.
         
-        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    """
-
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.    
+    """
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
         template=template,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content)
+    responses_llm = chain_llm.run(
+        question=query, docs=docs_page_content, temperature=0.3
+    )
 
     generated_responses = responses_llm.split("\n\n")
 
@@ -42,25 +38,34 @@ def get_indepth_response_from_query(db, query, k=4):
         doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
     ]
     publish_dates = [
-        doc.metadata.get("publish_date", "Date not available") for doc in docs
+        doc.metadata.get("publish_date", "date not available") for doc in docs
     ]
 
     timestamps = [
-        doc.metadata.get("timestamp", "Timestamp not available") for doc in docs
+        doc.metadata.get("timestamp", "timestamp not available") for doc in docs
     ]
 
-    urls = [
-        doc.metadata.get("url", "Video URL not available") for doc in docs
-    ]
+    urls = [doc.metadata.get("url", "video URL not available") for doc in docs]
 
     final_response = ""
-    for response, source, publish_date, timestamp, url in zip(
-        generated_responses, generated_sources, publish_dates, timestamps, urls
-    ):
-        final_response += (
-            remove_numbering_prefix(response)
-            + f"\n\nSource: {source} (Published on: {publish_date}) with an approximate timestamp of {timestamp} (±5 minutes margin of error).\nLink: {url}\n\n"
+    for i, (response, source, publish_date, timestamp, url) in enumerate(
+        zip_longest(
+            generated_responses, generated_sources, publish_dates, timestamps, urls
         )
+    ):
+        if response is None:
+            response = "No response generated."
+        else:
+            response = response
+
+        if i < k - 1:
+            response += f"\n\nSource: {source}\nPublished on: {publish_date}"
+            if timestamp and timestamp != "Timestamp not available":
+                response += f"\nApproximate timestamp of {timestamp} (±5 minutes margin of error)."
+            if url and url != "Video URL not available":
+                response += f"\nLink: {url}"
+
+        final_response += response + "\n\n"
 
     return final_response
 
@@ -77,7 +82,7 @@ def get_general_summary_response_from_query(db, query, k=4):
         template="""
         As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and state 'The provided documents might not cover all aspects of the question but they do provide some key insights on the following points:'.    
+        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.    
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
