@@ -1,5 +1,6 @@
 "use strict";
 
+import { Analytics } from '@vercel/analytics/react';
 import Link from "next/link";
 import "./globals.css";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
             </h2>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
