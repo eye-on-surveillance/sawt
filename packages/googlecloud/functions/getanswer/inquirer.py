@@ -86,7 +86,7 @@ def get_general_summary_response_from_query(db, query, k=4):
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=.3)
 
     return responses_llm
 

@@ -24,11 +24,25 @@ def main():
     db_general, db_in_depth = get_dbs()
 
     while True:
-        query = input("Enter your query (or 'quit' to exit): ")
-        if query == "quit":
+        query_input = input("Enter your query with response type (or 'quit' to exit): ")
+        if query_input.lower() == "quit":
             break
 
-        response = answer_query(query, db_general, db_in_depth)
+        # Split the query_input into the response_type and the query
+        query_parts = query_input.split(": ", 1)
+        response_type = query_parts[0]
+        query = query_parts[1]
+        
+        # map response type to the required format
+        response_type_map = {
+            "General Summary": "general",
+            "In-Depth Response": "in_depth",
+        }
+        if response_type not in response_type_map:
+            print("Invalid response type. Please start your query with either 'General Summary' or 'In-Depth Response'.")
+            continue
+
+        response = answer_query(query, response_type_map[response_type], db_general, db_in_depth)
         print(response)
         query_memory.append(query)
 
