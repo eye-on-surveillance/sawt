@@ -10,8 +10,8 @@ import ResponseToggle from "./components/ResponseToggle";
 
 // Predefined queries
 const predefinedQueries = [
-  "Why is crime on the rise in New Orleans?",
-  "What is the city doing to mitigate the rise of crime?",
+  "What is city council doing to address racial inequality?",
+  "What is a proviso?",
   "Is NOPD's use of facial recognition effective according to quarterly reports",
 ];
 

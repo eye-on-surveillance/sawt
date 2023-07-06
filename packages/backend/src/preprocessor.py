@@ -97,7 +97,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3000, chunk_overlap=1500
+            chunk_size=3500, chunk_overlap=1750
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -121,7 +121,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3000, chunk_overlap=1550
+            chunk_size=3500, chunk_overlap=1750
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -139,6 +139,8 @@ def create_db_from_youtube_urls_and_pdfs(
     fc_video_docs = create_db_from_fc_transcripts(fc_json_directory)
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
     pdf_docs = create_db_from_docx(doc_directory)
+
+    weighed_fc_docs = fc_video_docs * 2
 
     all_docs = fc_video_docs + cj_video_docs + pdf_docs
     db_general = FAISS.from_documents(all_docs, general_embeddings)
