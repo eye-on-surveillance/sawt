@@ -1,0 +1,4 @@
+[core]
+    remote = sawt
+['remote "sawt"']
+    url = gs://faiss
