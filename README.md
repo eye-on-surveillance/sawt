@@ -12,3 +12,22 @@ The Great Inquirer is a platform designed to facilitate direct communication bet
 - `backend`: Python code for executing queries
 - `web`: NextJS web site
 - `googlecloud`: backend code ported to google cloud
+
+## Getting started 
+Follow the instructions below to run test locally 
+```bash
+# Pull data (transcripts, minutes, agendas) from the preprocessed stage using DVC
+dvc pull
+
+# Navigate to the 'src' directory inside 'packages/backend'
+cd packages/backend/src
+
+# Install the required Python dependencies
+pip install -r requirements.txt
+
+# Navigate to the 'getanswer' function directory inside 'packages/googlecloud/functions'
+cd ../../googlecloud/functions/getanswer 
+
+# Run the main Python script
+python __main__.py
+```
