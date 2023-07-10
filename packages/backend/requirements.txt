@@ -10,3 +10,5 @@ faiss-cpu
 wikipedia
 pytube
 docx2txt
+dvc
+dvc-gs
