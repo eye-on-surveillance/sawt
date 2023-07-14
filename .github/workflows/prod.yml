@@ -1,8 +1,8 @@
-name: Staging Deploy to Google Cloud Functions
+name: Production Deploy to Google Cloud Functions
 
 on:
   push:
-    branches: [ main ]
+    branches: [ prod ]
 
 jobs:
   deploy:
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: prod
 
       - name: Install DVC
         run: |
@@ -40,7 +40,7 @@ jobs:
 
       - name: Deploy to Cloud Functions
         run: |
-          gcloud functions deploy getanswer-staging \
+          gcloud functions deploy getanswer \
               --gen2 \
               --runtime=python310 \
               --memory=4GB \
@@ -49,4 +49,4 @@ jobs:
               --entry-point=getanswer \
               --trigger-http \
               --allow-unauthenticated \
-              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY_STAGING }}
+              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
