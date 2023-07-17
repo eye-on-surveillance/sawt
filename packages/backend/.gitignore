@@ -2,3 +2,5 @@
 .log
 wiki/
 __pycache__/
+faiss_index_general/
+faiss_index_in_depth/
