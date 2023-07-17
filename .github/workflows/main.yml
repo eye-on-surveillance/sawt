@@ -1,4 +1,4 @@
-name: Deploy to Google Cloud Functions
+name: Staging Deploy to Google Cloud Functions
 
 on:
   push:
@@ -11,6 +11,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Install DVC
+        run: |
+          sudo wget \
+            https://dvc.org/deb/dvc.list \
+            -O /etc/apt/sources.list.d/dvc.list &&
+          wget -qO - https://dvc.org/deb/iterative.asc | gpg --dearmor > packages.iterative.gpg &&
+          sudo install -o root -g root -m 644 packages.iterative.gpg /etc/apt/trusted.gpg.d/ &&
+          rm -f packages.iterative.gpg &&
+          sudo apt update &&
+          sudo apt install dvc
+
+      - name: Pull DVC Files
+        run: dvc pull
 
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v1'
