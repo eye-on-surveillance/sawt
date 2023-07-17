@@ -1,4 +1,6 @@
 [core]
-    remote = sawt
-['remote "sawt"']
+    remote = myremote
+['remote "myremote"']
     url = gs://faiss
+    projectname = the-great-inquirer
+
