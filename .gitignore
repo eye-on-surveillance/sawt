@@ -1,2 +1,5 @@
 node_modules/
 dvc-env/
+cred/
+*.txt
+__pycache__/

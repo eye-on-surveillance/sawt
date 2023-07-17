@@ -1,0 +1,52 @@
+name: Production Deploy to Google Cloud Functions
+
+on:
+  push:
+    branches: [ prod ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: prod
+
+      - name: Install DVC
+        run: |
+          sudo wget \
+            https://dvc.org/deb/dvc.list \
+            -O /etc/apt/sources.list.d/dvc.list &&
+          wget -qO - https://dvc.org/deb/iterative.asc | gpg --dearmor > packages.iterative.gpg &&
+          sudo install -o root -g root -m 644 packages.iterative.gpg /etc/apt/trusted.gpg.d/ &&
+          rm -f packages.iterative.gpg &&
+          sudo apt update &&
+          sudo apt install dvc
+
+      - name: Pull DVC Files
+        run: dvc pull
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_SA_JSON }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Functions
+        run: |
+          gcloud functions deploy getanswer \
+              --gen2 \
+              --runtime=python310 \
+              --memory=4GB \
+              --region=us-east1 \
+              --source=packages/googlecloud/functions/getanswer \
+              --entry-point=getanswer \
+              --trigger-http \
+              --allow-unauthenticated \
+              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
