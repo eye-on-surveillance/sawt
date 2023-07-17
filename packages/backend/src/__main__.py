@@ -11,7 +11,7 @@ logging.basicConfig(
 
 
 def main():
-    pdf_directory = "agendas_minutes_pdfs"
+    pdf_directory = "minutes_agendas_directory"
     cj_json_directory = "json_cj_directory"
     fc_json_directory = "json_fc_directory"
     print(f"Preprocessing videos, agendas, and minutes to generate a cache.")
