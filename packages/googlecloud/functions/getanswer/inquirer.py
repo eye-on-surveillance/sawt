@@ -29,8 +29,7 @@ def get_indepth_response_from_query(db, query, k=4):
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0.3
-    )
+        question=query, docs=docs_page_content, temperature=0)
 
     generated_responses = responses_llm.split("\n\n")
 
@@ -86,7 +85,7 @@ def get_general_summary_response_from_query(db, query, k=4):
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=.3)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
 
     return responses_llm
 
