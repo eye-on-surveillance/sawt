@@ -3,7 +3,7 @@ import { RadioGroup } from "@headlessui/react";
 import React from "react";
 
 interface ResponseToggleProps {
-  onToggle: (selected: string) => void;
+  onToggle: (_: string) => void;
 }
 
 function ResponseToggle({ onToggle }: ResponseToggleProps) {

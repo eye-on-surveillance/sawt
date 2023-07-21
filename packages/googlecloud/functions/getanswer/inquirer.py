@@ -2,8 +2,7 @@ import logging
 from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
-import re
-from itertools import zip_longest
+import json
 
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
@@ -50,45 +49,22 @@ def get_indepth_response_from_query(db, query, k=4):
 
     urls = [doc.metadata.get("url", "url not available") for doc in docs]
 
-    final_response = ""
-    for i, (
-        response,
-        title,
-        page_number,
-        source,
-        publish_date,
-        timestamp,
-        url,
-    ) in enumerate(
-        zip_longest(
-            generated_responses,
-            generated_titles,
-            page_numbers,
-            generated_sources,
-            publish_dates,
-            timestamps,
-            urls,
-        )
-    ):
-        if response is None:
-            response = "No response generated."
-        else:
-            response = response
+    def gen_responses(i):
+        section = {}
+        section['response'] = generated_responses[i] if i < len(generated_responses) else None
+        section['source_title'] = generated_titles[i] if i < len(generated_titles) else None
+        section['source_name'] = generated_sources[i] if i < len(generated_sources) else None
+        section['source_page_number'] = page_numbers[i] if i < len(page_numbers) else None
+        section['source_publish_date'] = publish_dates[i] if i < len(publish_dates) else None
+        section['source_timestamp'] = timestamps[i] if i < len(timestamps) else None
+        section['source_url'] = urls[i] if i < len(urls) else None
+        return section
 
-        if i < k - 1:
-            response += f"\n\nTitle: {title}"
-            if page_number is not None:
-                response += f"\nPage Number: {page_number}"
-            response += f"\nSource: {source}\nPublished on: {publish_date}"
-            if timestamp and timestamp != "Timestamp not available":
-                response += f"\nApproximate timestamp of {timestamp} (±5 minutes margin of error)."
-            if url and url != "URL not available":
-                response += f"\nLink: {url}"
-
-        final_response += response + "\n\n"
-
-    return final_response
-
+    num_responses = len(generated_responses)
+    responses = [gen_responses(i) for i in range(num_responses)]
+    card = {'card_type': RESPONSE_TYPE_DEPTH, 'responses': responses}
+    card_json = json.dumps(card)
+    return card_json
 
 def get_general_summary_response_from_query(db, query, k=4):
     logger.info("Performing general summary query...")
@@ -107,8 +83,10 @@ def get_general_summary_response_from_query(db, query, k=4):
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
-
-    return responses_llm
+    response = {'response': responses_llm}
+    card = {'card_type': RESPONSE_TYPE_GENERAL, 'responses': [response]}
+    card_json = json.dumps(card)
+    return card_json
 
 
 def route_question(db_general, db_in_depth, query, query_type, k=4):

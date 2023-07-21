@@ -57,14 +57,12 @@ def getanswer(request):
 
         query = parse_field(request_json, "query")
         response_type = parse_field(request_json, "response_type")
-        print(f"Processing {response_type} query: {query}")
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")
 
     answer = answer_query(query, response_type, db_general, db_in_depth)
 
-    # return new uri
     end = time.time()
     elapsed = math.ceil(end - start)
     logging.info(f"Completed getanswer in {elapsed} seconds")

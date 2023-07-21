@@ -5,40 +5,42 @@ const AboutPage: React.FC = () => {
     <section className="space-y-4 p-6">
       <h2 className="text-2xl font-bold">About Sawt</h2>
       <p>
-        Welcome to the Sawt—a revolution in how you
-        interact with your city council representatives. By harnessing the power
-        of advanced language modeling, we&apos;ve created a platform that
-        provides a seamless and trustworthy source of information. Our extensive
-        database, drawn from the transcripts, minutes, and agendas of city
-        council meetings, provides the bedrock of our service. No more digging
-        through countless documents—now, all the critical details from these
-        meetings are at your fingertips. Not just data, but knowledge—insights,
-        clarifications, and contextual understanding made possible through our
-        AI-powered analysis of these resources. With Sawt, you&apos;re not just getting answers, you&apos;re gaining a
-        deeper understanding of your city&apos;s governance. Start your journey
-        with us, and see how we&apos;re changing the face of citizen engagement.
+        Welcome to the Sawt—a revolution in how you interact with your city
+        council representatives. By harnessing the power of advanced language
+        modeling, we&apos;ve created a platform that provides a seamless and
+        trustworthy source of information. Our extensive database, drawn from
+        the transcripts, minutes, and agendas of city council meetings, provides
+        the bedrock of our service. No more digging through countless
+        documents—now, all the critical details from these meetings are at your
+        fingertips. Not just data, but knowledge—insights, clarifications, and
+        contextual understanding made possible through our AI-powered analysis
+        of these resources. With Sawt, you&apos;re not just getting answers,
+        you&apos;re gaining a deeper understanding of your city&apos;s
+        governance. Start your journey with us, and see how we&apos;re changing
+        the face of citizen engagement.
       </p>
       <h2 className="text-2xl font-bold">Features</h2>
       <ul className="list-disc pl-5">
         <li>
-          Comprehensive Answers: Sawt aims to provide accurate and
-          comprehensive answers to user queries. Our AI assistant generates
-          summaries of statements and responses from city council members and
-          external stakeholders, accompanied by direct quotes from the meeting
+          Comprehensive Answers: Sawt aims to provide accurate and comprehensive
+          answers to user queries. Our AI assistant generates summaries of
+          statements and responses from city council members and external
+          stakeholders, accompanied by direct quotes from the meeting
           transcripts. We strive to preserve context and substance while
           addressing the questions posed by our users.
         </li>
         <li>
-          Contextual Dialogue Recreation: Through our AI assistant, Sawt recreates the actual dialogue that took place during city
-          council meetings. By analyzing transcripts and generating
-          comprehensive statements and responses, we ensure that users receive a
-          holistic understanding of the discussions and decisions made by
-          council members and external stakeholders.
+          Contextual Dialogue Recreation: Through our AI assistant, Sawt
+          recreates the actual dialogue that took place during city council
+          meetings. By analyzing transcripts and generating comprehensive
+          statements and responses, we ensure that users receive a holistic
+          understanding of the discussions and decisions made by council members
+          and external stakeholders.
         </li>
         <li>
-          Reliable Information: Sawt is founded on an extensive
-          database of New Orleans&apos; City Council meetings. These meetings
-          were meticulously sourced from the{" "}
+          Reliable Information: Sawt is founded on an extensive database of New
+          Orleans&apos; City Council meetings. These meetings were meticulously
+          sourced from the{" "}
           <a
             href="https://www.youtube.com/@neworleanscitycouncil488"
             target="_blank"
@@ -59,20 +61,21 @@ const AboutPage: React.FC = () => {
         </li>
       </ul>
       <p>
-        We are continuously working to improve and expand Sawt&apos;s capabilities, with a focus on enhancing user experience,
-        incorporating user feedback, and expanding the coverage of available
-        information. Our vision is to foster a vibrant and engaged community
-        that actively participates in the decision-making processes that shape
-        the city of New Orleans.
+        We are continuously working to improve and expand Sawt&apos;s
+        capabilities, with a focus on enhancing user experience, incorporating
+        user feedback, and expanding the coverage of available information. Our
+        vision is to foster a vibrant and engaged community that actively
+        participates in the decision-making processes that shape the city of New
+        Orleans.
       </p>
       <p>
-        Join Sawt today and be part of the conversation that
-        shapes your community&apos;s future. Together, we can make a difference.
+        Join Sawt today and be part of the conversation that shapes your
+        community&apos;s future. Together, we can make a difference.
       </p>
       <p>
-        Note: Sawt is currently a work in progress, and we
-        appreciate your patience and support as we strive to deliver the best
-        possible experience for our users.
+        Note: Sawt is currently a work in progress, and we appreciate your
+        patience and support as we strive to deliver the best possible
+        experience for our users.
       </p>
     </section>
   );
