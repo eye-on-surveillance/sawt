@@ -19,7 +19,8 @@ def get_indepth_response_from_query(db, query, k=4):
     docs_page_content = " ".join([d.page_content for d in docs])
 
     template = """
-        As an AI assistant, your task is to provide an in-depth response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
+        As an AI assistant, your task is to provide an in-depth response to the "{question}", 
+        using the provided transcripts from New Orleans City Council meetings here: "{docs}". Do not provide information about the votes.
         
         Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.    
     """
@@ -28,14 +29,16 @@ def get_indepth_response_from_query(db, query, k=4):
         template=template,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0.3
-    )
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
 
     generated_responses = responses_llm.split("\n\n")
 
-    generated_sources = [
+    generated_titles = [
         doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+    ]
+    page_numbers = [doc.metadata.get("page_number") for doc in docs]
+    generated_sources = [
+        doc.metadata.get("source", "source not available") for doc in docs
     ]
     publish_dates = [
         doc.metadata.get("publish_date", "date not available") for doc in docs
@@ -45,12 +48,26 @@ def get_indepth_response_from_query(db, query, k=4):
         doc.metadata.get("timestamp", "timestamp not available") for doc in docs
     ]
 
-    urls = [doc.metadata.get("url", "video URL not available") for doc in docs]
+    urls = [doc.metadata.get("url", "url not available") for doc in docs]
 
     final_response = ""
-    for i, (response, source, publish_date, timestamp, url) in enumerate(
+    for i, (
+        response,
+        title,
+        page_number,
+        source,
+        publish_date,
+        timestamp,
+        url,
+    ) in enumerate(
         zip_longest(
-            generated_responses, generated_sources, publish_dates, timestamps, urls
+            generated_responses,
+            generated_titles,
+            page_numbers,
+            generated_sources,
+            publish_dates,
+            timestamps,
+            urls,
         )
     ):
         if response is None:
@@ -59,10 +76,13 @@ def get_indepth_response_from_query(db, query, k=4):
             response = response
 
         if i < k - 1:
-            response += f"\n\nSource: {source}\nPublished on: {publish_date}"
+            response += f"\n\nTitle: {title}"
+            if page_number is not None:
+                response += f"\nPage Number: {page_number}"
+            response += f"\nSource: {source}\nPublished on: {publish_date}"
             if timestamp and timestamp != "Timestamp not available":
                 response += f"\nApproximate timestamp of {timestamp} (±5 minutes margin of error)."
-            if url and url != "Video URL not available":
+            if url and url != "URL not available":
                 response += f"\nLink: {url}"
 
         final_response += response + "\n\n"
@@ -86,7 +106,7 @@ def get_general_summary_response_from_query(db, query, k=4):
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=.3)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
 
     return responses_llm
 
