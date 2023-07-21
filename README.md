@@ -9,9 +9,9 @@ The Great Inquirer is a platform designed to facilitate direct communication bet
 2. `cd packages/googlecloud/functions && pip install -r requirements && python getanswer`
 
 ## Project structure
-- `backend`: Python code for executing queries
+- `backend`: Preprocessor, only needs to be run once
 - `web`: NextJS web site
-- `googlecloud`: backend code ported to google cloud
+- `googlecloud`: Google Cloud Function invoked for every query
 
 ## Getting started 
 Follow the instructions below to run test locally 
