@@ -1,13 +1,20 @@
 import { IResponse } from "@/lib/api";
 
-const renderSourceInfo = (label: string, info: any, is_link: boolean = false) => {
+const renderSourceInfo = (
+  label: string,
+  info: any,
+  is_link: boolean = false
+) => {
   if (!info) return null;
   if (is_link) {
     return (
-        <li>
-          {label}: <a href={info} target="_blank">{info}</a>
-        </li>
-      );
+      <li>
+        {label}:{" "}
+        <a href={info} target="_blank">
+          {info}
+        </a>
+      </li>
+    );
   }
   return (
     <li>
