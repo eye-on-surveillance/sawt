@@ -1,13 +1,12 @@
 "use client";
 
-import { ICard, RESPONSE_TYPE_GENERAL } from "@/lib/api";
+import { ICard, RESPONSE_TYPE_DEPTH } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useState } from "react";
 import Cards from "./components/Cards";
-import ResponseToggle from "./components/ResponseToggle";
 
 // Predefined queries
 const predefinedQueries = [
@@ -20,7 +19,7 @@ export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  const [responseMode, setResponseMode] = useState(RESPONSE_TYPE_GENERAL);
+  const [responseMode, setResponseMode] = useState(RESPONSE_TYPE_DEPTH);
   const [cards, setCards] = useState<ICard[]>([]);
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -129,8 +128,6 @@ export default function Home() {
           Type or choose a question from one of the prompts below and let us
           find the answer for you.
         </p>
-
-        <ResponseToggle onToggle={setResponseMode} />
 
         <form onSubmit={submitQuery} className="space-y-4">
           <div className="relative">
