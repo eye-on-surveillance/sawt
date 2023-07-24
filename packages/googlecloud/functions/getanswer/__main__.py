@@ -6,6 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from inquirer import answer_query
 from langchain.embeddings.openai import OpenAIEmbeddings
 from helper import get_dbs
+from api import RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_DEPTH
 
 # Add the relative path of the directory where preprocessor.py is located
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../backend/src"))
@@ -35,8 +36,8 @@ def main():
 
         # map response type to the required format
         response_type_map = {
-            "General Summary": "general",
-            "In-Depth Response": "in_depth",
+            "General Summary": RESPONSE_TYPE_GENERAL,
+            "In-Depth Response": RESPONSE_TYPE_DEPTH,
         }
         if response_type not in response_type_map:
             print(

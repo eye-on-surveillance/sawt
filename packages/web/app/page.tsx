@@ -1,12 +1,12 @@
 "use client";
 
-import { RESPONSE_TYPE_GENERAL } from "@/lib/api";
+import { ICard, RESPONSE_TYPE_DEPTH } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useState } from "react";
-import ResponseToggle from "./components/ResponseToggle";
+import Cards from "./components/Cards";
 
 // Predefined queries
 const predefinedQueries = [
@@ -19,8 +19,8 @@ export default function Home() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  const [responseMode, setResponseMode] = useState(RESPONSE_TYPE_GENERAL);
-  const [history, setHistory] = useState<any>([]);
+  const [responseMode, setResponseMode] = useState(RESPONSE_TYPE_DEPTH);
+  const [cards, setCards] = useState<ICard[]>([]);
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -52,7 +52,7 @@ export default function Home() {
   };
 
   const updateQueryResponded = async (
-    response: string,
+    card: ICard,
     queryId: string,
     startedProcessingAt: number
   ) => {
@@ -62,7 +62,7 @@ export default function Home() {
       (Date.now() - startedProcessingAt) / 1000
     );
     const queryUpdate = {
-      response,
+      response: JSON.stringify(card),
       gen_response_secs: genResponseSecs,
     };
     const { error } = await supabase
@@ -78,6 +78,9 @@ export default function Home() {
     }
   };
 
+  const compareCards = (a: ICard, b: ICard) => {
+    return b.local_timestamp.getTime() - a.local_timestamp.getTime();
+  };
   const submitQuery = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsProcessing(true);
@@ -86,7 +89,7 @@ export default function Home() {
       const startedProcessingAt = Date.now();
       const queryId = await recordQueryAsked();
 
-      // Start processing questiong
+      // Start processing question
       const answerResp = await fetch(apiEndpoint, {
         method: "POST",
         body: JSON.stringify({ query, response_type: responseMode }), // Pass responseMode to your API endpoint
@@ -95,12 +98,15 @@ export default function Home() {
           "Content-Type": "application/json",
         },
       });
-      const answer = await answerResp.text();
-      await updateQueryResponded(answer, queryId, startedProcessingAt);
-      setHistory((prevHistory: any) => [
-        ...prevHistory,
-        { query, answer, timestamp: new Date() },
-      ]);
+      const card: ICard = await answerResp.json();
+      card.query = query;
+      card.local_timestamp = new Date();
+      await updateQueryResponded(card, queryId, startedProcessingAt);
+      setCards((oldCards: any) => {
+        const newCards = [...oldCards, card];
+        newCards.sort(compareCards);
+        return newCards;
+      });
       setQuery("");
     } catch (error) {
       console.error("Failed to fetch answer:", error);
@@ -108,46 +114,20 @@ export default function Home() {
     setIsProcessing(false);
   };
 
+  const hasHistory = cards.length > 0;
+
   const clearHistory = () => {
-    setHistory([]);
+    setCards([]);
   };
 
-  const renderSingleHistory = (singleHistory: any) => (
-    <div
-      className="my-4 rounded-lg border bg-gray-100 p-4"
-      key={crypto.randomUUID()}
-    >
-      <p className="font-bold text-blue-600">{singleHistory.query}</p>
-      <p className="mx-6" style={{ whiteSpace: "pre-line" }}>
-        {singleHistory.answer}
-      </p>
-    </div>
-  );
-
-  const renderHistory = () => (
-    <div className="mt-10">
-      {history.map(renderSingleHistory)}
-      <button
-        onClick={clearHistory}
-        className="mt-4 text-sm text-red-500 underline"
-      >
-        Clear History
-      </button>
-    </div>
-  );
-
-  const hasHistory = history.length > 0;
-
   return (
-    <div className="flex flex-col items-center p-4 text-center md:space-y-6">
-      <div className="w-full space-y-8 md:w-2/3">
+    <div className="mt-14 flex flex-col items-center p-4 text-center md:space-y-6">
+      <div className="w-full space-y-7 md:w-2/3">
         <p className="text-2xl">Curious about New Orleans City Council?</p>
         <p className="text-sm text-gray-500">
           Type or choose a question from one of the prompts below and let us
           find the answer for you.
         </p>
-
-        <ResponseToggle onToggle={setResponseMode} />
 
         <form onSubmit={submitQuery} className="space-y-4">
           <div className="relative">
@@ -156,7 +136,7 @@ export default function Home() {
               onChange={handleQueryChange}
               disabled={isProcessing}
               type="text"
-              className="w-full rounded-lg border-2 border-indigo-500 p-2 pl-10 shadow-lg"
+              className="w-full rounded-lg border-2 border-indigo-500 p-2 pl-12 shadow-lg"
               placeholder="Type your question here"
             />
             <FontAwesomeIcon
@@ -173,20 +153,20 @@ export default function Home() {
           </button>
         </form>
         <div className="my-4">
-            {predefinedQueries.map((predefinedQuery, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handlePredefinedQueryClick(predefinedQuery);
-                }}
-                className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
-              >
-                {predefinedQuery}
-              </button>
-            ))}
-          </div>
-        {hasHistory && renderHistory()}
+          {predefinedQueries.map((predefinedQuery, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePredefinedQueryClick(predefinedQuery);
+              }}
+              className="m-2 rounded-full bg-gray-200 p-2 text-sm text-blue-500 hover:bg-gray-300"
+            >
+              {predefinedQuery}
+            </button>
+          ))}
+        </div>
+        {hasHistory && Cards(cards, clearHistory)}
       </div>
     </div>
   );
