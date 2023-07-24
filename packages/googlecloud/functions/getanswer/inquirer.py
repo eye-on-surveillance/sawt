@@ -3,6 +3,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.chains import LLMChain
 import json
+import os
 
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
@@ -20,8 +21,10 @@ def get_indepth_response_from_query(db, query, k=4):
     template = """
         As an AI assistant, your task is to provide an in-depth response to the "{question}", 
         using the provided transcripts from New Orleans City Council meetings here: "{docs}". Do not provide information about the votes.
-        
-        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.    
+
+        Guidelines for AI assistant: 
+        - Derive responses from factual information found within the transcripts. 
+        - If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
     """
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -53,7 +56,7 @@ def get_indepth_response_from_query(db, query, k=4):
         section = {}
         section['response'] = generated_responses[i] if i < len(generated_responses) else None
         section['source_title'] = generated_titles[i] if i < len(generated_titles) else None
-        section['source_name'] = generated_sources[i] if i < len(generated_sources) else None
+        section['source_name'] = os.path.basename(generated_sources[i]) if i < len(generated_sources) else None
         section['source_page_number'] = page_numbers[i] if i < len(page_numbers) else None
         section['source_publish_date'] = publish_dates[i] if i < len(publish_dates) else None
         section['source_timestamp'] = timestamps[i] if i < len(timestamps) else None
@@ -78,7 +81,9 @@ def get_general_summary_response_from_query(db, query, k=4):
         template="""
         As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
-        Note: If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.    
+        Guidelines for AI assistant: 
+        - Derive responses from factual information found within the transcripts. 
+        - If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
         """,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
