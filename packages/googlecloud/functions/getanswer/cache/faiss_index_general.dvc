@@ -1,6 +1,6 @@
 outs:
-- md5: 13c12e1597deeadf914e7ea4aa25c9c1.dir
-  size: 74948296
+- md5: 427877984654f3b46ac78a8f985901f8.dir
+  size: 71991894
   nfiles: 2
   hash: md5
   path: faiss_index_general
