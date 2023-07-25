@@ -52,13 +52,13 @@ def create_embeddings():
     return general_embeddings, in_depth_embeddings
 
 
-def metadata_func_minutes(record: dict, metadata: dict) -> dict:
+def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
     metadata["title"] = record.get("title")
     metadata["page_number"] = record.get("page_number")
     return metadata
 
 
-def create_db_from_mins(doc_directory):
+def create_db_from_minutesand_agendas(doc_directory):
     logger.info("Creating database from minutes...")
     all_docs = []
     for doc_file in os.listdir(doc_directory):
@@ -69,7 +69,7 @@ def create_db_from_mins(doc_directory):
             file_path=doc_path,
             jq_schema=".messages[]",
             content_key="page_content",
-            metadata_func=metadata_func_minutes,
+            metadata_func=metadata_func_minutes_and_agendas,
         )
 
         data = loader.load()
@@ -148,7 +148,7 @@ def create_db_from_youtube_urls_and_pdfs(
 ):
     fc_video_docs = create_db_from_fc_transcripts(fc_json_directory)
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
-    pdf_docs = create_db_from_mins(doc_directory)
+    pdf_docs = create_db_from_minutesand_agendas(doc_directory)
 
     all_docs = fc_video_docs + cj_video_docs + pdf_docs
 
