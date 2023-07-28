@@ -63,27 +63,39 @@ def get_indepth_response_from_query(db, query, k):
         section['source_timestamp'] = timestamps[i] if i < len(timestamps) else None
         section['source_url'] = urls[i] if i < len(urls) else None
 
-        citation = "\n\nCitation {}:\n".format(i+1)
+        citation = {}
         if section['source_title'] is not None:
-            citation += "Title: {}\n".format(section['source_title'])
+            citation["Title"] = section['source_title']
         if section['source_publish_date'] is not None:
-            citation += "Published: {}\n".format(section['source_publish_date'])
+            citation["Published"] = section['source_publish_date']
         if section['source_url'] is not None:
-            citation += "URL: {}\n".format(section['source_url'])
+            citation["URL"] = section['source_url']
         if section['source_timestamp'] is not None:
-            citation += "Video timestamp: {}\n".format(section['source_timestamp'])
+            citation["Video timestamp"] = section['source_timestamp']
         if section['source_name'] is not None:
-            citation += "Name: {}".format(section['source_name'])
+            citation["Name"] = section['source_name']
         
         return section['response'], citation
 
     num_responses = len(generated_responses)
-    responses = [gen_responses(i) for i in range(num_responses)]
-    response_text = "\n".join([resp[0] for resp in responses])
-    citations = "\n".join([resp[1] for resp in responses])
-    card = {'card_type': RESPONSE_TYPE_DEPTH, 'responses': response_text + "\n\nCitations:\n" + citations}
+    
+    responses = []
+    citations = []
+
+    for i in range(num_responses):
+        response, citation = gen_responses(i)
+        
+        if response: 
+            responses.append({'response': response})
+        
+        if citation:
+            citations.append(citation)
+
+    card = {'card_type': RESPONSE_TYPE_DEPTH, 'responses': responses, 'citations': citations}
     card_json = json.dumps(card)
     return card_json
+
+
 
 def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
