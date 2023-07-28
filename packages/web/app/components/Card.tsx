@@ -1,6 +1,5 @@
-import React from "react";
-import Response from "./Response";
 import Citation from "./Citation";
+import Response from "./Response";
 
 interface CardProps {
   card_type: string;
@@ -10,7 +9,7 @@ interface CardProps {
 
 const Card = ({ card_type, responses, citations }: CardProps) => {
   return (
-    <div className={`card ${card_type} border border-gray-500 p-4 mb-4`}>
+    <div className={`mb-4 rounded bg-white p-6 shadow ${card_type}`}>
       {responses.map((response, index) => (
         <Response response={response} key={index} />
       ))}

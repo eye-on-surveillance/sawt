@@ -1,5 +1,4 @@
-import React from "react";
-import './Citation.css';
+import "./Citation.css";
 
 interface CitationProps {
   citation: any;
@@ -7,14 +6,19 @@ interface CitationProps {
 }
 
 const Citation = ({ citation, index }: CitationProps) => {
-  const hasMetadata = Object.values(citation).some(value => value !== null && value !== '');
+  const hasMetadata = Object.values(citation).some(
+    (value) => value !== null && value !== ""
+  );
 
   return hasMetadata ? (
     <div className="citation">
       <strong>Citation {index + 1}</strong>
       {Object.keys(citation).map((key, i) => (
         <div key={i}>
-          <strong>{'\u2022'} {key}</strong>: {citation[key]}
+          <strong>
+            {"\u2022"} {key}
+          </strong>
+          : {citation[key]}
         </div>
       ))}
     </div>

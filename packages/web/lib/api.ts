@@ -17,6 +17,7 @@ export type IUserQuery = {
 export type ICard = {
   card_type: typeof RESPONSE_TYPE_DEPTH | typeof RESPONSE_TYPE_DEPTH;
   responses: IResponse[];
+  citations: any[];
   query: string;
   local_timestamp: Date;
 };
