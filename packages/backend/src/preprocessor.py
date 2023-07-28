@@ -19,7 +19,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    multi_llm = OpenAI(n=8, best_of=4, model="gpt-3.5-turbo-0613")
+    multi_llm = OpenAI(n=8, best_of=4, model="gpt-4")
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -49,7 +49,7 @@ def create_embeddings():
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
 
-    return general_embeddings, in_depth_embeddings
+    return base_embeddings, base_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -58,7 +58,7 @@ def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
     return metadata
 
 
-def create_db_from_minutesand_agendas(doc_directory):
+def create_db_from_minutes_and_agendas(doc_directory):
     logger.info("Creating database from minutes...")
     all_docs = []
     for doc_file in os.listdir(doc_directory):
@@ -74,7 +74,7 @@ def create_db_from_minutesand_agendas(doc_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=1000
+            chunk_size=4000, chunk_overlap=2000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -107,7 +107,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3500, chunk_overlap=1750
+            chunk_size=5000, chunk_overlap=2500
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -131,7 +131,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=3500, chunk_overlap=1750
+            chunk_size=5000, chunk_overlap=2500
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -148,9 +148,9 @@ def create_db_from_youtube_urls_and_pdfs(
 ):
     fc_video_docs = create_db_from_fc_transcripts(fc_json_directory)
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
-    pdf_docs = create_db_from_minutesand_agendas(doc_directory)
+    pdf_docs = create_db_from_minutes_and_agendas(doc_directory)
 
-    all_docs = fc_video_docs + cj_video_docs + pdf_docs
+    all_docs = fc_video_docs + cj_video_docs 
 
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)

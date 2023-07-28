@@ -30,7 +30,7 @@ curl -XPOST localhost:8080 -H "Content-Type: application/json" \
 gcloud config set project the-great-inquirer
 
 # https://cloud.google.com/functions/docs/configuring/memory
-gcloud functions deploy getanswer \
+gcloud functions deploy getanswer-staging \
     --gen2 \
     --runtime=python310 \
     --memory=4GB \
@@ -39,7 +39,7 @@ gcloud functions deploy getanswer \
     --entry-point=getanswer \
     --trigger-http \
     --allow-unauthenticated \
-    --set-env-vars OPENAI_API_KEY=XXX
+    --set-env-vars OPENAI_API_KEY=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
 
 gcloud functions describe highlight-to-nft --gen2 --region us-east1 --format="value(serviceConfig.uri)"
 

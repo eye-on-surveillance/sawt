@@ -9,18 +9,19 @@ from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
 
-
-def get_indepth_response_from_query(db, query, k=4):
+def get_indepth_response_from_query(db, query, k):
     logger.info("Performing in-depth summary query...")
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
+    llm = ChatOpenAI(model_name="gpt-4")
 
     docs = db.similarity_search(query, k=k)
 
     docs_page_content = " ".join([d.page_content for d in docs])
 
     template = """
-        As an AI assistant, your task is to provide an in-depth response to the "{question}", 
-        using the provided transcripts from New Orleans City Council meetings here: "{docs}". Do not provide information about the votes.
+        Transcripts: {docs}
+        Question: {question}
+
+        As an AI assistant, your task is to provide an in-depth response to the question, using the provided transcripts.
 
         Guidelines for AI assistant: 
         - Derive responses from factual information found within the transcripts. 
@@ -61,15 +62,42 @@ def get_indepth_response_from_query(db, query, k=4):
         section['source_publish_date'] = publish_dates[i] if i < len(publish_dates) else None
         section['source_timestamp'] = timestamps[i] if i < len(timestamps) else None
         section['source_url'] = urls[i] if i < len(urls) else None
-        return section
+
+        citation = {}
+        if section['source_title'] is not None:
+            citation["Title"] = section['source_title']
+        if section['source_publish_date'] is not None:
+            citation["Published"] = section['source_publish_date']
+        if section['source_url'] is not None:
+            citation["URL"] = section['source_url']
+        if section['source_timestamp'] is not None:
+            citation["Video timestamp"] = section['source_timestamp']
+        if section['source_name'] is not None:
+            citation["Name"] = section['source_name']
+        
+        return section['response'], citation
 
     num_responses = len(generated_responses)
-    responses = [gen_responses(i) for i in range(num_responses)]
-    card = {'card_type': RESPONSE_TYPE_DEPTH, 'responses': responses}
+    
+    responses = []
+    citations = []
+
+    for i in range(num_responses):
+        response, citation = gen_responses(i)
+        
+        if response: 
+            responses.append({'response': response})
+        
+        if citation:
+            citations.append(citation)
+
+    card = {'card_type': RESPONSE_TYPE_DEPTH, 'responses': responses, 'citations': citations}
     card_json = json.dumps(card)
     return card_json
 
-def get_general_summary_response_from_query(db, query, k=4):
+
+
+def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
@@ -94,7 +122,7 @@ def get_general_summary_response_from_query(db, query, k=4):
     return card_json
 
 
-def route_question(db_general, db_in_depth, query, query_type, k=4):
+def route_question(db_general, db_in_depth, query, query_type, k=8):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
