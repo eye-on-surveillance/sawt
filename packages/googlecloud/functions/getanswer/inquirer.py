@@ -21,11 +21,10 @@ def get_indepth_response_from_query(db, query, k):
         Transcripts: {docs}
         Question: {question}
 
-        As an AI assistant, your task is to provide an in-depth response to the question, using the provided transcripts.
-
-        Guidelines for AI assistant: 
-        - Derive responses from factual information found within the transcripts. 
-        - If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
+        Using the information from the New Orleans city council {docs}, please explore the following question: {question}.
+        Provide a balanced response, covering all relevant aspects mentioned in the transcripts that are relevant to the {question}
+        Ensure your response is based on the data found in the transcripts and, if applicable, does not favor one perspective over another.
+        If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
     """
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -122,7 +121,7 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(db_general, db_in_depth, query, query_type, k=8):
+def route_question(db_general, db_in_depth, query, query_type, k=15):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
