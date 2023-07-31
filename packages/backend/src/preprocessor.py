@@ -28,7 +28,7 @@ def create_embeddings():
     Answer:"""
 
     in_depth_prompt_template = """
-    As an AI assistant for the Sawt platform, your role is to extract and provide detailed information from the transcripts of New Orleans City Council meetings in response to the user's query "{user_query}". Your response should replicate the structure and substance of the original discussion, including any exchanges between council members and external stakeholders. Ensure to cover specific details such as ordinance number and how the ordinance relates to wider initaitives. Always reference back to the original transcript to ensure accuracy. For every statement and response, provide a summary and a direct quote from the meeting transcript. If the available information from the transcripts is insufficient to accurately answer the user's query or recreate the dialogue, respond with 'Insufficient information available.' If the user's query extends beyond the scope of information contained in the transcripts, state 'I don't know.'
+    As an AI assistant, use the New Orleans City Council transcript data that you were trained on to provide an in-depth and balanced response to the following query: "{user_query}" 
     Answer:"""
 
     general_prompt = PromptTemplate(
@@ -107,7 +107,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=5000, chunk_overlap=2500
+            chunk_size=12000, chunk_overlap=6000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -131,7 +131,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=5000, chunk_overlap=2500
+            chunk_size=12000, chunk_overlap=6000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
