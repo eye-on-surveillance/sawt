@@ -107,7 +107,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=12000, chunk_overlap=6000
+            chunk_size=14000, chunk_overlap=7000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -131,7 +131,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=12000, chunk_overlap=6000
+            chunk_size=14000, chunk_overlap=7000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
