@@ -13,16 +13,31 @@ def get_indepth_response_from_query(db, query, k):
     logger.info("Performing in-depth summary query...")
     llm = ChatOpenAI(model_name="gpt-4")
 
-    docs = db.similarity_search(query, k=k)
+    doc_list = db.similarity_search_with_score(query, k=k)
 
-    docs_page_content = " ".join([d.page_content for d in docs])
+    docs = sorted(doc_list, key=lambda x: x[1], reverse=True)
+
+    third = len(docs) // 3
+
+    highest_third = docs[:third]
+    middle_third = docs[third:2*third]
+    lowest_third = docs[2*third:]
+
+    highest_third = sorted(highest_third, key=lambda x: x[1], reverse=True)
+    middle_third = sorted(middle_third, key=lambda x: x[1], reverse=True)
+    lowest_third = sorted(lowest_third, key=lambda x: x[1], reverse=True)
+
+    docs = highest_third + lowest_third + middle_third
+
+    docs_page_content = " ".join([d[0].page_content for d in docs])
 
     template = """
         Transcripts: {docs}
         Question: {question}
 
         Using the information from the New Orleans city council {docs}, please explore the following question: {question}.
-        Provide a balanced response, covering all relevant aspects mentioned in the transcripts that are relevant to the {question}
+        Provide a balanced response, covering all relevant aspects mentioned in the transcripts that are relevant to the {question}.
+        If relevant to the {question}, add information
         Ensure your response is based on the data found in the transcripts and, if applicable, does not favor one perspective over another.
         If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
     """
@@ -36,21 +51,23 @@ def get_indepth_response_from_query(db, query, k):
     generated_responses = responses_llm.split("\n\n")
 
     generated_titles = [
-        doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+        doc[0].metadata.get("title", doc[0].metadata.get("source", "")) for doc in docs
     ]
-    page_numbers = [doc.metadata.get("page_number") for doc in docs]
+
+    page_numbers = [doc[0].metadata.get("page_number") for doc in docs]
     generated_sources = [
-        doc.metadata.get("source", "source not available") for doc in docs
+        doc[0].metadata.get("source", "source not available") for doc in docs
     ]
+
     publish_dates = [
-        doc.metadata.get("publish_date", "date not available") for doc in docs
+        doc[0].metadata.get("publish_date", "date not available") for doc in docs
     ]
 
     timestamps = [
-        doc.metadata.get("timestamp", "timestamp not available") for doc in docs
+        doc[0].metadata.get("timestamp", "timestamp not available") for doc in docs
     ]
 
-    urls = [doc.metadata.get("url", "url not available") for doc in docs]
+    urls = [doc[0].metadata.get("url", "url not available") for doc in docs]
 
     def gen_responses(i):
         section = {}
@@ -95,7 +112,6 @@ def get_indepth_response_from_query(db, query, k):
     return card_json
 
 
-
 def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
@@ -121,7 +137,7 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(db_general, db_in_depth, query, query_type, k=15):
+def route_question(db_general, db_in_depth, query, query_type, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
