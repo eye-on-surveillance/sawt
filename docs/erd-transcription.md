@@ -1,9 +1,5 @@
 ![](erd-transcription.png)
 
-[Speech]
-*SpeechID
-Speaker {label: "string"}
-Content {label: "string"}
 
 Example text: 
 ```
