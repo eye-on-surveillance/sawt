@@ -31,22 +31,34 @@ def get_indepth_response_from_query(db, query, k):
 
     docs_page_content = " ".join([d[0].page_content for d in docs])
 
+    member_template ="""Members of City Council::
+                        - Council Member Helena Moreno
+                        - Council Member Oliver Thomas
+                        - Council Member Lesli Harris
+                        - Council Member Freddie King
+                        - Council Member JP Morrell
+                        - Council Member Joe Giarrusso
+                        - Council Member Euguene Greene"""
+
     template = """
         Transcripts: {docs}
         Question: {question}
+        City Council Members: {members}
 
         Using the information from the New Orleans city council {docs}, please explore the following question: {question}.
-        Provide a balanced response, covering all relevant aspects mentioned in the transcripts that are relevant to the {question}.
-        If relevant to the {question}, add information
-        Ensure your response is based on the data found in the transcripts and, if applicable, does not favor one perspective over another.
+        Provide a balanced response that covers each aspect mentioned in the transcripts that is relevant to the {question}.
+        If relevant to the {question}, supplement your response with details about the actions of {members}, government agencies, civil society, or the public.
+        Please do not speculate in your response to the {question}.
+
+        Ensure your response is based on the data found in the transcripts and, if applicable, is neutral in that you don't show any bias toward positivity or negativity in your response.
         If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
     """
     prompt = PromptTemplate(
-        input_variables=["question", "docs"],
+        input_variables=["question", "docs", "members"],
         template=template,
     )
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
+    responses_llm = chain_llm.run(members=member_template, question=query, docs=docs_page_content, temperature=0)
 
     generated_responses = responses_llm.split("\n\n")
 
@@ -120,7 +132,7 @@ def get_general_summary_response_from_query(db, query, k):
 
     docs_page_content = " ".join([d.page_content for d in docs])
     prompt = PromptTemplate(
-        input_variables=["question", "docs"],
+        input_variables=["question", "docs", "members"],
         template="""
         As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
