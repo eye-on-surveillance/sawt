@@ -19,7 +19,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    multi_llm = OpenAI(n=8, best_of=4, model="gpt-4")
+    llm = OpenAI()
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -38,8 +38,8 @@ def create_embeddings():
         input_variables=["user_query"], template=in_depth_prompt_template
     )
 
-    llm_chain_general = LLMChain(llm=multi_llm, prompt=general_prompt)
-    llm_chain_in_depth = LLMChain(llm=multi_llm, prompt=in_depth_prompt)
+    llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
+    llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
     general_embeddings = HypotheticalDocumentEmbedder(
         llm_chain=llm_chain_general,
@@ -49,7 +49,7 @@ def create_embeddings():
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
 
-    return base_embeddings, base_embeddings
+    return general_embeddings, in_depth_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -107,7 +107,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=14000, chunk_overlap=7000
+            chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -131,7 +131,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=14000, chunk_overlap=7000
+            chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
