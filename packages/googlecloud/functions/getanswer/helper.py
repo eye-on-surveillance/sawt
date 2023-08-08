@@ -64,3 +64,20 @@ def create_embeddings():
     )
 
     return general_embeddings, in_depth_embeddings
+
+
+def sort_retrived_documents(doc_list):
+    docs = sorted(doc_list, key=lambda x: x[1], reverse=True)
+
+    third = len(docs) // 3
+
+    highest_third = docs[:third]
+    middle_third = docs[third : 2 * third]
+    lowest_third = docs[2 * third :]
+
+    highest_third = sorted(highest_third, key=lambda x: x[1], reverse=True)
+    middle_third = sorted(middle_third, key=lambda x: x[1], reverse=True)
+    lowest_third = sorted(lowest_third, key=lambda x: x[1], reverse=True)
+
+    docs = highest_third + lowest_third + middle_third
+    return docs

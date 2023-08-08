@@ -49,7 +49,7 @@ def create_embeddings():
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
 
-    return general_embeddings, in_depth_embeddings
+    return base_embeddings, base_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -74,7 +74,7 @@ def create_db_from_minutes_and_agendas(doc_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000, chunk_overlap=2000
+            chunk_size=15000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -139,18 +139,44 @@ def create_db_from_fc_transcripts(fc_json_directory):
     return all_docs
 
 
+def create_db_from_public_comments(pc_json_directory):
+    logger.info("Creating database from FC transcripts...")
+    all_docs = []
+    for doc_file in os.listdir(pc_json_directory):
+        if not doc_file.endswith(".json"):
+            continue
+        doc_path = os.path.join(pc_json_directory, doc_file)
+        loader = JSONLoader(
+            file_path=doc_path,
+            jq_schema=".messages[]",
+            content_key="page_content",
+            metadata_func=metadata_func,
+        )
+
+        data = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=2000, chunk_overlap=1000
+        )
+        docs = text_splitter.split_documents(data)
+        all_docs.extend(docs)
+    logger.info("Finished database from Public Comments...")
+    return all_docs
+
+
 def create_db_from_youtube_urls_and_pdfs(
     fc_json_directory,
     cj_json_directory,
     doc_directory,
+    pc_directory,
     general_embeddings,
     in_depth_embeddings,
 ):
     fc_video_docs = create_db_from_fc_transcripts(fc_json_directory)
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
     pdf_docs = create_db_from_minutes_and_agendas(doc_directory)
+    pc_docs = create_db_from_public_comments(pc_directory)
 
-    all_docs = fc_video_docs + cj_video_docs 
+    all_docs = fc_video_docs + cj_video_docs + pc_docs
 
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)
