@@ -10,9 +10,9 @@ import Cards from "./components/Cards";
 
 // Predefined queries
 const predefinedQueries = [
-  "What is city council doing to address racial inequality?",
+  "What are some successes and failures of city council?",
   "What is a proviso?",
-  "Is NOPD's use of facial recognition effective according to quarterly reports",
+  "Is NOPD's use of facial recognition effective?",
 ];
 
 export default function Home() {
