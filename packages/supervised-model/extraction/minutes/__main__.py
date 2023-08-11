@@ -1,17 +1,23 @@
 import pandas as pd
-from parse_text import parse_motions, parse_text_cal, dict_to_df
+from parse_text import parse_motions, parse_text_cal, dict_to_df, read_json_files
 
 if __name__ == "__main__":
-    df = pd.read_csv("../../ocr/output/ocr_results.csv", encoding="latin1")
+    # Reading data from JSON files
+    all_data = read_json_files("../../ocr/output/json")
 
-    dfa = df.copy()
-    dfa["parsed_text"] = dfa["text"].apply(parse_motions)
-    dfa = dfa.explode("parsed_text").reset_index(drop=True)
+    dfa_list, dfb_list = [], []
+    for data in all_data:
+        dfa_temp = {"text": data}
+        dfa_temp["parsed_text"] = parse_motions(data)
+        dfa_list.append(dfa_temp)
 
-    dfb = df.copy()
-    dfb["parsed_text"] = dfb["text"].apply(parse_text_cal)
-    dfb = dfb.explode("parsed_text").reset_index(drop=True)
-    
+        dfb_temp = {"text": data}
+        dfb_temp["parsed_text"] = parse_text_cal(data)
+        dfb_list.append(dfb_temp)
+
+    dfa = pd.DataFrame(dfa_list).explode("parsed_text").reset_index(drop=True)
+    dfb = pd.DataFrame(dfb_list).explode("parsed_text").reset_index(drop=True)
+
     dfc = pd.concat([dfa, dfb])
 
     df_new = pd.concat(dfc["parsed_text"].apply(dict_to_df).tolist(), ignore_index=True)
