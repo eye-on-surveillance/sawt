@@ -3,3 +3,5 @@ dvc-env/
 cred/
 *.txt
 __pycache__/
+raw/
+txt/
