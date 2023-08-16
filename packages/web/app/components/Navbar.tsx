@@ -12,7 +12,7 @@ export const navLinks = [
   },
   {
     id: "tips",
-    title: "Pro Tips",
+    title: "How to use",
   },
 ];
 
@@ -21,58 +21,64 @@ const Navbar = () => {
   const [toggle, setToggle] = useState(false);
 
   return (
-    <nav className="navbar flex w-full items-center justify-between  py-6">
-      {/* Logo */}
-      <h1 className="text-3xl text-white">
-        <Link href="/">{APP_NAME}</Link>
-      </h1>
+    <div className="text-center md:flex">
+      <div className="md:grow"></div>
+      <div className="md:w-3/4 md:max-w-2xl">
+        <nav className="navbar flex w-full items-center justify-between  py-6">
+          {/* Logo */}
+          <h1 className="text-3xl text-blue-200">
+            <Link href="/">{APP_NAME}</Link>
+          </h1>
 
-      {/* Desktop Navigation */}
-      <ul className="hidden flex-1 list-none items-center justify-end sm:flex">
-        {navLinks.map((nav, index) => (
-          <li
-            key={nav.id}
-            className={`font-poppins cursor-pointer text-[16px] font-normal ${
-              active === nav.title ? "text-white" : "text-dimWhite"
-            } ${index === navLinks.length - 1 ? "mr-0" : "mr-10"}`}
-            onClick={() => setActive(nav.title)}
-          >
-            <a href={`/${nav.id}`}>{nav.title}</a>
-          </li>
-        ))}
-      </ul>
-
-      {/* Mobile Navigation */}
-      <div className="flex flex-1 items-center justify-end sm:hidden">
-        {/* https://github.com/FortAwesome/Font-Awesome/tree/6.x/js-packages/%40fortawesome/free-solid-svg-icons */}
-        <FontAwesomeIcon
-          className="h-[28px] w-[28px] cursor-pointer object-contain"
-          icon={toggle ? faClose : faBars}
-          onClick={() => setToggle(!toggle)}
-        />
-
-        {/* Sidebar */}
-        <div
-          className={`${
-            !toggle ? "hidden" : "flex"
-          } sidebar absolute right-0 top-20 mx-4 my-2 min-w-[140px] rounded-xl bg-slate-500 p-6 text-white`}
-        >
-          <ul className="flex flex-1 list-none flex-col items-start justify-end">
+          {/* Desktop Navigation */}
+          <ul className="hidden flex-1 list-none items-center justify-end sm:flex">
             {navLinks.map((nav, index) => (
               <li
                 key={nav.id}
-                className={`font-poppins cursor-pointer text-[16px] font-medium ${
+                className={`font-poppins cursor-pointer text-[16px] font-normal ${
                   active === nav.title ? "text-white" : "text-dimWhite"
-                } ${index === navLinks.length - 1 ? "mb-0" : "mb-4"}`}
+                } ${index === navLinks.length - 1 ? "mr-0" : "mr-10"}`}
                 onClick={() => setActive(nav.title)}
               >
-                <Link href={`/${nav.id}`}>{nav.title}</Link>
+                <a href={`/${nav.id}`}>{nav.title}</a>
               </li>
             ))}
           </ul>
-        </div>
+
+          {/* Mobile Navigation */}
+          <div className="flex flex-1 items-center justify-end sm:hidden">
+            {/* https://github.com/FortAwesome/Font-Awesome/tree/6.x/js-packages/%40fortawesome/free-solid-svg-icons */}
+            <FontAwesomeIcon
+              className="h-[28px] w-[28px] cursor-pointer object-contain"
+              icon={toggle ? faClose : faBars}
+              onClick={() => setToggle(!toggle)}
+            />
+
+            {/* Sidebar */}
+            <div
+              className={`${
+                !toggle ? "hidden" : "flex"
+              } sidebar absolute right-0 top-20 mx-4 my-2 min-w-[140px] rounded-xl bg-slate-500 p-6 text-white`}
+            >
+              <ul className="flex flex-1 list-none flex-col items-start justify-end">
+                {navLinks.map((nav, index) => (
+                  <li
+                    key={nav.id}
+                    className={`font-poppins cursor-pointer text-[16px] font-medium ${
+                      active === nav.title ? "text-white" : "text-dimWhite"
+                    } ${index === navLinks.length - 1 ? "mb-0" : "mb-4"}`}
+                    onClick={() => setActive(nav.title)}
+                  >
+                    <Link href={`/${nav.id}`}>{nav.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </nav>
       </div>
-    </nav>
+      <div className="md:grow"></div>
+    </div>
   );
 };
 

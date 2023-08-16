@@ -1,4 +1,9 @@
 import { APP_NAME } from "@/lib/copy";
+import {
+  faGithub,
+  faInstagram,
+  faTwitter,
+} from "@fortawesome/free-brands-svg-icons";
 import { faCamera } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -16,7 +21,28 @@ export default function Footer() {
           by EOS
         </Link>
       </p>
-      <p className="mt-3">
+      <p className="my-5">
+        <Link href="https://github.com/eye-on-surveillance/sawt">
+          <FontAwesomeIcon
+            icon={faGithub}
+            className="mx-2 h-7 w-7 align-middle"
+          />
+        </Link>
+        <Link href="https://instagram.com/eos_nola">
+          <FontAwesomeIcon
+            icon={faInstagram}
+            className="mx-2 h-7 w-7 align-middle"
+          />
+        </Link>
+        <Link href="https://twitter.com/eos_nola">
+          <FontAwesomeIcon
+            icon={faTwitter}
+            className="mx-2 h-7 w-7 align-middle"
+          />
+        </Link>
+      </p>
+
+      <p>
         &copy; {new Date().getFullYear()} {APP_NAME}
       </p>
     </div>
