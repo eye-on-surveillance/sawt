@@ -16,7 +16,7 @@ export default function RootLayout({
       <main className="min-h-[80vh] items-center justify-center">
         {children}
       </main>
-      <footer className="items-center justify-center bg-violet-500 px-6 sm:px-16">
+      <footer className="items-center justify-center px-6 sm:px-16">
         <Footer />
       </footer>
     </div>

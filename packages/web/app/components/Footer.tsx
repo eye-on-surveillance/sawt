@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <div className="py-12 text-center text-white">
+    <div className="py-12 text-center text-black">
       <p>
         <Link href="https://eyeonsurveillance.org" target="_blank">
           Without
