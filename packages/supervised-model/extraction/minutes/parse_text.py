@@ -375,3 +375,19 @@ def read_json_files(directory):
                 for _, message in messages.items():
                     data_list.append(message)
     return data_list
+
+valid_names = ["Harris", "Morrell", "Moreno", "Thomas", "King", "Green", "Giarrusso"]
+
+def clean_votes(vote_str):
+    name_match = re.search("|".join(valid_names), vote_str)
+    vote_match = re.search("yeas|absent|nays|abstain|recused", vote_str)
+    
+    if name_match and vote_match:
+        return f"{name_match.group()} - {vote_match.group()}"
+    else:
+        return "Invalid"
+    
+
+def clean_ordinances(df):
+    df.loc[:, "ordinance"] = df.ordinance.str.strip().str.replace(r"(MOTION|CAL\. NO\.|RESOLUTION) ", "", regex=True)
+    return df 

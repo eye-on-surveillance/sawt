@@ -1,5 +1,5 @@
 import pandas as pd
-from parse_text import parse_motions, parse_text_cal, dict_to_df, read_json_files
+from parse_text import parse_motions, parse_text_cal, dict_to_df, read_json_files, clean_votes, clean_ordinances
 
 if __name__ == "__main__":
     # Reading data from JSON files
@@ -21,7 +21,17 @@ if __name__ == "__main__":
     dfc = pd.concat([dfa, dfb])
 
     df_new = pd.concat(dfc["parsed_text"].apply(dict_to_df).tolist(), ignore_index=True)
+
+    df_new = df_new.rename(columns={"title": "ordinance", "brief": "summary"})
+
+    df_new.loc[:, "votes"] = df_new.council_member.str.cat(df_new.vote, sep=" - ")
+
     df_new = df_new.drop(
-        columns=["movedBy", "proposedBy", "action", "annotation", "secondedBy"]
+        columns=["movedBy", "proposedBy", "action", "annotation", "secondedBy", "council_member", "vote"]
     )
+    df_new.loc[:, "votes"] = df_new.fillna("").apply(clean_votes)
+
+    df_new = df_new.pipe(clean_ordinances)
+
+
     df_new.to_csv("output/parsed_voting_rolls.csv", index=False)
