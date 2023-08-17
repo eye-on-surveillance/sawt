@@ -5,20 +5,17 @@ from langchain.chains import LLMChain
 import json
 import os
 
-from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_types import AgentType
-from langchain.agents import create_csv_agent
-import pandas as pd
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_types import AgentType
-import re 
 
 from helper import sort_retrived_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
+
 
 def process_responses_llm(responses_llm, docs=None):
     generated_responses = responses_llm.split("\n\n")
@@ -27,7 +24,8 @@ def process_responses_llm(responses_llm, docs=None):
 
     if docs:
         generated_titles = [
-            doc[0].metadata.get("title", doc[0].metadata.get("source", "")) for doc in docs
+            doc[0].metadata.get("title", doc[0].metadata.get("source", ""))
+            for doc in docs
         ]
         page_numbers = [doc[0].metadata.get("page_number") for doc in docs]
         generated_sources = [
@@ -86,8 +84,8 @@ def process_responses_llm(responses_llm, docs=None):
 
             if citation:
                 citations.append(citation)
-    
-    else: 
+
+    else:
         if generated_responses:
             responses.append({"response": generated_responses[0]})
 
@@ -100,15 +98,16 @@ def process_responses_llm(responses_llm, docs=None):
     return card_json
 
 
-def get_indepth_response_from_query(db, query, k):
+def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
-    if query.startswith("Print the description of ordinance"):
-        df = pd.read_csv("../../../backend/src/voting_roll_directory/parsed_voting_rolls.csv")
+    if query.startswith("Print the summary of ordinance") or query.startswith(
+        "Print the votes of ordinance"
+    ):
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
             df,
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            verbose=True
+            verbose=True,
         )
         responses_llm = agent.run(query)
         return process_responses_llm(responses_llm)
@@ -119,7 +118,7 @@ def get_indepth_response_from_query(db, query, k):
         docs = sort_retrived_documents(doc_list)
         docs_page_content = " ".join([d[0].page_content for d in docs])
 
-        template =  """
+        template = """
         Transcripts: {docs}
         Question: {question}
 
@@ -131,14 +130,15 @@ def get_indepth_response_from_query(db, query, k):
         If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
         """
 
-
         prompt = PromptTemplate(
             input_variables=["question", "docs"],
             template=template,
         )
-        
+
         chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
+        responses_llm = chain_llm.run(
+            question=query, docs=docs_page_content, temperature=0
+        )
 
         return process_responses_llm(responses_llm, docs)
 
@@ -168,9 +168,9 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(db_general, db_in_depth, query, query_type, k=10):
+def route_question(df, db_general, db_in_depth, query, query_type, k=10):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(db_in_depth, query, k)
+        return get_indepth_response_from_query(df, db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
         return get_general_summary_response_from_query(db_general, query, k)
     else:
@@ -180,8 +180,8 @@ def route_question(db_general, db_in_depth, query, query_type, k=10):
 
 
 def answer_query(
-    query: str, response_type: str, db_general: any, db_in_depth: any
+    query: str, response_type: str, df: any, db_general: any, db_in_depth: any
 ) -> str:
-    final_response = route_question(db_general, db_in_depth, query, response_type)
+    final_response = route_question(df, db_general, db_in_depth, query, response_type)
 
     return final_response

@@ -22,7 +22,7 @@ load_dotenv(find_dotenv())
 
 def main():
     query_memory = []
-    db_general, db_in_depth = get_dbs()
+    db_general, db_in_depth, voting_roll_df = get_dbs()
 
     while True:
         query_input = input("Enter your query with response type (or 'quit' to exit): ")
@@ -46,7 +46,11 @@ def main():
             continue
 
         response = answer_query(
-            query, response_type_map[response_type], db_general, db_in_depth
+            query,
+            response_type_map[response_type],
+            voting_roll_df,
+            db_general,
+            db_in_depth,
         )
         print(response)
         query_memory.append(query)
