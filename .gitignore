@@ -5,3 +5,4 @@ cred/
 __pycache__/
 raw/
 txt/
+*.csv

@@ -324,7 +324,7 @@ def parse_text_cal(text):
 votes = ["yeas", "nays", "recused", "abstain", "absent"]
 
 
-def dict_to_df(row):
+def dict_to_df(row, filename):
     if pd.isnull(row):
         return pd.DataFrame(
             {
@@ -360,7 +360,7 @@ def dict_to_df(row):
 
     df = pd.concat([motion_df] * len(voting_df), ignore_index=True)
     df = pd.concat([df, voting_df], axis=1)
-
+    df["filename"] = filename 
     return df
 
 
