@@ -1,0 +1,18 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "editor.codeActionsOnSave": [
+    "source.formatDocument",
+    "source.addMissingImports",
+    "source.fixAll.eslint"
+  ],
+  "editor.autoClosingBrackets": "never",
+  "editor.autoClosingQuotes": "never",
+  "editor.wordWrapColumn": 100,
+  "css.lint.unknownAtRules": "ignore",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/next/router"
+  ]
+}
