@@ -101,7 +101,7 @@ def process_responses_llm(responses_llm, docs=None):
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
     if query.startswith("Print the summary of ordinance") or query.startswith(
-        "Print the votes of ordinance"
+        "What are the votes of ordinance"
     ):
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
