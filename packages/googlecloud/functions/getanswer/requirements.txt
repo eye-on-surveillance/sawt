@@ -12,3 +12,4 @@ chromadb
 tiktoken
 faiss-cpu
 wikipedia
+pandas 

@@ -13,7 +13,7 @@ logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 
-db_general, db_in_depth = get_dbs()
+db_general, db_in_depth, voting_roll_df = get_dbs()
 
 
 @functions_framework.http
@@ -61,7 +61,7 @@ def getanswer(request):
         raise ValueError("Unknown content type: {}".format(content_type))
     logging.info("Request parsed")
 
-    answer = answer_query(query, response_type, db_general, db_in_depth)
+    answer = answer_query(query, response_type, voting_roll_df, db_general, db_in_depth)
 
     end = time.time()
     elapsed = math.ceil(end - start)
