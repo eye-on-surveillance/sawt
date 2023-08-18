@@ -100,7 +100,7 @@ def process_responses_llm(responses_llm, docs=None):
 
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
-    if query.startswith("Print the summary of ordinance") or query.startswith(
+    if query.startswith("What is the summary of ordinance") or query.startswith(
         "What are the votes of ordinance"
     ):
         agent = create_pandas_dataframe_agent(
