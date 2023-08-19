@@ -1,0 +1,60 @@
+import { ECardStatus, ICard } from "@/lib/api";
+import { TABLES } from "@/lib/supabase/db";
+import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "PLACEHOLDER";
+const supabaseSecretServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_SECRET || "PLACEHOLDER";
+
+/* Create card
+ * Not creating directly from client because:
+ *  - We have RLS enabled that only allows to view cards in 'public' status
+ *  - All cards start off in 'new' status
+ *  - This leads to users being able to create cards, but unable to retrieve their IDs directly
+ *  - Easier to protect vars such as 'likes' with default valuse
+ */
+export async function POST(request: Request) {
+  console.log("/api/v1/cards");
+  const cookieStore = cookies();
+  const { title, card_type } = (await request.json()) as ICard;
+  console.log(title);
+  console.log(card_type);
+  // const supabase = createRouteHandlerClient({
+  //   cookies: () => cookieStore,
+  // });
+  const supabase = createClient(supabaseUrl, supabaseSecretServiceKey);
+
+  const card = {
+    title,
+    card_type,
+    status: ECardStatus.NEW,
+    likes: 0,
+  };
+
+  const newCard = await supabase
+    .from(TABLES.CARDS)
+    .insert(card)
+    .select()
+    .single();
+
+  if (newCard.error) {
+    console.warn("Could not record query");
+    console.warn(newCard.error);
+    return NextResponse.error();
+  } else {
+    console.log("Insert data");
+    console.log(newCard);
+  }
+
+  return NextResponse.json({
+    card: newCard.data,
+    // headers: {
+    //   "Access-Control-Allow-Origin": "*",
+    //   "Access-Control-Allow-Methods": "POST",
+    //   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    // },
+  });
+}
