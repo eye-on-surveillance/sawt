@@ -64,7 +64,7 @@ export default function NewQuery() {
     e.preventDefault();
 
     await insertSupabaseCard();
-    // await sendQueryToFunction();
+    await sendQueryToFunction();
   };
 
   return (

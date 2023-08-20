@@ -20,10 +20,10 @@ export default function HomeLearnMore() {
   return (
     <div className="bg-violet-800 px-6 py-24 text-center sm:px-16 md:flex">
       <div className="md:grow"></div>
-      <div className="md:w-3/4 md:max-w-2xl">
+      <div className="md:w-1/2 md:max-w-sm">
         <h1 className="rounded-lg bg-blue-200 py-4 text-4xl">
           <Link href={ABOUT_BETA_PATH} target="_blank">
-            Learn more about SAWT
+            Learn more
           </Link>
         </h1>
       </div>

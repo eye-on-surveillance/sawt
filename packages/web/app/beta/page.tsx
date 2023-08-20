@@ -1,10 +1,10 @@
 import { TABLES } from "@/lib/supabase/db";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
-import CardResultsProvider from "../components/CardResultsProvider";
-import HomeBanner from "../components/HomeBanner";
-import HomeLearnMore from "../components/HomeLearnMore";
-import HomeResults from "../components/HomeResults";
+import CardResultsProvider from "../../components/CardResultsProvider";
+import HomeBanner from "../../components/HomeBanner";
+import HomeLearnMore from "../../components/HomeLearnMore";
+import HomeResults from "../../components/HomeResults";
 
 export const dynamic = "force-dynamic";
 

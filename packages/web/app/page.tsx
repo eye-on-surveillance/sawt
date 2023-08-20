@@ -7,7 +7,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { ChangeEvent, useState } from "react";
-import Cards from "./components/Cards";
+import Cards from "../components/Cards";
 
 // Predefined queries
 const predefinedQueries = [
