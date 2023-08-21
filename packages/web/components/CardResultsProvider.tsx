@@ -13,6 +13,15 @@ const Context = createContext<ResultsContext>({
   cards: [],
 });
 
+const compareCards = (a: ICard, b: ICard) => {
+  console.log("comparing two cards");
+  console.log(a);
+  console.log(b);
+  if (!a.created_at) return 1;
+  if (!b.created_at) return -1;
+  return new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime();
+};
+
 export default function CardResultsProvider({
   children,
   serverCards,
@@ -33,7 +42,9 @@ export default function CardResultsProvider({
 
       // overwrite existing record, if exists
       indexedCards.set(newCard.id!, newCard);
-      setCards(Array.from(indexedCards.values()));
+      let newCards = Array.from(indexedCards.values());
+      newCards.sort(compareCards);
+      setCards(newCards);
     },
     cards,
   };

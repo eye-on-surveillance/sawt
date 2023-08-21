@@ -21,27 +21,35 @@ type QueryResultParams = {
 const LOADING_MESSAGES = [
   "Processing your request...",
   "About 30 seconds remaining...",
+  "Processing your request...",
   "About 25 seconds remaining...",
+  "Processing your request...",
   "About 20 seconds remaining...",
+  "Processing your request...",
   "About 15 seconds remaining...",
+  "Processing your request...",
   "About 10 seconds remaining...",
+  "Processing your request...",
   "About 5 seconds remaining...",
   "Finishing up...",
 ];
 
+const WAIT_MS = 2500;
+
 export default function QueryResult(queryResultParams: QueryResultParams) {
-  const [msgIndex, setMsgIndex] = useState(0);
+  const [msgIndex, setMsgIndex] = useState<number>(0);
   const { card } = queryResultParams;
   const isLoading = !card.responses || card.responses.length <= 0;
 
   useInterval(
     () => {
-      console.log("Incrementing wait " + msgIndex);
-      if (msgIndex <= LOADING_MESSAGES.length) return;
-      setMsgIndex(msgIndex + 1);
+      if (msgIndex + 1 >= LOADING_MESSAGES.length) return;
+      const plusOne = msgIndex + 1;
+      setMsgIndex(plusOne);
     },
 
-    5000
+    // If waiting on answer to query and have more wait messages
+    isLoading && msgIndex < LOADING_MESSAGES.length ? WAIT_MS : null
   );
 
   return (

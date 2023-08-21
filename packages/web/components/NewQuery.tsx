@@ -8,6 +8,7 @@ import { useCardResults } from "./CardResultsProvider";
 export default function NewQuery() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [query, setQuery] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
   const { addMyCard } = useCardResults();
 
@@ -22,15 +23,10 @@ export default function NewQuery() {
       body: JSON.stringify(newCard),
     });
 
-    console.log("Insert data");
     if (!resp.ok) {
-      console.warn("Could not record query");
-      console.warn(resp);
       return newCard;
     } else {
       const cardJson = await resp.json();
-      console.log("Created card");
-      console.log(cardJson);
       const { card: createdCard } = cardJson as { card: ICard };
       createdCard.is_mine = true;
       createdCard.status = ECardStatus.PUBLIC;
@@ -52,13 +48,7 @@ export default function NewQuery() {
       },
     });
     let card: any = await answerResp.json();
-
-    console.log("got response from function");
-    console.log(card);
-
     Object.assign(card, newCard);
-    console.log("after merge with known values");
-    console.log(card);
 
     card.citations = card.citations!.map((citation: any) => {
       return {
@@ -68,23 +58,16 @@ export default function NewQuery() {
       };
     });
     card = card as ICard;
-    console.log("adapted it to new form");
-    console.log(card);
     addMyCard(card);
-
-    // await updateQueryResponded(card, queryId, startedProcessingAt);
-    // setCards((oldCards: any) => {
-    //   const newCards = [...oldCards, card];
-    //   newCards.sort(compareCards);
-    //   return newCards;
-    // });
-    // setQuery("");
+    setQuery("");
+    setIsProcessing(false);
+    console.log("Setting proccesing back to false " + isProcessing);
   };
 
   const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    setQuery("");
+    setIsProcessing(true);
+    console.log("Setting proccesing back to true " + isProcessing);
     const newCard = await insertSupabaseCard();
     await sendQueryToFunction(newCard);
   };
@@ -101,8 +84,10 @@ export default function NewQuery() {
             className="focus:shadow-outline mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-gray-700 shadow focus:outline-none"
             id="new-query"
             type="text"
+            value={query}
             placeholder={`Ask ${APP_NAME}`}
             autoFocus
+            disabled={isProcessing}
             onChange={(e: React.FormEvent<HTMLInputElement>) => {
               setQuery(e.currentTarget.value);
             }}
@@ -112,6 +97,7 @@ export default function NewQuery() {
         <button
           className="btn w-full rounded-lg bg-blue-600 p-2 text-2xl text-white"
           type="submit"
+          disabled={isProcessing}
         >
           Get answer
         </button>
