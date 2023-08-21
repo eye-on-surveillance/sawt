@@ -1,5 +1,6 @@
 "use client";
 import { APP_NAME } from "@/lib/copy";
+import { HOME_PATH } from "@/lib/paths";
 // Copied from: https://medium.com/@ryaddev/creating-a-responsive-navbar-with-react-and-tailwind-css-502cceaf9f53
 import { faBars, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,7 +28,7 @@ const Navbar = () => {
         <nav className="navbar flex w-full items-center justify-between  py-6">
           {/* Logo */}
           <h1 className="text-3xl text-black">
-            <Link href="/">{APP_NAME}</Link>
+            <Link href={HOME_PATH}>{APP_NAME}</Link>
           </h1>
 
           {/* Desktop Navigation */}

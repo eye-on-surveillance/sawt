@@ -1,5 +1,8 @@
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
+import { API_NEW_CARD_PATH } from "@/lib/paths";
+import { TABLES } from "@/lib/supabase/db";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
@@ -18,7 +21,7 @@ export default function NewQuery() {
       card_type: cardType,
     };
 
-    const resp = await fetch("/api/v1/cards", {
+    const resp = await fetch(API_NEW_CARD_PATH, {
       method: "POST",
       body: JSON.stringify(newCard),
     });
@@ -48,7 +51,12 @@ export default function NewQuery() {
       },
     });
     let card: any = await answerResp.json();
-    Object.assign(card, newCard);
+    console.log("RAW response is");
+    console.log(card);
+
+    card = Object.assign({}, newCard, card);
+    console.log("response is");
+    console.log(card);
 
     card.citations = card.citations!.map((citation: any) => {
       return {
@@ -58,18 +66,53 @@ export default function NewQuery() {
       };
     });
     card = card as ICard;
-    addMyCard(card);
     setQuery("");
     setIsProcessing(false);
     console.log("Setting proccesing back to false " + isProcessing);
+    console.log(card);
+    return card;
+  };
+
+  const updateQueryResponded = async (
+    card: ICard,
+    startedProcessingAt: number
+  ) => {
+    console.log("Updating card");
+    console.log(card);
+    const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
+    const queryUpdate = {
+      // responses: JSON.stringify(card.responses),
+      responses: card.responses,
+      // citations: JSON.stringify(card.citations),
+      citations: card.citations,
+      processing_time_ms: genResponseMs,
+    };
+    const { error } = await supabase
+      .from(TABLES.CARDS)
+      .update(queryUpdate)
+      .eq("id", card.id);
+
+    if (error) {
+      console.warn("Could not record query");
+      console.warn(error);
+      return;
+    } else {
+      console.log("Updated successfully " + card.id);
+    }
   };
 
   const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (query.length <= 10) return;
+
+    const startedProcessingAt = Date.now();
     setIsProcessing(true);
     console.log("Setting proccesing back to true " + isProcessing);
     const newCard = await insertSupabaseCard();
-    await sendQueryToFunction(newCard);
+    const cardWResp = await sendQueryToFunction(newCard);
+    addMyCard(cardWResp);
+    await updateQueryResponded(cardWResp, startedProcessingAt);
   };
 
   return (
@@ -95,7 +138,9 @@ export default function NewQuery() {
           {/* <p className="text-xs italic text-red-500">Please choose a password.</p> */}
         </div>
         <button
-          className="btn w-full rounded-lg bg-blue-600 p-2 text-2xl text-white"
+          className={`btn w-full rounded-lg ${
+            isProcessing ? "bg-blue-900" : "bg-blue-600"
+          } p-2 text-2xl text-white`}
           type="submit"
           disabled={isProcessing}
         >

@@ -24,13 +24,11 @@ export type ICard = {
   citations?: ICitation[];
   // Only used client-side, because there aren't userIds for ownership
   is_mine?: boolean;
+  processing_time_ms?: number;
 };
 
 export type IResponse = {
   response: string;
-  citations?: ICitation[];
-  processing_time_ms?: number;
-  card_id?: string;
 };
 
 export type ICitation = {
@@ -40,7 +38,6 @@ export type ICitation = {
   source_publish_date?: string;
   source_timestamp?: string;
   source_url?: string;
-  response_id?: string;
 };
 
 /**
