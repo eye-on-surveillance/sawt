@@ -11,6 +11,8 @@ import { cookies } from "next/headers";
 import "./globals.css";
 config.autoAddCss = false;
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
   modal,
