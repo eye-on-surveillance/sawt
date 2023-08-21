@@ -19,7 +19,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const [recentlyCopied, setRecentlyCopied] = useState(false);
 
   return (
-    <div>
+    <div className="w-full">
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
         <h1 className="text-sm">{moment(card.created_at!).fromNow()}</h1>

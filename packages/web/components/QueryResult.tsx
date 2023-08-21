@@ -37,6 +37,7 @@ const LOADING_MESSAGES = [
   "Hang tight...",
   "About 5 seconds remaining...",
   "About 5 seconds remaining...",
+  // The last message will remain until processing finishes
   "Finishing up...",
 ];
 
