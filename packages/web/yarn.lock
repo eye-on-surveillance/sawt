@@ -2060,6 +2060,11 @@ minimist@^1.2.0, minimist@^1.2.6:
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
 
+moment@^2.29.4:
+  version "2.29.4"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
+  integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz"
@@ -2962,6 +2967,11 @@ uri-js@^4.2.2:
   integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   dependencies:
     punycode "^2.1.0"
+
+use-clipboard-api@^0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/use-clipboard-api/-/use-clipboard-api-0.3.4.tgz#81e94e48d9f6549e0809ce157ab4f953b8523cb6"
+  integrity sha512-LF9lREFNhCgL6X+kW7gd7xYKG5gQgnBeyp01a7+vNkzrFTYRVTKM4aYdAngGjDJvc4SYMc8uONmCwZNrb9lkGQ==
 
 usehooks-ts@^2.9.1:
   version "2.9.1"

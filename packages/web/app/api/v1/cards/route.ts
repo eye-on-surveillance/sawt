@@ -17,14 +17,8 @@ const supabaseSecretServiceKey =
  *  - Easier to protect vars such as 'likes' with default valuse
  */
 export async function POST(request: Request) {
-  console.log("/api/v1/cards");
   const cookieStore = cookies();
   const { title, card_type } = (await request.json()) as ICard;
-  console.log(title);
-  console.log(card_type);
-  // const supabase = createRouteHandlerClient({
-  //   cookies: () => cookieStore,
-  // });
   const supabase = createClient(supabaseUrl, supabaseSecretServiceKey);
 
   const card = {
@@ -45,16 +39,10 @@ export async function POST(request: Request) {
     console.warn(newCard.error);
     return NextResponse.error();
   } else {
-    console.log("Insert data");
-    console.log(newCard);
+    // successfully inserted card
   }
 
   return NextResponse.json({
     card: newCard.data,
-    // headers: {
-    //   "Access-Control-Allow-Origin": "*",
-    //   "Access-Control-Allow-Methods": "POST",
-    //   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    // },
   });
 }

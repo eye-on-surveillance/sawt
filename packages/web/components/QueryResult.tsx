@@ -1,18 +1,16 @@
 "use client";
 
 import { ICard } from "@/lib/api";
-import { CARD_SHOW_PATH } from "@/lib/paths";
-import {
-  faShare,
-  faSpinner,
-  faThumbsUp,
-} from "@fortawesome/free-solid-svg-icons";
+import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
+import { faCheck, faShare, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import moment from "moment";
 import Link from "next/link";
 import { useState } from "react";
+import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 
-const MAX_CHARACTERS_PREVIEW = 200;
+const MAX_CHARACTERS_PREVIEW = 300;
 
 type QueryResultParams = {
   card: ICard;
@@ -44,6 +42,10 @@ export default function QueryResult(queryResultParams: QueryResultParams) {
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const { card } = queryResultParams;
   const isLoading = !card.responses || card.responses.length <= 0;
+  const [value, copy] = useClipboardApi();
+  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
+  // Temporarirly show that url copied to clipboard
+  const [recentlyCopied, setRecentlyCopied] = useState(false);
 
   useInterval(
     () => {
@@ -56,19 +58,37 @@ export default function QueryResult(queryResultParams: QueryResultParams) {
     isLoading && msgIndex < LOADING_MESSAGES.length ? WAIT_MS : null
   );
 
+  // Every 5 seconds, refresh displayed created at time
+  const [prettyCreatedAt, setPrettyCreatedAt] = useState(
+    !!card.created_at && new Date(card.created_at) < new Date()
+      ? moment(card.created_at).fromNow()
+      : moment().fromNow()
+  );
+  useInterval(() => {
+    setPrettyCreatedAt(moment(card.created_at).fromNow());
+  }, 5_000);
+
+  useInterval(
+    () => {
+      setRecentlyCopied(false);
+    },
+
+    recentlyCopied ? 3000 : null
+  );
+
   return (
-    <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
-      <div
-        className={`my-6 rounded-lg bg-blue-200 p-6 ${
-          isLoading ? "border-4 border-dashed border-yellow-500" : null
-        }`}
-      >
+    <div
+      className={`my-6 rounded-lg bg-blue-200 p-6 ${
+        isLoading ? "border-4 border-dashed border-yellow-500" : null
+      }`}
+    >
+      <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <h4 className="text-xl font-bold">{card.title}</h4>
         <h6 className="text-xs">
           <span className="text-amber-700">
             {card.is_mine ? "You | " : null}
           </span>
-          {card.created_at!.toString()}
+          {prettyCreatedAt}
         </h6>
         {!isLoading && !!card.responses ? (
           <p className="my-5">
@@ -86,25 +106,41 @@ export default function QueryResult(queryResultParams: QueryResultParams) {
             {LOADING_MESSAGES[msgIndex]}
           </p>
         )}
+      </Link>
 
-        <div className="text-sm">
-          <span>
+      <div className="text-sm">
+        {/* <span>
             <FontAwesomeIcon
               icon={faThumbsUp}
               className="mx-2 h-5 w-5 align-middle"
             />
             {card.likes}
-          </span>
+          </span> */}
 
-          <span className="ml-3">
+        {recentlyCopied ? (
+          <span className="ml-3 text-green-400">
+            <FontAwesomeIcon
+              icon={faCheck}
+              className="mx-2 h-5 w-5 align-middle"
+            />
+            Copied
+          </span>
+        ) : (
+          <span
+            className="ml-3 cursor-pointer"
+            onClick={() => {
+              copy(currentUrl);
+              setRecentlyCopied(true);
+            }}
+          >
             <FontAwesomeIcon
               icon={faShare}
               className="mx-2 h-5 w-5 align-middle"
             />
             Share
           </span>
-        </div>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }

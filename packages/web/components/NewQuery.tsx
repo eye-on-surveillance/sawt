@@ -51,12 +51,8 @@ export default function NewQuery() {
       },
     });
     let card: any = await answerResp.json();
-    console.log("RAW response is");
-    console.log(card);
 
     card = Object.assign({}, newCard, card);
-    console.log("response is");
-    console.log(card);
 
     card.citations = card.citations!.map((citation: any) => {
       return {
@@ -68,8 +64,6 @@ export default function NewQuery() {
     card = card as ICard;
     setQuery("");
     setIsProcessing(false);
-    console.log("Setting proccesing back to false " + isProcessing);
-    console.log(card);
     return card;
   };
 
@@ -77,8 +71,6 @@ export default function NewQuery() {
     card: ICard,
     startedProcessingAt: number
   ) => {
-    console.log("Updating card");
-    console.log(card);
     const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
     const queryUpdate = {
       // responses: JSON.stringify(card.responses),
@@ -97,7 +89,7 @@ export default function NewQuery() {
       console.warn(error);
       return;
     } else {
-      console.log("Updated successfully " + card.id);
+      // successfully updated
     }
   };
 
@@ -108,7 +100,6 @@ export default function NewQuery() {
 
     const startedProcessingAt = Date.now();
     setIsProcessing(true);
-    console.log("Setting proccesing back to true " + isProcessing);
     const newCard = await insertSupabaseCard();
     const cardWResp = await sendQueryToFunction(newCard);
     addMyCard(cardWResp);
@@ -139,7 +130,7 @@ export default function NewQuery() {
         </div>
         <button
           className={`btn w-full rounded-lg ${
-            isProcessing ? "bg-blue-900" : "bg-blue-600"
+            isProcessing ? "cursor-wait bg-blue-900" : "bg-blue-600"
           } p-2 text-2xl text-white`}
           type="submit"
           disabled={isProcessing}

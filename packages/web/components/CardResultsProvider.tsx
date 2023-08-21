@@ -16,9 +16,6 @@ const Context = createContext<ResultsContext>({
 });
 
 const compareCards = (a: ICard, b: ICard) => {
-  console.log("comparing two cards");
-  console.log(a);
-  console.log(b);
   if (!a.created_at) return 1;
   if (!b.created_at) return -1;
   return new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime();
@@ -39,6 +36,7 @@ export default function CardResultsProvider({
   children: React.ReactNode;
   serverCards: ICard[];
 }) {
+  serverCards.sort(compareCards);
   const [cards, setCards] = useState(serverCards);
   const [indexedCards, setIndexedCards] = useState(
     getIndexedCards(serverCards)
@@ -50,8 +48,6 @@ export default function CardResultsProvider({
 
   const value = {
     addMyCard: (newCard: ICard) => {
-      let copy = console.log("Adding card");
-      console.log(newCard);
       const _cards = getIndexedCards(cards);
       // overwrite existing record, if exists
       _cards.set(newCard.id!, newCard);

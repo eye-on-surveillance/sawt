@@ -1,4 +1,5 @@
 import { ICard, ICitation, IResponse } from "@/lib/api";
+import moment from "moment";
 import CardResponse from "./CardResponse";
 import Citation from "./Citation";
 
@@ -7,10 +8,10 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const citations: ICitation[] = card.citations ?? [];
 
   return (
-    <div className="p-12">
+    <div className="px-12 py-6">
       <div className="my-5">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm">{card.created_at?.toString()}</h1>
+        <h1 className="text-sm">{moment(card.created_at!).fromNow()}</h1>
       </div>
       {responses!.map((response, index) => (
         <CardResponse response={response} key={index} />

@@ -4,15 +4,11 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 
 export default async function Card({ params }: { params: { cardId: string } }) {
   const { cardId } = params;
-  console.log("loading  card " + cardId);
   const { error, data: card } = await supabase
     .from(TABLES.CARDS)
     .select()
     .eq("id", cardId)
     .single();
-
-  console.log("loaded card");
-  console.log(card);
 
   return (
     <div className="px-6 py-5 text-left sm:px-16 md:flex">

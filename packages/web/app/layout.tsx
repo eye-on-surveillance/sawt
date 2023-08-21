@@ -23,8 +23,6 @@ export default async function RootLayout({
     .from(TABLES.CARDS)
     .select("*")
     .eq("status", ECardStatus.PUBLIC);
-  console.log("homepage");
-  console.log(cards);
 
   return (
     <html lang="en">
