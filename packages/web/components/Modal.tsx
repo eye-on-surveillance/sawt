@@ -2,48 +2,40 @@
 import { useRouter } from "next/navigation";
 import { MouseEventHandler, useCallback, useEffect, useRef } from "react";
 
-export default function Modal({ children }: { children: React.ReactNode }) {
-  const overlay = useRef(null);
-  const wrapper = useRef(null);
+const Modal = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const wrapper = useRef<HTMLDivElement | null>(null);
 
   const onDismiss = useCallback(() => {
     router.back();
   }, [router]);
 
-  const onClick: MouseEventHandler = useCallback(
-    (e) => {
-      if (e.target === overlay.current || e.target === wrapper.current) {
-        if (onDismiss) onDismiss();
-      }
-    },
-    [onDismiss, overlay, wrapper]
-  );
-
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onDismiss();
-    },
-    [onDismiss]
-  );
-
   useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onKeyDown]);
+    // errors in mobile browsers if not checked
+    if (!dialogRef.current?.open) dialogRef.current?.showModal();
+  }, []);
+
+  const overlayClick: MouseEventHandler = useCallback(
+    (event) => {
+      const element = wrapper?.current;
+      if (!element || element.contains(event.target as Node)) return;
+      onDismiss();
+    },
+    [onDismiss, wrapper]
+  );
 
   return (
-    <div
-      ref={overlay}
-      className="fixed bottom-0 left-0 right-0 top-0 z-10 mx-auto bg-black/60"
-      onClick={onClick}
+    <dialog
+      onClick={overlayClick}
+      ref={dialogRef}
+      onClose={onDismiss}
+      className={`w-full p-0 backdrop:bg-black 
+    backdrop:bg-opacity-50 backdrop:backdrop-blur-sm sm:w-5/6 md:w-4/6 lg:w-3/6 xl:w-2/5 2xl:w-2/6`}
     >
-      <div
-        ref={wrapper}
-        className="absolute left-1/2 top-1/2 w-full -translate-x-1/2 -translate-y-1/2 p-6 sm:w-10/12 md:w-8/12 lg:w-1/2"
-      >
-        {children}
-      </div>
-    </div>
+      <div ref={wrapper}>{children}</div>
+    </dialog>
   );
-}
+};
+
+export default Modal;

@@ -36,7 +36,6 @@ export default function NewQuery() {
       createdCard.status = ECardStatus.PUBLIC;
 
       addMyCard(createdCard);
-      setQuery("");
       return createdCard;
     }
   };
@@ -85,6 +84,7 @@ export default function NewQuery() {
   const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setQuery("");
     const newCard = await insertSupabaseCard();
     await sendQueryToFunction(newCard);
   };

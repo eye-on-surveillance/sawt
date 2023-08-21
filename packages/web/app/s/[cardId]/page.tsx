@@ -1,5 +1,4 @@
-import CardResponse from "@/components/CardResponse";
-import Citation from "@/components/Citation";
+import BetaCard from "@/components/BetaCard";
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 
 export default function Card({ params }: { params: { cardId: string } }) {
@@ -63,19 +62,7 @@ export default function Card({ params }: { params: { cardId: string } }) {
     <div className="px-6 py-5 text-left sm:px-16 md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
-        <div className="my-5">
-          <h1 className="text-2xl">{card.title}</h1>
-          <h1 className="text-sm">{card.created_at?.toString()}</h1>
-        </div>
-
-        {card.responses!.map((response, index) => (
-          <CardResponse response={response} key={index} />
-        ))}
-        <div className="text-sm">
-          {card.citations!.map((citation, index) => (
-            <Citation citation={citation} index={index} key={index} />
-          ))}
-        </div>
+        <BetaCard card={card} />
       </div>
       <div className="md:grow"></div>
     </div>
