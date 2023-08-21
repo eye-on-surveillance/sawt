@@ -1,5 +1,5 @@
+import CardResponse from "./CardResponse";
 import Citation from "./Citation";
-import Response from "./Response";
 
 interface CardProps {
   card_type: string;
@@ -14,7 +14,7 @@ const Card = ({ card_type, responses, citations, query }: CardProps) => {
       <h2 className="mb-4 text-xl font-bold">{query}</h2>{" "}
       {/* Display the user's query */}
       {responses.map((response, index) => (
-        <Response response={response} key={index} />
+        <CardResponse response={response} key={index} />
       ))}
       {citations.map((citation, index) => (
         <Citation citation={citation} index={index} key={index} />

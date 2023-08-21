@@ -23,10 +23,17 @@ export default function CardResultsProvider({
   const [cards, setCards] = useState(serverCards);
 
   const value = {
-    addMyCard: (card: ICard) => {
-      console.log("Adding card");
-      console.log(card);
-      setCards([card, ...cards]);
+    addMyCard: (newCard: ICard) => {
+      let copy = console.log("Adding card");
+      console.log(newCard);
+      const indexedCards = new Map<string, ICard>();
+      cards.forEach((card) => {
+        indexedCards.set(card.id!, card);
+      });
+
+      // overwrite existing record, if exists
+      indexedCards.set(newCard.id!, newCard);
+      setCards(Array.from(indexedCards.values()));
     },
     cards,
   };

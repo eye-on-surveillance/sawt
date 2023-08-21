@@ -8,10 +8,10 @@ import { useCardResults } from "./CardResultsProvider";
 export default function NewQuery() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [query, setQuery] = useState("");
-  const [cardType, setCardType] = useState(ECardType.QUERY_GENERAL);
+  const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
   const { addMyCard } = useCardResults();
 
-  const insertSupabaseCard = async () => {
+  const insertSupabaseCard = async (): Promise<ICard> => {
     const newCard: ICard = {
       title: query,
       card_type: cardType,
@@ -26,6 +26,7 @@ export default function NewQuery() {
     if (!resp.ok) {
       console.warn("Could not record query");
       console.warn(resp);
+      return newCard;
     } else {
       const cardJson = await resp.json();
       console.log("Created card");
@@ -35,22 +36,43 @@ export default function NewQuery() {
       createdCard.status = ECardStatus.PUBLIC;
 
       addMyCard(createdCard);
+      setQuery("");
+      return createdCard;
     }
   };
 
-  const sendQueryToFunction = async () => {
+  const sendQueryToFunction = async (newCard: ICard) => {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
       method: "POST",
-      body: JSON.stringify({ query, response_type: cardType }), // Pass responseMode to your API endpoint
+      // Pass responseMode to your API endpoint
+      body: JSON.stringify({ query, response_type: cardType }),
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    const card: ICard = await answerResp.json();
+    let card: any = await answerResp.json();
+
     console.log("got response from function");
     console.log(card);
+
+    Object.assign(card, newCard);
+    console.log("after merge with known values");
+    console.log(card);
+
+    card.citations = card.citations!.map((citation: any) => {
+      return {
+        source_title: citation.Title,
+        source_name: citation.Name,
+        source_publish_date: citation.Published,
+      };
+    });
+    card = card as ICard;
+    console.log("adapted it to new form");
+    console.log(card);
+    addMyCard(card);
+
     // await updateQueryResponded(card, queryId, startedProcessingAt);
     // setCards((oldCards: any) => {
     //   const newCards = [...oldCards, card];
@@ -63,8 +85,8 @@ export default function NewQuery() {
   const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    await insertSupabaseCard();
-    await sendQueryToFunction();
+    const newCard = await insertSupabaseCard();
+    await sendQueryToFunction(newCard);
   };
 
   return (
