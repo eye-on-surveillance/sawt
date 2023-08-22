@@ -2,7 +2,7 @@ interface ResponseProps {
   response: { response: string };
 }
 
-const Response = ({ response }: ResponseProps) => {
+const CardResponse = ({ response }: ResponseProps) => {
   return (
     <div className="response">
       <p>{response.response}</p>
@@ -10,4 +10,4 @@ const Response = ({ response }: ResponseProps) => {
   );
 };
 
-export default Response;
+export default CardResponse;
