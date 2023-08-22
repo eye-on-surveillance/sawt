@@ -1,6 +1,8 @@
 "use strict";
 
 import CardResultsProvider from "@/components/CardResultsProvider";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import { ECardStatus } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { config } from "@fortawesome/fontawesome-svg-core";
@@ -33,7 +35,17 @@ export default async function RootLayout({
         needs to locally communicated with results in order to identify
         queries created by the current user. */}
         <CardResultsProvider serverCards={cards || []}>
-          {children}
+          <div className="min-h-screen w-full overflow-hidden">
+            <header className="justify-cente items-center px-6 sm:px-16">
+              <Navbar />
+            </header>
+            <main className="min-h-[80vh] items-center justify-center">
+              {children}
+            </main>
+            <footer className="items-center justify-center px-6 sm:px-16">
+              <Footer />
+            </footer>
+          </div>
           {modal}
         </CardResultsProvider>
         <Analytics />

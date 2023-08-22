@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 export const navLinks = [
   {
-    id: "about-beta",
+    id: "about",
     title: "About",
   },
   {
