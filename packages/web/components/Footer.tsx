@@ -22,19 +22,22 @@ export default function Footer() {
         </Link>
       </p>
       <p className="my-5">
-        <Link href="https://github.com/eye-on-surveillance/sawt">
+        <Link
+          href="https://github.com/eye-on-surveillance/sawt"
+          target="_blank"
+        >
           <FontAwesomeIcon
             icon={faGithub}
             className="mx-2 h-7 w-7 align-middle"
           />
         </Link>
-        <Link href="https://instagram.com/eos_nola">
+        <Link href="https://instagram.com/eos_nola" target="_blank">
           <FontAwesomeIcon
             icon={faInstagram}
             className="mx-2 h-7 w-7 align-middle"
           />
         </Link>
-        <Link href="https://twitter.com/eos_nola">
+        <Link href="https://twitter.com/eos_nola" target="_blank">
           <FontAwesomeIcon
             icon={faTwitter}
             className="mx-2 h-7 w-7 align-middle"

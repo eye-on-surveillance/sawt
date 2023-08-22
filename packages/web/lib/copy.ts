@@ -4,5 +4,11 @@ export const HOMEPAGE_WORDS = [
   "trash",
   "housing",
   "justice",
+  "transparency",
+  "bribes",
+  "corporate greed",
+  "corruption",
+  "city employee DWIs",
+  "ARPA funds",
   "the economy",
 ];

@@ -13,3 +13,4 @@ tiktoken
 faiss-cpu
 wikipedia
 pandas 
+tabulate
