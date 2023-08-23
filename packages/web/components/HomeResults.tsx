@@ -11,7 +11,7 @@ export default function HomeBanner() {
   const hasCards = cards.length > 0;
 
   // State and refs for infinite scrolling
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [isInView, setIsInView] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
