@@ -8,12 +8,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "PLACEHOLDER";
 const supabaseSecretServiceKey =
   process.env.SUPABASE_SERVICE_ROLE_SECRET || "PLACEHOLDER";
 
-export const dynamic = "force-dynamic"; // assuming this is needed based on your comment
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   if (!supabaseUrl || !supabaseSecretServiceKey) {
     console.error("Supabase environment variables not set!");
-    return NextResponse.error({ message: "Internal server error." });
+    return NextResponse.error();
   }
 
   const supabase = createClient(supabaseUrl, supabaseSecretServiceKey);
@@ -29,9 +29,7 @@ export async function POST(request: Request) {
 
   if (fetchError || !cardData) {
     console.error("Error fetching card or card not found:", fetchError);
-    return NextResponse.error({
-      message: "Card not found or error fetching card.",
-    });
+    return NextResponse.error();
   }
 
   const { data, error } = await supabase
@@ -41,7 +39,7 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error("Error while updating likes:", error);
-    return NextResponse.error({ message: "Error updating likes." });
+    return NextResponse.error();
   }
 
   return NextResponse.json({ message: "Likes updated successfully.", data });
