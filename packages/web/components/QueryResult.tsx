@@ -51,11 +51,11 @@ const POLL_INTERVAL = 10000;
 interface BiasModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: any) => void; // Replace `any` with the appropriate type if known
-  }
-  
+    onSubmit: (data: { selected: string[], feedback: string }) => void;
+}
+
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
-  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>({});
+  const [selectedBiases, setSelectedBiases] = useState({});
   const [feedback, setFeedback] = useState("");
 
   const handleCheckboxChange = (bias: string) => {
@@ -63,13 +63,13 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
       ...prevBiases,
       [bias]: !prevBiases[bias],
     }));
-};
+  };
 
   const handleSubmit = () => {
     const selected = Object.keys(selectedBiases).filter(
       (key) => selectedBiases[key]
     );
-    onSubmit(selected, feedback);
+    onSubmit({ selected, feedback });
     onClose();
   };
 
@@ -83,8 +83,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         </button>
         <h2 className="mb-4 text-lg font-bold">Report this Response</h2>
         <p className="mb-4 text-sm">
-          At times, SAWT might not provide perfectly accurate information. Your
-          reports on any inaccuracies are invaluable in refining our system.
+          At times, SAWT might not provide perfectly accurate information. Your reports on any inaccuracies are invaluable in refining our system.
         </p>
 
         <div className="mb-4">
@@ -128,7 +127,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
 }
 
 export default function QueryResult({ card }: { card: ICard }) {
-  const { likesForCard, handleLike } = useCardResults(); // Consume the context
+  const { likesForCard, handleLike } = useCardResults();
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const isLoading = !card.responses || card.responses.length <= 0;
   const [value, copy] = useClipboardApi();
@@ -146,11 +145,11 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  const submitBiasFeedback = async (biasType, feedback) => {
+  const submitBiasFeedback = async ({ selected, feedback }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
-        .update({ bias: { type: biasType, feedback: feedback } })
+        .update({ bias: { type: selected, feedback: feedback } })
         .eq("id", card.id);
       if (error) {
         throw error;
@@ -183,18 +182,16 @@ export default function QueryResult({ card }: { card: ICard }) {
     console.log("Like button clicked in QueryResult!");
     setLikes((prevLikes) => prevLikes + 1);
     try {
-      await handleLike(card.id!); // Call the handleLike from the context
+      await handleLike(card.id!);
     } catch (error) {
       console.error("Error occurred in handleCardLike:", error);
-      setLikes((prevLikes) => prevLikes - 1); // Revert in case of error
+      setLikes((prevLikes) => prevLikes - 1);
     }
   };
 
   return (
     <div
-      className={`my-6 rounded-lg bg-blue-200 p-6 ${
-        isLoading ? "border-4 border-dashed border-yellow-500" : ""
-      }`}
+      className={`my-6 rounded-lg bg-blue-200 p-6 ${isLoading ? "border-4 border-dashed border-yellow-500" : ""}`}
     >
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <div>
