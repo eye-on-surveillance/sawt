@@ -48,7 +48,13 @@ const LOADING_MESSAGES = [
 const WAIT_MS = 2500;
 const POLL_INTERVAL = 10000;
 
-function BiasModal({ isOpen, onClose, onSubmit }) {
+interface BiasModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (data: any) => void; // Replace `any` with the appropriate type if known
+  }
+  
+function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
   const [selectedBiases, setSelectedBiases] = useState({});
   const [feedback, setFeedback] = useState("");
 
