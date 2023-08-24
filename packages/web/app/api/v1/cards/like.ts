@@ -32,10 +32,24 @@ export async function POST(request: Request) {
     return NextResponse.error();
   }
 
+  // Fetch the current likes value
+  const { data: currentLikeData, error: likeError } = await supabase
+    .from(TABLES.CARDS)
+    .select('likes')
+    .eq('id', cardId)
+    .single();
+
+  if (likeError || !currentLikeData) {
+    console.error("Error fetching current likes value:", likeError);
+    return NextResponse.error();
+  }
+
+  const newLikesValue = currentLikeData.likes + 1;
+
+  // Upsert the incremented likes value
   const { data, error } = await supabase
     .from(TABLES.CARDS)
-    .update({ likes: supabase.raw("likes + ?", [1]) })
-    .eq("id", cardId);
+    .upsert({ id: cardId, likes: newLikesValue });
 
   if (error) {
     console.error("Error while updating likes:", error);
