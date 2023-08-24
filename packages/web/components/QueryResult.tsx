@@ -83,7 +83,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         <button onClick={onClose} className="absolute right-2 top-2">
           <FontAwesomeIcon icon={faTimes} />
         </button>
-        <h2 className="mb-4 text-lg font-bold">Report this Response</h2>
+        <h2 className="mb-4 text-lg font-bold">Report Response</h2>
         <p className="mb-4 text-sm">
           At times, SAWT might not provide perfectly accurate information. Your
           reports on any inaccuracies are invaluable in refining our system.
@@ -261,7 +261,7 @@ export default function QueryResult({ card }: { card: ICard }) {
         )}
 
         <span className="ml-3 cursor-pointer" onClick={handleBiasReport}>
-          Report this Response
+          Report Response
         </span>
       </div>
 
