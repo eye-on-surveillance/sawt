@@ -36,7 +36,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js"
-  ],
+, "app/api/v1/cards/like.ts"  ],
   "exclude": [
     "node_modules"
   ]

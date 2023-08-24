@@ -10,6 +10,8 @@ type ResultsContext = {
   cards: ICard[];
   indexedCards: Map<string, ICard>;
   hasMoreCards: boolean;
+  likesForCard: (cardId: string) => number;
+  handleLike: (cardId: string) => Promise<void>;
 };
 
 const Context = createContext<ResultsContext>({
@@ -18,12 +20,14 @@ const Context = createContext<ResultsContext>({
   cards: [],
   indexedCards: new Map<string, ICard>(),
   hasMoreCards: true,
+  likesForCard: () => 0,
+  handleLike: async () => {},
 });
 
 const compareCards = (a: ICard, b: ICard) => {
-  if (!a.id) return 1;
-  if (!b.id) return -1;
-  return parseInt(b.id!) - parseInt(a.id!);
+  if (!a.created_at) return 1;
+  if (!b.created_at) return -1;
+  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
 };
 
 const getIndexedCards = (cards: ICard[]) => {
@@ -34,15 +38,18 @@ const getIndexedCards = (cards: ICard[]) => {
   return indexedCards;
 };
 
-const fetchCardsFromSupabase = async (lastId?: string): Promise<ICard[]> => {
+const fetchCardsFromSupabase = async (
+  lastCreatedAt?: string
+): Promise<ICard[]> => {
   let query = supabase
     .from("cards")
     .select("*")
     .eq("status", "public")
+    .order("created_at", { ascending: false })
     .limit(5);
 
-  if (lastId) {
-    query = query.lt("id", lastId);
+  if (lastCreatedAt) {
+    query = query.lt("created_at", lastCreatedAt);
   }
 
   const { data, error } = await query;
@@ -52,6 +59,21 @@ const fetchCardsFromSupabase = async (lastId?: string): Promise<ICard[]> => {
   }
 
   return data || [];
+};
+
+const fetchLikesForCard = async (cardId: string): Promise<number> => {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("likes")
+    .eq("id", cardId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching likes count:", error);
+    throw error;
+  }
+
+  return data?.likes || 0;
 };
 
 export default function CardResultsProvider({
@@ -71,14 +93,14 @@ export default function CardResultsProvider({
   const fetchMoreCards = async () => {
     try {
       const lastCard = cards[cards.length - 1];
-      const newCards = await fetchCardsFromSupabase(lastCard?.id);
+      const newCards = await fetchCardsFromSupabase(lastCard?.created_at);
       console.log("Fetched new cards:", newCards);
 
       if (newCards.length === 0) {
         setHasMoreCards(false);
       } else {
         setCards((prevCards) => {
-          const updatedCards = [...prevCards, ...newCards];
+          const updatedCards = [...prevCards, ...newCards].sort(compareCards);
           console.log("Updated cards list:", updatedCards);
           return updatedCards;
         });
@@ -100,12 +122,43 @@ export default function CardResultsProvider({
     setCards(newCards);
   };
 
+  const handleLike = async (cardId: string) => {
+    try {
+      const res = await fetch("/api/v1/cards/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId }),
+      });
+
+      if (res.ok) {
+        const updatedLikes = await fetchLikesForCard(cardId);
+        const card = indexedCards.get(cardId);
+        if (card) {
+          const updatedCard = { ...card, likes: updatedLikes };
+          indexedCards.set(cardId, updatedCard);
+          setIndexedCards(new Map(indexedCards));
+        }
+      } else {
+        console.error("Error liking card:", await res.json());
+      }
+    } catch (error) {
+      console.error("Error occurred in handleLike:", error);
+    }
+  };
+
+  const likesForCard = (cardId: string) => {
+    const card = indexedCards.get(cardId);
+    return card?.likes || 0;
+  };
+
   const value = {
     addMyCard,
     fetchMoreCards,
     cards,
     indexedCards,
     hasMoreCards,
+    likesForCard,
+    handleLike,
   };
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
