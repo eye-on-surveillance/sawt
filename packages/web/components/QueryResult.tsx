@@ -55,15 +55,15 @@ interface BiasModalProps {
   }
   
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
-  const [selectedBiases, setSelectedBiases] = useState({});
+  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>({});
   const [feedback, setFeedback] = useState("");
 
-  const handleCheckboxChange = (bias) => {
+  const handleCheckboxChange = (bias: string) => {
     setSelectedBiases((prevBiases) => ({
       ...prevBiases,
       [bias]: !prevBiases[bias],
     }));
-  };
+};
 
   const handleSubmit = () => {
     const selected = Object.keys(selectedBiases).filter(
