@@ -93,9 +93,9 @@ export default function CardResultsProvider({
   const fetchMoreCards = async () => {
     try {
       const lastCard = cards[cards.length - 1];
-      const newCards = await fetchCardsFromSupabase(lastCard?.created_at);
+      const newCards = await fetchCardsFromSupabase(lastCard?.created_at?.toISOString());
       console.log("Fetched new cards:", newCards);
-
+    
       if (newCards.length === 0) {
         setHasMoreCards(false);
       } else {
