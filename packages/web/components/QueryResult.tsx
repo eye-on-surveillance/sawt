@@ -148,7 +148,7 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  const submitBiasFeedback = async ({ selected, feedback }) => {
+  const submitBiasFeedback = async ({ selected, feedback }: { selected: string[], feedback: string }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
