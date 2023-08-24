@@ -35,8 +35,8 @@ export async function POST(request: Request) {
   // Fetch the current likes value
   const { data: currentLikeData, error: likeError } = await supabase
     .from(TABLES.CARDS)
-    .select('likes')
-    .eq('id', cardId)
+    .select("likes")
+    .eq("id", cardId)
     .single();
 
   if (likeError || !currentLikeData) {

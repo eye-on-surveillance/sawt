@@ -49,13 +49,15 @@ const WAIT_MS = 2500;
 const POLL_INTERVAL = 10000;
 
 interface BiasModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (data: { selected: string[], feedback: string }) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: { selected: string[]; feedback: string }) => void;
 }
 
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
-  const [selectedBiases, setSelectedBiases] = useState({});
+  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
+    {}
+  );
   const [feedback, setFeedback] = useState("");
 
   const handleCheckboxChange = (bias: string) => {
@@ -83,7 +85,8 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         </button>
         <h2 className="mb-4 text-lg font-bold">Report this Response</h2>
         <p className="mb-4 text-sm">
-          At times, SAWT might not provide perfectly accurate information. Your reports on any inaccuracies are invaluable in refining our system.
+          At times, SAWT might not provide perfectly accurate information. Your
+          reports on any inaccuracies are invaluable in refining our system.
         </p>
 
         <div className="mb-4">
@@ -191,7 +194,9 @@ export default function QueryResult({ card }: { card: ICard }) {
 
   return (
     <div
-      className={`my-6 rounded-lg bg-blue-200 p-6 ${isLoading ? "border-4 border-dashed border-yellow-500" : ""}`}
+      className={`my-6 rounded-lg bg-blue-200 p-6 ${
+        isLoading ? "border-4 border-dashed border-yellow-500" : ""
+      }`}
     >
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <div>
