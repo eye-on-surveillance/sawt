@@ -13,10 +13,14 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
-import { useCardResults } from "./CardResultsProvider";
+
+type SupabaseRealtimePayload<T = any> = {
+  old: T;
+  new: T;
+};
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -130,7 +134,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
 }
 
 export default function QueryResult({ card }: { card: ICard }) {
-  const { likesForCard, handleLike } = useCardResults();
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const isLoading = !card.responses || card.responses.length <= 0;
   const [value, copy] = useClipboardApi();
@@ -148,7 +151,39 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  const submitBiasFeedback = async ({ selected, feedback }: { selected: string[], feedback: string }) => {
+  useEffect(() => {
+    const channel = supabase
+      .channel(`cards:id=eq.${card.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          console.log("Update:", payload);
+          if (
+            payload.new.id === card.id &&
+            payload.new.likes !== payload.old.likes
+          ) {
+            // If the likes field has changed, then update the likes
+            setLikes(payload.new.likes);
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on component unmount
+    return () => channel.unsubscribe();
+  }, [card.id]);
+
+  const submitBiasFeedback = async ({
+    selected,
+    feedback,
+  }: {
+    selected: string[];
+    feedback: string;
+  }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
@@ -181,15 +216,32 @@ export default function QueryResult({ card }: { card: ICard }) {
     recentlyCopied ? 3000 : null
   );
 
-  const handleCardLike = async () => {
-    console.log("Like button clicked in QueryResult!");
-    setLikes((prevLikes) => prevLikes + 1);
+  const handleLikeUpdate = async () => {
     try {
-      await handleLike(card.id!);
+      const newLikesValue = likes + 1;
+
+      const { data, error } = await supabase
+        .from("cards")
+        .update({ likes: newLikesValue })
+        .eq("id", card.id);
+
+      if (error) {
+        throw error;
+      }
+      console.log("Likes updated:", data);
+
+      // Update the local likes state
+      setLikes(newLikesValue);
     } catch (error) {
-      console.error("Error occurred in handleCardLike:", error);
-      setLikes((prevLikes) => prevLikes - 1);
+      console.error("Error occurred in handleLikeUpdate:", error);
+      setLikes(likes - 1); // Revert the likes count on error
     }
+  };
+
+  const handleCardLike = () => {
+    console.log("Like button clicked in QueryResult!");
+    setLikes((prevLikes) => prevLikes + 1); // Optimistically update UI
+    handleLikeUpdate(); // Perform the actual update operation
   };
 
   return (

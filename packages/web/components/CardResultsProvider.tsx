@@ -93,20 +93,25 @@ export default function CardResultsProvider({
   const fetchMoreCards = async () => {
     try {
       const lastCard = cards[cards.length - 1];
-      const newCards = await fetchCardsFromSupabase(
-        lastCard?.created_at?.toISOString()
-      );
-      console.log("Fetched new cards:", newCards);
+      const lastCreatedAt = lastCard?.created_at;
+      const newCards = await fetchCardsFromSupabase(lastCreatedAt);
 
-      if (newCards.length === 0) {
+      // If no new cards are fetched, update the hasMoreCards state to false
+      if (!newCards || newCards.length === 0) {
+        console.log("No new cards fetched.");
         setHasMoreCards(false);
-      } else {
-        setCards((prevCards) => {
-          const updatedCards = [...prevCards, ...newCards].sort(compareCards);
-          console.log("Updated cards list:", updatedCards);
-          return updatedCards;
-        });
+        return;
       }
+
+      setCards((prevCards) => {
+        // Filter out any cards from the newCards array that already exist in our current state
+        const uniqueNewCards = newCards.filter(
+          (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
+        );
+
+        // Combine the current set of cards with the unique new cards and sort them
+        return [...prevCards, ...uniqueNewCards].sort(compareCards);
+      });
     } catch (error) {
       console.error("Failed to fetch more cards:", error);
     }
