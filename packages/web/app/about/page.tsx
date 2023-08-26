@@ -24,27 +24,27 @@ const AboutPage: React.FC = () => {
             >
               Eye on Surveillance
             </Link>{" "}
-            created SAWT as a tool for New Orleanians to more easily find out
+            created Sawt as a tool for New Orleanians to more easily find out
             what is being shared and discussed in City Council meetings. The app
             uses advanced language modeling, a form of artificial intelligence,
             to:
           </p>
           <ol className="m-2 list-inside list-decimal">
             <li>
-              Create transcripts of all City Council meetings from 2023_ to
+              Create transcripts of all City Council meetings from 2023 to
               Present.
             </li>
             <li>
-              When you ask SAWT a question, the app searches through those
+              When you ask Sawt a question, the app searches through those
               transcripts to find any instances when somebody said something
               relevant to your query.
             </li>
             <li>
               The results (a summary as well as direct quotes) then show up in
-              the SAWT feed, where you can also see other queries and results.
+              the Sawt feed, where you can also see other queries and results.
             </li>
           </ol>
-          <h2 className="text-2xl font-bold">How Sawt works</h2>
+          <h2 className="text-2xl font-bold">How it works</h2>
           <div className="grid grid-flow-row auto-rows-max gap-3 text-purple sm:grid-cols-1 md:grid-cols-3">
             <Step
               title="Step 1"
@@ -64,12 +64,12 @@ const AboutPage: React.FC = () => {
             The results are produced from AI-generated transcripts of City
             Council meetings and records. There may be inaccuracies in the
             transcriptions, and there may be other relevant data available in
-            the original source materials not uncovered by SAWT. There may also
+            the original source materials not uncovered by Sawt. There may also
             be inaccuracies in what is stated or presented during a City Council
-            meeting – SAWT is not a fact checker.
+            meeting – Sawt is not a fact checker.
           </p>
           <p>
-            The results provided by SAWT are great starting points for further
+            The results provided by Sawt are great starting points for further
             research and exploration, and you’ll want to fact check any
             information and figures that you might use for informational,
             research, and advocacy purposes. Here are some follow-up steps that
@@ -77,7 +77,7 @@ const AboutPage: React.FC = () => {
           </p>
           <ul className="m-2 list-inside list-disc">
             <li>
-              Look at the metadata for your SAWT results to understand when,
+              Look at the metadata for your Sawt results to understand when,
               who, and where something was shared or stated in the course of a
               meeting.
             </li>
@@ -91,7 +91,7 @@ const AboutPage: React.FC = () => {
               topic.
             </li>
             <li>
-              Verify and contextualize SAWT results with other sources of data,
+              Verify and contextualize Sawt results with other sources of data,
               such as news reports, civic organization and monitor reports and
               analysis, etc.
             </li>
