@@ -21,6 +21,12 @@ type SupabaseRealtimePayload<T = any> = {
   display_name: string;
 };
 
+type Comment = {
+  display_name: string;
+  content: string;
+  created_at: Date;
+};
+
 const BetaCard = ({ card }: { card: ICard }) => {
   const responses: IResponse[] = card.responses ?? [];
   const citations: ICitation[] = card.citations ?? [];
@@ -28,7 +34,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
   const [recentlyCopied, setRecentlyCopied] = useState(false);
   const [comments, setComments] = useState([]);
-  const [commentContent, setCommentContent] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [showCitations, setShowCitations] = useState(false);
 
