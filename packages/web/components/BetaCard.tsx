@@ -80,6 +80,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       card_id: card.id,
       content: commentContent,
       display_name: displayName,
+      created_at: new Date(),
     };
 
     setComments((prevComments) => [newComment, ...(prevComments || [])]);
