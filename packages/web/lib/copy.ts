@@ -1,4 +1,4 @@
-export const APP_NAME = "SAWT";
+export const APP_NAME = "Sawt";
 export const HOMEPAGE_WORDS = [
   "crime",
   "trash",

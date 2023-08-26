@@ -28,7 +28,7 @@ const Navbar = () => {
         <nav className="navbar flex w-full items-center justify-between py-6">
           {/* Logo */}
           <h1 className="text-3xl">
-            <Link href={HOME_PATH}>{APP_NAME}</Link>
+            <Link href={HOME_PATH}>{APP_NAME.toUpperCase()}</Link>
           </h1>
 
           {/* Desktop Navigation */}
