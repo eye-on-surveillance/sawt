@@ -86,6 +86,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
     setComments((prevComments) => 
     prevComments ? prevComments.filter((comment) => comment !== newComment) : null
     );
+
     setDisplayName(""); // Resetting display name
     setCommentContent(""); // Resetting comment content
 
@@ -100,7 +101,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       console.error("Error adding comment:", error);
       // If there's an error, revert the change to the comments
       setComments((prevComments) =>
-        prevComments.filter((comment) => comment !== newComment)
+        prevComments ? prevComments.filter((comment) => comment !== newComment) : null
       );
     }
   };
