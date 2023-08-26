@@ -1,5 +1,4 @@
 "use client";
-
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -14,7 +13,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 
@@ -46,7 +45,6 @@ const LOADING_MESSAGES = [
   "Hang tight...",
   "About 5 seconds remaining...",
   "About 5 seconds remaining...",
-  // The last message will remain until processing finishes
   "Finishing up...",
 ];
 
@@ -56,14 +54,13 @@ const POLL_INTERVAL = 10000;
 interface BiasModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { selected: string[]; feedback: string }) => void;
+  onSubmit: (data: { selected: string[] }) => void;
 }
 
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
   const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
     {}
   );
-  const [feedback, setFeedback] = useState("");
 
   const handleCheckboxChange = (bias: string) => {
     setSelectedBiases((prevBiases) => ({
@@ -76,7 +73,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
     const selected = Object.keys(selectedBiases).filter(
       (key) => selectedBiases[key]
     );
-    onSubmit({ selected, feedback });
+    onSubmit({ selected });
     onClose();
   };
 
@@ -93,7 +90,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
           At times, SAWT might not provide perfectly accurate information. Your
           reports on any inaccuracies are invaluable in refining our system.
         </p>
-
         <div className="mb-4">
           {[
             "Gender-Related Bias",
@@ -116,13 +112,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
             </div>
           ))}
         </div>
-
-        <textarea
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Submit a comment"
-          className="mb-4 w-full"
-        ></textarea>
         <button
           onClick={handleSubmit}
           className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
@@ -152,51 +141,42 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  // useEffect(() => {
-  //   const channel = supabase
-  //     .channel(`cards:id=eq.${card.id}`)
-  //     .on(
-  //       "postgres_changes",
-  //       {
-  //         event: "UPDATE",
-  //         schema: "public",
-  //       },
-  //       (payload: SupabaseRealtimePayload<ICard>) => {
-  //         console.log("Update:", payload);
-  //         if (
-  //           payload.new.id === card.id &&
-  //           payload.new.likes !== payload.old.likes
-  //         ) {
-  //           // If the likes field has changed, then update the likes
-  //           setLikes(payload.new.likes);
-  //         }
-  //       }
-  //     )
-  //     .subscribe();
+  useEffect(() => {
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          if (
+            payload.new.id === card.id &&
+            payload.new.likes !== payload.old.likes
+          ) {
+            // If the likes field has changed, then update the likes
+            setLikes(payload.new.likes || 0);
+          }
+        }
+      )
+      .subscribe();
 
-  //   // Cleanup subscription on component unmount
-  //   return () => channel.unsubscribe();
-  // }, [card.id]);
+    // Cleanup subscription on component unmount
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card.id]);
 
-  const submitBiasFeedback = async ({
-    selected,
-    feedback,
-  }: {
-    selected: string[];
-    feedback: string;
-  }) => {
+  const submitBiasFeedback = async ({ selected }: { selected: string[] }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
-        .update({ bias: { type: selected, feedback: feedback } })
+        .update({ bias: { type: selected } })
         .eq("id", card.id);
       if (error) {
         throw error;
       }
-      console.log("Bias feedback submitted:", data);
-    } catch (error) {
-      console.error("Error submitting bias feedback:", error);
-    }
+    } catch (error) {}
   };
 
   useInterval(
@@ -229,18 +209,14 @@ export default function QueryResult({ card }: { card: ICard }) {
       if (error) {
         throw error;
       }
-      console.log("Likes updated:", data);
-
       // Update the local likes state
       setLikes(newLikesValue);
     } catch (error) {
-      console.error("Error occurred in handleLikeUpdate:", error);
       setLikes(likes - 1); // Revert the likes count on error
     }
   };
 
   const handleCardLike = () => {
-    console.log("Like button clicked in QueryResult!");
     setLikes((prevLikes) => prevLikes + 1); // Optimistically update UI
     handleLikeUpdate(); // Perform the actual update operation
   };

@@ -69,7 +69,6 @@ const fetchLikesForCard = async (cardId: string): Promise<number> => {
     .single();
 
   if (error) {
-    console.error("Error fetching likes count:", error);
     throw error;
   }
 
@@ -94,11 +93,12 @@ export default function CardResultsProvider({
     try {
       const lastCard = cards[cards.length - 1];
       const lastCreatedAt = lastCard?.created_at;
-      const newCards = await fetchCardsFromSupabase(lastCreatedAt);
+      const newCards = await fetchCardsFromSupabase(
+        lastCreatedAt?.toISOString()
+      );
 
       // If no new cards are fetched, update the hasMoreCards state to false
       if (!newCards || newCards.length === 0) {
-        console.log("No new cards fetched.");
         setHasMoreCards(false);
         return;
       }
@@ -112,9 +112,7 @@ export default function CardResultsProvider({
         // Combine the current set of cards with the unique new cards and sort them
         return [...prevCards, ...uniqueNewCards].sort(compareCards);
       });
-    } catch (error) {
-      console.error("Failed to fetch more cards:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -146,11 +144,8 @@ export default function CardResultsProvider({
           setIndexedCards(new Map(indexedCards));
         }
       } else {
-        console.error("Error liking card:", await res.json());
       }
-    } catch (error) {
-      console.error("Error occurred in handleLike:", error);
-    }
+    } catch (error) {}
   };
 
   const likesForCard = (cardId: string) => {
