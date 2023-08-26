@@ -62,7 +62,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
         (payload: SupabaseRealtimePayload<Comment>) => {
           console.log("New Comment:", payload);
           if (payload.new.card_id === card.id) {
-            setComments((prevComments) => [payload.new, ...prevComments]);
+            setComments((prevComments) => [payload.new, ...(prevComments || [])]);
           }
         }
       )
@@ -72,7 +72,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
     return () => {
       channel.unsubscribe();
     };
-  }, [card.id]);
+}, [card.id]);
+
 
   const handleCommentSubmit = async () => {
     const newComment = {
