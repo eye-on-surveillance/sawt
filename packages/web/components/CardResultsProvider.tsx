@@ -94,7 +94,7 @@ export default function CardResultsProvider({
     try {
       const lastCard = cards[cards.length - 1];
       const lastCreatedAt = lastCard?.created_at;
-      const newCards = await fetchCardsFromSupabase(lastCreatedAt);
+      const newCards = await fetchCardsFromSupabase(lastCreatedAt?.toISOString());
 
       // If no new cards are fetched, update the hasMoreCards state to false
       if (!newCards || newCards.length === 0) {
