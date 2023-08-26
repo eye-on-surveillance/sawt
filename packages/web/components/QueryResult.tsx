@@ -5,6 +5,7 @@ import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import {
   faCheck,
+  faComment,
   faShare,
   faSpinner,
   faThumbsUp,
@@ -287,6 +288,16 @@ export default function QueryResult({ card }: { card: ICard }) {
           />
           {likes}
         </span>
+
+        <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
+          <span className="ml-3 cursor-pointer">
+            <FontAwesomeIcon
+              icon={faComment}
+              className="mx-2 h-5 w-5 align-middle"
+            />
+            Comments
+          </span>
+        </Link>
 
         {recentlyCopied ? (
           <span className="ml-3 text-green-400">
