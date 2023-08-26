@@ -25,10 +25,10 @@ const Navbar = () => {
     <div className="text-center md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
-        <nav className="navbar flex w-full items-center justify-between  py-6">
+        <nav className="navbar flex w-full items-center justify-between py-6">
           {/* Logo */}
-          <h1 className="text-3xl text-black">
-            <Link href={HOME_PATH}>{APP_NAME}</Link>
+          <h1 className="text-3xl">
+            <Link href={HOME_PATH}>{APP_NAME.toUpperCase()}</Link>
           </h1>
 
           {/* Desktop Navigation */}
@@ -59,7 +59,7 @@ const Navbar = () => {
             <div
               className={`${
                 !toggle ? "hidden" : "flex"
-              } sidebar absolute right-0 top-20 mx-4 my-2 min-w-[140px] rounded-xl bg-slate-500 p-6 text-white`}
+              } sidebar absolute right-0 top-20 mx-4 my-2 min-w-[140px] rounded-xl bg-primary p-6 text-white`}
             >
               <ul className="flex flex-1 list-none flex-col items-start justify-end">
                 {navLinks.map((nav, index) => (
