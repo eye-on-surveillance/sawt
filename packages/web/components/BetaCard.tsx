@@ -14,11 +14,6 @@ import Citation from "./Citation";
 type SupabaseRealtimePayload<T = any> = {
   old: T;
   new: T;
-  eventType: "INSERT" | "UPDATE" | "DELETE";
-  schema: string;
-  table: string;
-  commit_timestamp: string;
-  display_name: string;
 };
 
 type Comment = {
@@ -63,7 +58,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
         "postgres_changes",
         {
           event: "INSERT",
-          schema: "public"
+          schema: "public",
         },
         (payload: SupabaseRealtimePayload<Comment>) => {
           console.log("New Comment:", payload);
@@ -78,7 +73,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
     return () => {
       channel.unsubscribe();
     };
-}, [card.id]);
+  }, [card.id]);
 
   const handleCommentSubmit = async () => {
     const newComment = {
@@ -186,33 +181,34 @@ const BetaCard = ({ card }: { card: ICard }) => {
           Post Comment
         </button>
 
-        {comments && comments.map((comment, index) => (
-          <div
-            key={index}
-            className={`mb-2 mt-4 p-2 ${
-              index < comments.length - 1 ? "border-b-2" : ""
-            } border-black`}
-          >
-            <div className="flex justify-between">
-              <p className="font-bold">{comment.display_name}</p>
-              <span className="text-sm text-gray-500">
-                {moment(comment.created_at).fromNow()}
-              </span>
+        {comments &&
+          comments.map((comment, index) => (
+            <div
+              key={index}
+              className={`mb-2 mt-4 p-2 ${
+                index < comments.length - 1 ? "border-b-2" : ""
+              } border-black`}
+            >
+              <div className="flex justify-between">
+                <p className="font-bold">{comment.display_name}</p>
+                <span className="text-sm text-gray-500">
+                  {moment(comment.created_at).fromNow()}
+                </span>
+              </div>
+              <div>
+                {comment.content.split("\n").map((str, idx) =>
+                  idx === comment.content.split("\n").length - 1 ? (
+                    str
+                  ) : (
+                    <>
+                      {str}
+                      <br />
+                    </>
+                  )
+                )}
+              </div>
             </div>
-            <div>
-              {comment.content.split("\n").map((str, idx) =>
-                idx === comment.content.split("\n").length - 1 ? (
-                  str
-                ) : (
-                  <>
-                    {str}
-                    <br />
-                  </>
-                )
-              )}
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
