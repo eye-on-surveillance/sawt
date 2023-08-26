@@ -79,7 +79,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
 
   return (
     <div className="fixed left-0 top-0 flex h-full w-full items-center justify-center bg-gray-500 bg-opacity-50">
-      <div className="relative w-1/2 rounded bg-white p-4 shadow-lg">
+      <div className="relative w-1/2 rounded bg-blue p-4 shadow-lg">
         <button onClick={onClose} className="absolute right-2 top-2">
           <FontAwesomeIcon icon={faTimes} />
         </button>
@@ -120,7 +120,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         ></textarea>
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 rounded px-4 py-2 text-white"
+          className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
         >
           Submit
         </button>

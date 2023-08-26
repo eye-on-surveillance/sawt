@@ -129,7 +129,7 @@ export default function NewQuery() {
           {/* <p className="text-xs italic text-red-500">Please choose a password.</p> */}
         </div>
         <button
-          className={`rounded-lg md:w-1/2 ${
+          className={`w-full rounded-lg md:w-1/2 ${
             isProcessing ? "bg-blue-900 cursor-wait" : "bg-secondary"
           } p-2 text-2xl text-blue`}
           type="submit"

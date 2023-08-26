@@ -25,7 +25,7 @@ const Navbar = () => {
     <div className="text-center md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
-        <nav className="navbar flex w-full items-center justify-between  py-6">
+        <nav className="navbar flex w-full items-center justify-between py-6">
           {/* Logo */}
           <h1 className="text-3xl">
             <Link href={HOME_PATH}>{APP_NAME}</Link>
