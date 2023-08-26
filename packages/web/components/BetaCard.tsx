@@ -25,9 +25,8 @@ type Comment = {
   display_name: string;
   content: string;
   created_at: Date;
-  // ... any other fields that a comment might have
+  card_id: string;
 };
-
 
 const BetaCard = ({ card }: { card: ICard }) => {
   const responses: IResponse[] = card.responses ?? [];
@@ -69,7 +68,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
         (payload: SupabaseRealtimePayload<{
           content: string;
           display_name: string;
-          card_id: number;
+          card_id: string;
         }>) => {
           console.log("Update:", payload);
           if (payload.new.card_id === card.id) {
