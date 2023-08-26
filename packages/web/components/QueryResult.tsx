@@ -175,7 +175,9 @@ export default function QueryResult({ card }: { card: ICard }) {
       .subscribe();
 
     // Cleanup subscription on component unmount
-    return () => channel.unsubscribe();
+    return (): void => {
+      channel.unsubscribe();
+    };
   }, [card.id]);
 
   const submitBiasFeedback = async ({
