@@ -166,8 +166,9 @@ export default function QueryResult({ card }: { card: ICard }) {
             payload.new.id === card.id &&
             payload.new.likes !== payload.old.likes
           ) {
-            // If the likes field has changed, then update the likes
-            setLikes(payload.new.likes);
+            if (typeof payload.new.likes === 'number') {
+              setLikes(payload.new.likes);
+            }
           }
         }
       )
@@ -177,7 +178,7 @@ export default function QueryResult({ card }: { card: ICard }) {
     return (): void => {
       channel.unsubscribe();
     };
-  }, [card.id]);
+}, [card.id]);
 
   const submitBiasFeedback = async ({
     selected,
