@@ -5,6 +5,7 @@ import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import {
   faCheck,
+  faComment,
   faShare,
   faSpinner,
   faThumbsUp,
@@ -13,10 +14,14 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
-import { useCardResults } from "./CardResultsProvider";
+
+type SupabaseRealtimePayload<T = any> = {
+  old: T;
+  new: T;
+};
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -83,7 +88,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         <button onClick={onClose} className="absolute right-2 top-2">
           <FontAwesomeIcon icon={faTimes} />
         </button>
-        <h2 className="mb-4 text-lg font-bold">Report this Response</h2>
+        <h2 className="mb-4 text-lg font-bold">Report Response</h2>
         <p className="mb-4 text-sm">
           At times, SAWT might not provide perfectly accurate information. Your
           reports on any inaccuracies are invaluable in refining our system.
@@ -130,7 +135,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
 }
 
 export default function QueryResult({ card }: { card: ICard }) {
-  const { likesForCard, handleLike } = useCardResults();
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const isLoading = !card.responses || card.responses.length <= 0;
   const [value, copy] = useClipboardApi();
@@ -147,6 +151,32 @@ export default function QueryResult({ card }: { card: ICard }) {
   const handleBiasReport = () => {
     setBiasModalOpen(true);
   };
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`cards:id=eq.${card.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          console.log("Update:", payload);
+          if (
+            payload.new.id === card.id &&
+            payload.new.likes !== payload.old.likes
+          ) {
+            // If the likes field has changed, then update the likes
+            setLikes(payload.new.likes);
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on component unmount
+    return () => channel.unsubscribe();
+  }, [card.id]);
 
   const submitBiasFeedback = async ({
     selected,
@@ -187,15 +217,32 @@ export default function QueryResult({ card }: { card: ICard }) {
     recentlyCopied ? 3000 : null
   );
 
-  const handleCardLike = async () => {
-    console.log("Like button clicked in QueryResult!");
-    setLikes((prevLikes) => prevLikes + 1);
+  const handleLikeUpdate = async () => {
     try {
-      await handleLike(card.id!);
+      const newLikesValue = likes + 1;
+
+      const { data, error } = await supabase
+        .from("cards")
+        .update({ likes: newLikesValue })
+        .eq("id", card.id);
+
+      if (error) {
+        throw error;
+      }
+      console.log("Likes updated:", data);
+
+      // Update the local likes state
+      setLikes(newLikesValue);
     } catch (error) {
-      console.error("Error occurred in handleCardLike:", error);
-      setLikes((prevLikes) => prevLikes - 1);
+      console.error("Error occurred in handleLikeUpdate:", error);
+      setLikes(likes - 1); // Revert the likes count on error
     }
+  };
+
+  const handleCardLike = () => {
+    console.log("Like button clicked in QueryResult!");
+    setLikes((prevLikes) => prevLikes + 1); // Optimistically update UI
+    handleLikeUpdate(); // Perform the actual update operation
   };
 
   return (
@@ -242,6 +289,16 @@ export default function QueryResult({ card }: { card: ICard }) {
           {likes}
         </span>
 
+        <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
+          <span className="ml-3 cursor-pointer">
+            <FontAwesomeIcon
+              icon={faComment}
+              className="mx-2 h-5 w-5 align-middle"
+            />
+            Comments
+          </span>
+        </Link>
+
         {recentlyCopied ? (
           <span className="ml-3 text-green-400">
             <FontAwesomeIcon
@@ -267,7 +324,7 @@ export default function QueryResult({ card }: { card: ICard }) {
         )}
 
         <span className="ml-3 cursor-pointer" onClick={handleBiasReport}>
-          Report this Response
+          Report Response
         </span>
       </div>
 
