@@ -120,7 +120,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         ></textarea>
         <button
           onClick={handleSubmit}
-          className="rounded bg-blue-500 px-4 py-2 text-white"
+          className="bg-blue-500 rounded px-4 py-2 text-white"
         >
           Submit
         </button>
@@ -148,7 +148,13 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  const submitBiasFeedback = async ({ selected, feedback }: { selected: string[], feedback: string }) => {
+  const submitBiasFeedback = async ({
+    selected,
+    feedback,
+  }: {
+    selected: string[];
+    feedback: string;
+  }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
@@ -194,7 +200,7 @@ export default function QueryResult({ card }: { card: ICard }) {
 
   return (
     <div
-      className={`my-6 rounded-lg bg-blue-200 p-6 ${
+      className={`my-6 rounded-lg bg-blue p-6 text-primary ${
         isLoading ? "border-4 border-dashed border-yellow-500" : ""
       }`}
     >
@@ -202,10 +208,10 @@ export default function QueryResult({ card }: { card: ICard }) {
         <div>
           <h4 className="text-xl font-bold">{card.title}</h4>
           <h6 className="text-xs">
-            <span className="text-amber-700">
+            <span className="text-purple">
               {card.is_mine ? "You | " : null}
             </span>
-            {prettyCreatedAt}
+            <span className="text-secondary">{prettyCreatedAt}</span>
           </h6>
 
           {!isLoading && !!card.responses ? (
@@ -227,7 +233,7 @@ export default function QueryResult({ card }: { card: ICard }) {
         </div>
       </Link>
 
-      <div className="flex items-center justify-start text-sm">
+      <div className="flex items-center justify-start text-sm text-secondary">
         <span className="ml-3 cursor-pointer" onClick={handleCardLike}>
           <FontAwesomeIcon
             icon={faThumbsUp}

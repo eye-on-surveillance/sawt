@@ -36,13 +36,13 @@ export default async function RootLayout({
         queries created by the current user. */}
         <CardResultsProvider serverCards={cards || []}>
           <div className="min-h-screen w-full overflow-hidden">
-            <header className="justify-cente items-center px-6 sm:px-16">
+            <header className="items-center justify-center bg-blue px-6 text-primary sm:px-16">
               <Navbar />
             </header>
             <main className="min-h-[80vh] items-center justify-center">
               {children}
             </main>
-            <footer className="items-center justify-center px-6 sm:px-16">
+            <footer className="items-center justify-center bg-purple px-6 sm:px-16">
               <Footer />
             </footer>
           </div>

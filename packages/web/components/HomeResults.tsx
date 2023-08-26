@@ -49,7 +49,7 @@ export default function HomeBanner() {
   return (
     <div
       ref={containerRef}
-      className="min-h-[40vh] w-screen bg-indigo-800 px-6 py-12 sm:px-16"
+      className="min-h-[40vh] w-screen bg-gradient-to-br from-primary to-secondary px-6 py-12 sm:px-16"
     >
       <div className="md:flex">
         <div className="md:grow"></div>
