@@ -25,7 +25,9 @@ type Comment = {
   display_name: string;
   content: string;
   created_at: Date;
+  // ... any other fields that a comment might have
 };
+
 
 const BetaCard = ({ card }: { card: ICard }) => {
   const responses: IResponse[] = card.responses ?? [];
@@ -33,8 +35,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const [value, copy] = useClipboardApi();
   const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
   const [recentlyCopied, setRecentlyCopied] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<Comment[] | null>(null);
+  const [commentContent, setCommentContent] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showCitations, setShowCitations] = useState(false);
 
@@ -190,7 +192,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
           Post Comment
         </button>
 
-        {comments.map((comment, index) => (
+        {comments && comments.map((comment, index) => (
           <div
             key={index}
             className={`mb-2 mt-4 p-2 ${
