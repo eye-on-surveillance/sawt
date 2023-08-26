@@ -82,7 +82,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       display_name: displayName,
     };
 
-    setComments((prevComments) => [newComment, ...prevComments]);
+    setComments((prevComments) => [newComment, ...(prevComments || [])]);
     setDisplayName(""); // Resetting display name
     setCommentContent(""); // Resetting comment content
 
