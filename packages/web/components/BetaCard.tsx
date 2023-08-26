@@ -51,29 +51,28 @@ const BetaCard = ({ card }: { card: ICard }) => {
     fetchComments();
   }, [card.id]);
 
-  // useEffect(() => {
-  //   const channel = supabase
-  //     .channel(`comments:card_id=eq.${card.id}`)
-  //     .on(
-  //       "postgres_changes",
-  //       {
-  //         event: "INSERT",
-  //         schema: "public",
-  //       },
-  //       (payload: SupabaseRealtimePayload<Comment>) => {
-  //         console.log("New Comment:", payload);
-  //         if (payload.new.card_id === card.id) {
-  //           setComments((prevComments) => [payload.new, ...prevComments]);
-  //         }
-  //       }
-  //     )
-  //     .subscribe();
+  useEffect(() => {
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<Comment>) => {
+          console.log("New Comment:", payload);
+          if (payload.new.card_id === card.id) {
+            setComments((prevComments) => [payload.new, ...prevComments]);
+          }
+        }
+      )
+      .subscribe();
 
-  //   // Cleanup subscription on component unmount
-  //   return () => {
-  //     channel.unsubscribe();
-  //   };
-  // }, [card.id]);
+    // Cleanup subscription on component unmount
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card.id]);
 
   const handleCommentSubmit = async () => {
     const newComment = {
