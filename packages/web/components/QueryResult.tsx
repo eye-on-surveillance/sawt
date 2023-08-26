@@ -14,7 +14,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 
@@ -152,31 +152,31 @@ export default function QueryResult({ card }: { card: ICard }) {
     setBiasModalOpen(true);
   };
 
-  useEffect(() => {
-    const channel = supabase
-      .channel(`cards:id=eq.${card.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-        },
-        (payload: SupabaseRealtimePayload<ICard>) => {
-          console.log("Update:", payload);
-          if (
-            payload.new.id === card.id &&
-            payload.new.likes !== payload.old.likes
-          ) {
-            // If the likes field has changed, then update the likes
-            setLikes(payload.new.likes);
-          }
-        }
-      )
-      .subscribe();
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel(`cards:id=eq.${card.id}`)
+  //     .on(
+  //       "postgres_changes",
+  //       {
+  //         event: "UPDATE",
+  //         schema: "public",
+  //       },
+  //       (payload: SupabaseRealtimePayload<ICard>) => {
+  //         console.log("Update:", payload);
+  //         if (
+  //           payload.new.id === card.id &&
+  //           payload.new.likes !== payload.old.likes
+  //         ) {
+  //           // If the likes field has changed, then update the likes
+  //           setLikes(payload.new.likes);
+  //         }
+  //       }
+  //     )
+  //     .subscribe();
 
-    // Cleanup subscription on component unmount
-    return () => channel.unsubscribe();
-  }, [card.id]);
+  //   // Cleanup subscription on component unmount
+  //   return () => channel.unsubscribe();
+  // }, [card.id]);
 
   const submitBiasFeedback = async ({
     selected,
