@@ -153,8 +153,7 @@ export default function QueryResult({ card }: { card: ICard }) {
   };
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`cards:id=eq.${card.id}`)
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
       .on(
         "postgres_changes",
         {
