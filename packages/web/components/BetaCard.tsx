@@ -60,7 +60,12 @@ const BetaCard = ({ card }: { card: ICard }) => {
   useEffect(() => {
     const channel = supabase
       .channel(`comments:card_id=eq.${card.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public" },
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public"
+        },
         (payload: SupabaseRealtimePayload<{
           content: string;
           display_name: string;
@@ -73,7 +78,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
         }
       )
       .subscribe();
-
+  
     return () => {
       try {
         channel.unsubscribe();
