@@ -1,5 +1,4 @@
 "use client";
-
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -46,7 +45,6 @@ const LOADING_MESSAGES = [
   "Hang tight...",
   "About 5 seconds remaining...",
   "About 5 seconds remaining...",
-  // The last message will remain until processing finishes
   "Finishing up...",
 ];
 
@@ -56,14 +54,11 @@ const POLL_INTERVAL = 10000;
 interface BiasModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { selected: string[]; feedback: string }) => void;
+  onSubmit: (data: { selected: string[] }) => void;
 }
 
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
-  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
-    {}
-  );
-  const [feedback, setFeedback] = useState("");
+  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>({});
 
   const handleCheckboxChange = (bias: string) => {
     setSelectedBiases((prevBiases) => ({
@@ -76,7 +71,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
     const selected = Object.keys(selectedBiases).filter(
       (key) => selectedBiases[key]
     );
-    onSubmit({ selected, feedback });
+    onSubmit({ selected });
     onClose();
   };
 
@@ -93,7 +88,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
           At times, SAWT might not provide perfectly accurate information. Your
           reports on any inaccuracies are invaluable in refining our system.
         </p>
-
         <div className="mb-4">
           {[
             "Gender-Related Bias",
@@ -116,13 +110,6 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
             </div>
           ))}
         </div>
-
-        <textarea
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Submit a comment"
-          className="mb-4 w-full"
-        ></textarea>
         <button
           onClick={handleSubmit}
           className="rounded bg-blue-500 px-4 py-2 text-white"
@@ -178,19 +165,13 @@ export default function QueryResult({ card }: { card: ICard }) {
     return (): void => {
       channel.unsubscribe();
     };
-}, [card.id]);
+  }, [card.id]);
 
-  const submitBiasFeedback = async ({
-    selected,
-    feedback,
-  }: {
-    selected: string[];
-    feedback: string;
-  }) => {
+  const submitBiasFeedback = async ({ selected }: { selected: string[] }) => {
     try {
       const { data, error } = await supabase
         .from("cards")
-        .update({ bias: { type: selected, feedback: feedback } })
+        .update({ bias: { type: selected } })
         .eq("id", card.id);
       if (error) {
         throw error;
