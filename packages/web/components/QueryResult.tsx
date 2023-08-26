@@ -153,16 +153,15 @@ export default function QueryResult({ card }: { card: ICard }) {
             payload.new.id === card.id &&
             payload.new.likes !== payload.old.likes
           ) {
-            if (typeof payload.new.likes === 'number') {
-              setLikes(payload.new.likes);
-            }
+            // If the likes field has changed, then update the likes
+            setLikes(payload.new.likes || 0);
           }
         }
       )
       .subscribe();
 
     // Cleanup subscription on component unmount
-    return (): void => {
+    return () => {
       channel.unsubscribe();
     };
   }, [card.id]);
