@@ -65,27 +65,20 @@ const BetaCard = ({ card }: { card: ICard }) => {
           event: "INSERT",
           schema: "public"
         },
-        (payload: SupabaseRealtimePayload<{
-          content: string;
-          display_name: string;
-          card_id: string;
-        }>) => {
-          console.log("Update:", payload);
+        (payload: SupabaseRealtimePayload<Comment>) => {
+          console.log("New Comment:", payload);
           if (payload.new.card_id === card.id) {
             setComments((prevComments) => [payload.new, ...prevComments]);
           }
         }
       )
       .subscribe();
-  
+
+    // Cleanup subscription on component unmount
     return () => {
-      try {
-        channel.unsubscribe();
-      } catch (error) {
-        console.error("Error unsubscribing from channel:", error);
-      }
+      channel.unsubscribe();
     };
-  }, [card.id]);
+}, [card.id]);
 
   const handleCommentSubmit = async () => {
     const newComment = {
