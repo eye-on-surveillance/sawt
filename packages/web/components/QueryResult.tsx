@@ -58,7 +58,9 @@ interface BiasModalProps {
 }
 
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
-  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>({});
+  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const handleCheckboxChange = (bias: string) => {
     setSelectedBiases((prevBiases) => ({
@@ -148,7 +150,6 @@ export default function QueryResult({ card }: { card: ICard }) {
           schema: "public",
         },
         (payload: SupabaseRealtimePayload<ICard>) => {
-          console.log("Update:", payload);
           if (
             payload.new.id === card.id &&
             payload.new.likes !== payload.old.likes
@@ -175,10 +176,7 @@ export default function QueryResult({ card }: { card: ICard }) {
       if (error) {
         throw error;
       }
-      console.log("Bias feedback submitted:", data);
-    } catch (error) {
-      console.error("Error submitting bias feedback:", error);
-    }
+    } catch (error) {}
   };
 
   useInterval(
@@ -211,18 +209,14 @@ export default function QueryResult({ card }: { card: ICard }) {
       if (error) {
         throw error;
       }
-      console.log("Likes updated:", data);
-
       // Update the local likes state
       setLikes(newLikesValue);
     } catch (error) {
-      console.error("Error occurred in handleLikeUpdate:", error);
       setLikes(likes - 1); // Revert the likes count on error
     }
   };
 
   const handleCardLike = () => {
-    console.log("Like button clicked in QueryResult!");
     setLikes((prevLikes) => prevLikes + 1); // Optimistically update UI
     handleLikeUpdate(); // Perform the actual update operation
   };

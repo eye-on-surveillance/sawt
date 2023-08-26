@@ -44,9 +44,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
           .order("created_at", { ascending: false });
         if (error) throw error;
         setComments(data);
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-      }
+      } catch (error) {}
     };
     fetchComments();
   }, [card.id]);
@@ -60,9 +58,11 @@ const BetaCard = ({ card }: { card: ICard }) => {
           schema: "public",
         },
         (payload: SupabaseRealtimePayload<Comment>) => {
-          console.log("New Comment:", payload);
           if (payload.new.card_id === card.id) {
-            setComments((prevComments) => [payload.new, ...(prevComments || [])]);
+            setComments((prevComments) => [
+              payload.new,
+              ...(prevComments || []),
+            ]);
           }
         }
       )
@@ -72,8 +72,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
     return () => {
       channel.unsubscribe();
     };
-}, [card.id]);
-
+  }, [card.id]);
 
   const handleCommentSubmit = async () => {
     const newComment = {
@@ -83,8 +82,10 @@ const BetaCard = ({ card }: { card: ICard }) => {
       created_at: new Date(),
     };
 
-    setComments((prevComments) => 
-    prevComments ? prevComments.filter((comment) => comment !== newComment) : null
+    setComments((prevComments) =>
+      prevComments
+        ? prevComments.filter((comment) => comment !== newComment)
+        : null
     );
 
     setDisplayName(""); // Resetting display name
@@ -98,10 +99,11 @@ const BetaCard = ({ card }: { card: ICard }) => {
       setDisplayName(""); // Resetting display name after successful post
       setCommentContent(""); // Resetting comment content after successful post
     } catch (error) {
-      console.error("Error adding comment:", error);
       // If there's an error, revert the change to the comments
       setComments((prevComments) =>
-        prevComments ? prevComments.filter((comment) => comment !== newComment) : null
+        prevComments
+          ? prevComments.filter((comment) => comment !== newComment)
+          : null
       );
     }
   };
