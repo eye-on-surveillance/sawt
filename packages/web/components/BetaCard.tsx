@@ -83,7 +83,9 @@ const BetaCard = ({ card }: { card: ICard }) => {
       created_at: new Date(),
     };
 
-    setComments((prevComments) => [{ ...newComment as Comment }, ...(prevComments || [])]);
+    setComments((prevComments) => 
+    prevComments ? prevComments.filter((comment) => comment !== newComment) : null
+    );
     setDisplayName(""); // Resetting display name
     setCommentContent(""); // Resetting comment content
 
