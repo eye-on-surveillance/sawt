@@ -60,30 +60,27 @@ const BetaCard = ({ card }: { card: ICard }) => {
   useEffect(() => {
     const channel = supabase
       .channel(`comments:card_id=eq.${card.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-        },
-        (
-          payload: SupabaseRealtimePayload<{
-            content: string;
-            display_name: string;
-            card_id: number;
-          }>
-        ) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public" },
+        (payload: SupabaseRealtimePayload<{
+          content: string;
+          display_name: string;
+          card_id: number;
+        }>) => {
           console.log("Update:", payload);
           if (payload.new.card_id === card.id) {
-            // If a new comment has been added for this card, then prepend the comment
             setComments((prevComments) => [payload.new, ...prevComments]);
           }
         }
       )
       .subscribe();
 
-    // Cleanup the subscription on component unmount
-    return () => channel.unsubscribe();
+    return () => {
+      try {
+        channel.unsubscribe();
+      } catch (error) {
+        console.error("Error unsubscribing from channel:", error);
+      }
+    };
   }, [card.id]);
 
   const handleCommentSubmit = async () => {
