@@ -47,6 +47,11 @@ const LOADING_MESSAGES = [
 const WAIT_MS = 2500;
 const POLL_INTERVAL = 10000;
 
+type SupabaseRealtimePayload<T = any> = {
+  old: T;
+  new: T;
+};
+
 interface BiasModalProps {
   isOpen: boolean;
   onClose: () => void;
