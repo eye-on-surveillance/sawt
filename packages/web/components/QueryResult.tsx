@@ -4,7 +4,6 @@ import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import {
   faCheck,
-  faComment,
   faShare,
   faSpinner,
   faThumbsUp,
@@ -16,6 +15,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
+import { v4 as uuidv4 } from "uuid";
 
 type SupabaseRealtimePayload<T = any> = {
   old: T;
@@ -169,10 +169,32 @@ export default function QueryResult({ card }: { card: ICard }) {
 
   const submitBiasFeedback = async ({ selected }: { selected: string[] }) => {
     try {
+      // Fetch existing biases for the card
+      const { data: existingCard, error: fetchError } = await supabase
+        .from("cards")
+        .select("bias")
+        .eq("id", card.id)
+        .single();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const newFeedbackId = uuidv4();
+
+      const newBias = { id: newFeedbackId, type: selected };
+
+      const existingBiases =
+        existingCard.bias && Array.isArray(existingCard.bias)
+          ? existingCard.bias
+          : [];
+      const updatedBiases = [...existingBiases, newBias];
+
       const { data, error } = await supabase
         .from("cards")
-        .update({ bias: { type: selected } })
+        .update({ bias: updatedBiases })
         .eq("id", card.id);
+
       if (error) {
         throw error;
       }
@@ -264,16 +286,6 @@ export default function QueryResult({ card }: { card: ICard }) {
           />
           {likes}
         </span>
-
-        <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
-          <span className="ml-3 cursor-pointer">
-            <FontAwesomeIcon
-              icon={faComment}
-              className="mx-2 h-5 w-5 align-middle"
-            />
-            Comments
-          </span>
-        </Link>
 
         {recentlyCopied ? (
           <span className="ml-3 text-green-400">
