@@ -1,4 +1,5 @@
 "use client";
+
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -16,11 +17,6 @@ import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
-
-type SupabaseRealtimePayload<T = any> = {
-  old: T;
-  new: T;
-};
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -54,13 +50,14 @@ const POLL_INTERVAL = 10000;
 interface BiasModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { selected: string[] }) => void;
+  onSubmit: (data: { selected: string[]; comment: string }) => void;
 }
 
 function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
   const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
     {}
   );
+  const [comment, setComment] = useState<string>("");
 
   const handleCheckboxChange = (bias: string) => {
     setSelectedBiases((prevBiases) => ({
@@ -73,7 +70,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
     const selected = Object.keys(selectedBiases).filter(
       (key) => selectedBiases[key]
     );
-    onSubmit({ selected });
+    onSubmit({ selected, comment });
     onClose();
   };
 
@@ -111,6 +108,16 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
               </label>
             </div>
           ))}
+          <label htmlFor="comment" className="mb-2 mt-4 block">
+            Comments:
+          </label>
+          <textarea
+            id="comment"
+            className="h-20 w-full rounded border p-2"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add additional feedback here"
+          ></textarea>
         </div>
         <button
           onClick={handleSubmit}
@@ -154,22 +161,25 @@ export default function QueryResult({ card }: { card: ICard }) {
             payload.new.id === card.id &&
             payload.new.likes !== payload.old.likes
           ) {
-            // If the likes field has changed, then update the likes
             setLikes(payload.new.likes || 0);
           }
         }
       )
       .subscribe();
 
-    // Cleanup subscription on component unmount
     return () => {
       channel.unsubscribe();
     };
   }, [card.id]);
 
-  const submitBiasFeedback = async ({ selected }: { selected: string[] }) => {
+  const submitBiasFeedback = async ({
+    selected,
+    comment,
+  }: {
+    selected: string[];
+    comment: string;
+  }) => {
     try {
-      // Fetch existing biases for the card
       const { data: existingCard, error: fetchError } = await supabase
         .from("cards")
         .select("bias")
@@ -182,7 +192,7 @@ export default function QueryResult({ card }: { card: ICard }) {
 
       const newFeedbackId = uuidv4();
 
-      const newBias = { id: newFeedbackId, type: selected };
+      const newBias = { id: newFeedbackId, type: selected, comment };
 
       const existingBiases =
         existingCard.bias && Array.isArray(existingCard.bias)
@@ -231,16 +241,15 @@ export default function QueryResult({ card }: { card: ICard }) {
       if (error) {
         throw error;
       }
-      // Update the local likes state
       setLikes(newLikesValue);
     } catch (error) {
-      setLikes(likes - 1); // Revert the likes count on error
+      setLikes(likes - 1);
     }
   };
 
   const handleCardLike = () => {
-    setLikes((prevLikes) => prevLikes + 1); // Optimistically update UI
-    handleLikeUpdate(); // Perform the actual update operation
+    setLikes((prevLikes) => prevLikes + 1);
+    handleLikeUpdate();
   };
 
   return (
