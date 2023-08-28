@@ -77,6 +77,9 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
     );
     onSubmit({ selected, comment });
     onClose();
+
+    setSelectedBiases({});
+    setComment("");
   };
 
   if (!isOpen) return null;
