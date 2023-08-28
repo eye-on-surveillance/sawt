@@ -2,19 +2,23 @@
 
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
-import { faCheck, faShare, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { supabase } from "@/lib/supabase/supabaseClient";
+import {
+  faCheck,
+  faShare,
+  faSpinner,
+  faThumbsUp,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
+import { v4 as uuidv4 } from "uuid";
 
 const MAX_CHARACTERS_PREVIEW = 300;
-
-type QueryResultParams = {
-  card: ICard;
-};
 
 const LOADING_MESSAGES = [
   "Processing your request...",
@@ -37,38 +41,188 @@ const LOADING_MESSAGES = [
   "Hang tight...",
   "About 5 seconds remaining...",
   "About 5 seconds remaining...",
-  // The last message will remain until processing finishes
   "Finishing up...",
 ];
 
 const WAIT_MS = 2500;
+const POLL_INTERVAL = 10000;
 
-export default function QueryResult(queryResultParams: QueryResultParams) {
+type SupabaseRealtimePayload<T = any> = {
+  old: T;
+  new: T;
+};
+
+interface BiasModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: { selected: string[]; comment: string }) => void;
+}
+
+function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
+  const [selectedBiases, setSelectedBiases] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [comment, setComment] = useState<string>("");
+
+  const handleCheckboxChange = (bias: string) => {
+    setSelectedBiases((prevBiases) => ({
+      ...prevBiases,
+      [bias]: !prevBiases[bias],
+    }));
+  };
+
+  const handleSubmit = () => {
+    const selected = Object.keys(selectedBiases).filter(
+      (key) => selectedBiases[key]
+    );
+    onSubmit({ selected, comment });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed left-0 top-0 flex h-full w-full items-center justify-center bg-gray-500 bg-opacity-50">
+      <div className="relative w-1/2 rounded bg-blue p-4 shadow-lg">
+        <button onClick={onClose} className="absolute right-2 top-2">
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
+        <h2 className="mb-4 text-lg font-bold">Report Response</h2>
+        <p className="mb-4 text-sm">
+          At times, SAWT might not provide perfectly accurate information. Your
+          reports on any inaccuracies are invaluable in refining our system.
+        </p>
+        <div className="mb-4">
+          {[
+            "Gender-Related Bias",
+            "Cultural or Ethnic Bias",
+            "Racial Bias",
+            "Misleading Information or Inaccuracies",
+            "Uninformative Response",
+            "Factually Inaccurate",
+          ].map((bias) => (
+            <div key={bias}>
+              <input
+                type="checkbox"
+                id={bias}
+                checked={!!selectedBiases[bias]}
+                onChange={() => handleCheckboxChange(bias)}
+              />
+              <label htmlFor={bias} className="ml-2">
+                {bias}
+              </label>
+            </div>
+          ))}
+          <label htmlFor="comment" className="mb-2 mt-4 block">
+            Comments:
+          </label>
+          <textarea
+            id="comment"
+            className="h-20 w-full rounded border p-2"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add additional feedback here"
+          ></textarea>
+        </div>
+        <button
+          onClick={handleSubmit}
+          className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function QueryResult({ card }: { card: ICard }) {
   const [msgIndex, setMsgIndex] = useState<number>(0);
-  const { card } = queryResultParams;
   const isLoading = !card.responses || card.responses.length <= 0;
   const [value, copy] = useClipboardApi();
   const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
-  // Temporarirly show that url copied to clipboard
   const [recentlyCopied, setRecentlyCopied] = useState(false);
-
-  useInterval(
-    () => {
-      if (msgIndex + 1 >= LOADING_MESSAGES.length) return;
-      const plusOne = msgIndex + 1;
-      setMsgIndex(plusOne);
-    },
-
-    // If waiting on answer to query and have more wait messages
-    isLoading && msgIndex < LOADING_MESSAGES.length ? WAIT_MS : null
-  );
-
-  // Every 5 seconds, refresh displayed created at time
   const [prettyCreatedAt, setPrettyCreatedAt] = useState(
     !!card.created_at && new Date(card.created_at) < new Date()
       ? moment(card.created_at).fromNow()
       : moment().fromNow()
   );
+  const [likes, setLikes] = useState<number>(card.likes || 0);
+  const [isBiasModalOpen, setBiasModalOpen] = useState(false);
+
+  const handleBiasReport = () => {
+    setBiasModalOpen(true);
+  };
+
+  useEffect(() => {
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          if (
+            payload.new.id === card.id &&
+            payload.new.likes !== payload.old.likes
+          ) {
+            setLikes(payload.new.likes || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card.id]);
+
+  const submitBiasFeedback = async ({
+    selected,
+    comment,
+  }: {
+    selected: string[];
+    comment: string;
+  }) => {
+    try {
+      const { data: existingCard, error: fetchError } = await supabase
+        .from("cards")
+        .select("bias")
+        .eq("id", card.id)
+        .single();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const newFeedbackId = uuidv4();
+
+      const newBias = { id: newFeedbackId, type: selected, comment };
+
+      const existingBiases =
+        existingCard.bias && Array.isArray(existingCard.bias)
+          ? existingCard.bias
+          : [];
+      const updatedBiases = [...existingBiases, newBias];
+
+      const { data, error } = await supabase
+        .from("cards")
+        .update({ bias: updatedBiases })
+        .eq("id", card.id);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {}
+  };
+
+  useInterval(
+    () => {
+      setMsgIndex((prevIndex) => (prevIndex + 1) % LOADING_MESSAGES.length);
+    },
+    isLoading ? WAIT_MS : null
+  );
+
   useInterval(() => {
     setPrettyCreatedAt(moment(card.created_at).fromNow());
   }, 5_000);
@@ -77,50 +231,75 @@ export default function QueryResult(queryResultParams: QueryResultParams) {
     () => {
       setRecentlyCopied(false);
     },
-
     recentlyCopied ? 3000 : null
   );
 
+  const handleLikeUpdate = async () => {
+    try {
+      const newLikesValue = likes + 1;
+
+      const { data, error } = await supabase
+        .from("cards")
+        .update({ likes: newLikesValue })
+        .eq("id", card.id);
+
+      if (error) {
+        throw error;
+      }
+      setLikes(newLikesValue);
+    } catch (error) {
+      setLikes(likes - 1);
+    }
+  };
+
+  const handleCardLike = () => {
+    setLikes((prevLikes) => prevLikes + 1);
+    handleLikeUpdate();
+  };
+
   return (
     <div
-      className={`my-6 rounded-lg bg-blue-200 p-6 ${
-        isLoading ? "border-4 border-dashed border-yellow-500" : null
+      className={`my-6 rounded-lg bg-blue p-6 text-primary ${
+        isLoading ? "border-4 border-dashed border-yellow-500" : ""
       }`}
     >
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
-        <h4 className="text-xl font-bold">{card.title}</h4>
-        <h6 className="text-xs">
-          <span className="text-amber-700">
-            {card.is_mine ? "You | " : null}
-          </span>
-          {prettyCreatedAt}
-        </h6>
-        {!isLoading && !!card.responses ? (
-          <p className="my-5">
-            {card.responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
-            {card.responses[0].response.length > MAX_CHARACTERS_PREVIEW
-              ? "..."
-              : null}
-          </p>
-        ) : (
-          <p className="my-5">
-            <FontAwesomeIcon
-              icon={faSpinner}
-              className="mx-2 h-5 w-5 animate-spin align-middle duration-300"
-            />
-            {LOADING_MESSAGES[msgIndex]}
-          </p>
-        )}
+        <div>
+          <h4 className="text-xl font-bold">{card.title}</h4>
+          <h6 className="text-xs">
+            <span className="text-purple">
+              {card.is_mine ? "You | " : null}
+            </span>
+            <span className="text-secondary">{prettyCreatedAt}</span>
+          </h6>
+
+          {!isLoading && !!card.responses ? (
+            <p className="my-5">
+              {card.responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
+              {card.responses[0].response.length > MAX_CHARACTERS_PREVIEW
+                ? "..."
+                : null}
+            </p>
+          ) : (
+            <p className="my-5">
+              <FontAwesomeIcon
+                icon={faSpinner}
+                className="mx-2 h-5 w-5 animate-spin align-middle duration-300"
+              />
+              {LOADING_MESSAGES[msgIndex]}
+            </p>
+          )}
+        </div>
       </Link>
 
-      <div className="text-sm">
-        {/* <span>
-            <FontAwesomeIcon
-              icon={faThumbsUp}
-              className="mx-2 h-5 w-5 align-middle"
-            />
-            {card.likes}
-          </span> */}
+      <div className="flex items-center justify-start text-sm text-secondary">
+        <span className="ml-3 cursor-pointer" onClick={handleCardLike}>
+          <FontAwesomeIcon
+            icon={faThumbsUp}
+            className="mx-2 h-5 w-5 align-middle"
+          />
+          {likes}
+        </span>
 
         {recentlyCopied ? (
           <span className="ml-3 text-green-400">
@@ -145,7 +324,17 @@ export default function QueryResult(queryResultParams: QueryResultParams) {
             Share
           </span>
         )}
+
+        <span className="ml-3 cursor-pointer" onClick={handleBiasReport}>
+          Report Response
+        </span>
       </div>
+
+      <BiasModal
+        isOpen={isBiasModalOpen}
+        onClose={() => setBiasModalOpen(false)}
+        onSubmit={submitBiasFeedback}
+      />
     </div>
   );
 }

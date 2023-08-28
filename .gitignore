@@ -6,3 +6,5 @@ __pycache__/
 raw/
 txt/
 *.csv
+package-lock.json
+package.json

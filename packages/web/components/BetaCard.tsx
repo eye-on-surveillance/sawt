@@ -15,16 +15,17 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const citations: ICitation[] = card.citations ?? [];
   const [value, copy] = useClipboardApi();
   const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
-  // Temporarirly show that url copied to clipboard
   const [recentlyCopied, setRecentlyCopied] = useState(false);
+  const [showCitations, setShowCitations] = useState(false);
 
   return (
     <div className="w-full">
+      {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
         <h1 className="text-sm">{moment(card.created_at!).fromNow()}</h1>
         {recentlyCopied ? (
-          <span className=" text-green-400">
+          <span className="text-green-400">
             <FontAwesomeIcon
               icon={faCheck}
               className="mr-2 h-5 w-5 align-middle"
@@ -48,13 +49,27 @@ const BetaCard = ({ card }: { card: ICard }) => {
         )}
       </div>
 
-      {responses!.map((response, index) => (
+      {/* Card Responses */}
+      {responses.map((response, index) => (
         <CardResponse response={response} key={index} />
       ))}
-      <div className="text-sm">
-        {citations!.map((citation, index) => (
-          <Citation citation={citation} index={index} key={index} />
-        ))}
+
+      {/* Citations Section */}
+      <div className="mb-6 mt-4">
+        <button
+          className="mb-2 rounded px-4 py-2 text-black"
+          onClick={() => setShowCitations((prev) => !prev)}
+        >
+          {showCitations ? "Hide Citations" : "Show Citations"}
+        </button>
+
+        {showCitations && (
+          <div className="mt-2 text-sm">
+            {citations.map((citation, index) => (
+              <Citation citation={citation} index={index} key={index} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

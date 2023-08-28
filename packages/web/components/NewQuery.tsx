@@ -115,7 +115,7 @@ export default function NewQuery() {
             icon={faMagnifyingGlass}
           />
           <input
-            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-gray-700 shadow focus:shadow-lg focus:outline-none"
+            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-secondary shadow focus:shadow-lg focus:outline-none"
             id="new-query"
             type="text"
             value={query}
@@ -129,9 +129,9 @@ export default function NewQuery() {
           {/* <p className="text-xs italic text-red-500">Please choose a password.</p> */}
         </div>
         <button
-          className={`w-full rounded-lg ${
-            isProcessing ? "cursor-wait bg-blue-900" : "bg-blue-600"
-          } p-2 text-2xl text-white`}
+          className={`w-full rounded-lg md:w-1/2 ${
+            isProcessing ? "bg-blue-900 cursor-wait" : "bg-secondary"
+          } p-2 text-2xl text-blue`}
           type="submit"
           disabled={isProcessing}
         >
