@@ -89,11 +89,11 @@ export default function CardResultsProvider({
   );
   const [hasMoreCards, setHasMoreCards] = useState(true);
 
-  const formatDateForSupabase = (date) => {
-    const isoString = date.toISOString();
-    const formattedDate = isoString.replace("T", " ").slice(0, -1) + "+00";
-    return formattedDate;
-  };
+  const formatDateForSupabase = (date: Date) => {
+  const isoString = date.toISOString();
+  const formattedDate = isoString.replace("T", " ").slice(0, -1) + "+00";
+  return formattedDate;
+};
   
   const fetchMoreCards = async () => {
     try {
