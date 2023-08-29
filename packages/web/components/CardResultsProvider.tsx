@@ -91,29 +91,34 @@ export default function CardResultsProvider({
 
   const fetchMoreCards = async () => {
     try {
-      const lastCard = cards[cards.length - 1];
-      const lastCreatedAt = lastCard?.created_at;
-      const newCards = await fetchCardsFromSupabase(
-        lastCreatedAt?.toISOString()
-      );
+        const lastCard = cards[cards.length - 1];
+        const lastCreatedAt = lastCard?.created_at;
 
-      // If no new cards are fetched, update the hasMoreCards state to false
-      if (!newCards || newCards.length === 0) {
-        setHasMoreCards(false);
-        return;
-      }
+        if (!lastCreatedAt) {
+            return;
+        }
 
-      setCards((prevCards) => {
-        // Filter out any cards from the newCards array that already exist in our current state
-        const uniqueNewCards = newCards.filter(
-          (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
-        );
+        const isoString = new Date(lastCreatedAt).toISOString();
+        const formattedLastCreatedAt = isoString.replace("T", " ").slice(0, -1) + "+00";
 
-        // Combine the current set of cards with the unique new cards and sort them
-        return [...prevCards, ...uniqueNewCards].sort(compareCards);
-      });
-    } catch (error) {}
-  };
+        const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
+
+        if (!newCards || newCards.length === 0) {
+            setHasMoreCards(false);
+            return;
+        }
+
+        setCards((prevCards) => {
+            const uniqueNewCards = newCards.filter(
+                (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
+            );
+
+            return [...prevCards, ...uniqueNewCards].sort(compareCards);
+        });
+    } catch (error) {
+        console.error("Error fetching more cards:", error);
+    }
+};
 
   useEffect(() => {
     setIndexedCards(getIndexedCards(cards));
