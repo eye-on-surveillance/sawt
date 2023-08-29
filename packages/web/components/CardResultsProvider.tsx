@@ -89,30 +89,36 @@ export default function CardResultsProvider({
   );
   const [hasMoreCards, setHasMoreCards] = useState(true);
 
+  const formatDateForSupabase = (date) => {
+    const isoString = date.toISOString();
+    const formattedDate = isoString.replace("T", " ").slice(0, -1) + "+00";
+    return formattedDate;
+  };
+  
   const fetchMoreCards = async () => {
     try {
       const lastCard = cards[cards.length - 1];
       const lastCreatedAt = lastCard?.created_at;
-      const newCards = await fetchCardsFromSupabase(
-        lastCreatedAt?.toISOString()
-      );
-
+      const formattedLastCreatedAt = formatDateForSupabase(new Date(lastCreatedAt));
+      const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
+  
       // If no new cards are fetched, update the hasMoreCards state to false
       if (!newCards || newCards.length === 0) {
         setHasMoreCards(false);
         return;
       }
-
+  
       setCards((prevCards) => {
         // Filter out any cards from the newCards array that already exist in our current state
         const uniqueNewCards = newCards.filter(
           (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
         );
-
+  
         // Combine the current set of cards with the unique new cards and sort them
         return [...prevCards, ...uniqueNewCards].sort(compareCards);
       });
-    } catch (error) {}
+    } catch (error) {
+    }
   };
 
   useEffect(() => {
