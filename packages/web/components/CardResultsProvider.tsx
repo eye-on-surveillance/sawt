@@ -89,37 +89,36 @@ export default function CardResultsProvider({
   );
   const [hasMoreCards, setHasMoreCards] = useState(true);
 
-  const formatDateForSupabase = (date: Date) => {
-  const isoString = date.toISOString();
-  const formattedDate = isoString.replace("T", " ").slice(0, -1) + "+00";
-  return formattedDate;
-};
-  
   const fetchMoreCards = async () => {
     try {
-      const lastCard = cards[cards.length - 1];
-      const lastCreatedAt = lastCard?.created_at;
-      const formattedLastCreatedAt = formatDateForSupabase(new Date(lastCreatedAt));
-      const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
-  
-      // If no new cards are fetched, update the hasMoreCards state to false
-      if (!newCards || newCards.length === 0) {
-        setHasMoreCards(false);
-        return;
-      }
-  
-      setCards((prevCards) => {
-        // Filter out any cards from the newCards array that already exist in our current state
-        const uniqueNewCards = newCards.filter(
-          (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
-        );
-  
-        // Combine the current set of cards with the unique new cards and sort them
-        return [...prevCards, ...uniqueNewCards].sort(compareCards);
-      });
+        const lastCard = cards[cards.length - 1];
+        const lastCreatedAt = lastCard?.created_at;
+
+        if (!lastCreatedAt) {
+            return;
+        }
+
+        const isoString = new Date(lastCreatedAt).toISOString();
+        const formattedLastCreatedAt = isoString.replace("T", " ").slice(0, -1) + "+00";
+
+        const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
+
+        if (!newCards || newCards.length === 0) {
+            setHasMoreCards(false);
+            return;
+        }
+
+        setCards((prevCards) => {
+            const uniqueNewCards = newCards.filter(
+                (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
+            );
+
+            return [...prevCards, ...uniqueNewCards].sort(compareCards);
+        });
     } catch (error) {
+        console.error("Error fetching more cards:", error);
     }
-  };
+};
 
   useEffect(() => {
     setIndexedCards(getIndexedCards(cards));
