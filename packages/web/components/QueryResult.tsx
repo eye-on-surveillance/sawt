@@ -138,6 +138,21 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
   );
 }
 
+function hasLikedCardBefore(cardId: string): boolean {
+  if (typeof window === "undefined") {
+    return false; // or provide a default value if you need to
+  }
+
+  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
+  return likedCards.includes(cardId);
+}
+
+function markCardAsLiked(cardId: string) {
+  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
+  likedCards.push(cardId);
+  localStorage.setItem("likedCards", JSON.stringify(likedCards));
+}
+
 export default function QueryResult({ card }: { card: ICard }) {
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const isLoading = !card.responses || card.responses.length <= 0;
@@ -256,8 +271,16 @@ export default function QueryResult({ card }: { card: ICard }) {
   };
 
   const handleCardLike = () => {
-    setLikes((prevLikes) => prevLikes + 1);
-    handleLikeUpdate();
+    // Check if user has liked the card before
+    if (!hasLikedCardBefore(card.id)) {
+      setLikes((prevLikes) => prevLikes + 1);
+      handleLikeUpdate();
+      // Mark this card as liked for this user
+      markCardAsLiked(card.id);
+    } else {
+      // Here, you can show a message or take any other action if the user has liked the card before
+      console.warn("You've already liked this card!");
+    }
   };
 
   return (
@@ -299,7 +322,9 @@ export default function QueryResult({ card }: { card: ICard }) {
         <span className="ml-3 cursor-pointer" onClick={handleCardLike}>
           <FontAwesomeIcon
             icon={faThumbsUp}
-            className="mx-2 h-5 w-5 align-middle"
+            className={`mx-2 h-5 w-5 align-middle ${
+              hasLikedCardBefore(card.id) ? "text-gray-400" : ""
+            }`}
           />
           {likes}
         </span>
