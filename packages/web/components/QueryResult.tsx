@@ -138,11 +138,10 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
   );
 }
 
-function hasLikedCardBefore(cardId: string): boolean {
-  if (typeof window === "undefined") {
-    return false; // or provide a default value if you need to
+function hasLikedCardBefore(cardId?: string): boolean {
+  if (!cardId || typeof window === "undefined") {
+    return false;
   }
-
   const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
   return likedCards.includes(cardId);
 }
