@@ -271,15 +271,14 @@ export default function QueryResult({ card }: { card: ICard }) {
   };
 
   const handleCardLike = () => {
-    // Check if user has liked the card before
-    if (!hasLikedCardBefore(card.id)) {
-      setLikes((prevLikes) => prevLikes + 1);
-      handleLikeUpdate();
-      // Mark this card as liked for this user
-      markCardAsLiked(card.id);
-    } else {
-      // Here, you can show a message or take any other action if the user has liked the card before
-      console.warn("You've already liked this card!");
+    if (card.id) {
+      if (!hasLikedCardBefore(card.id)) {
+        setLikes((prevLikes) => prevLikes + 1);
+        handleLikeUpdate();
+        markCardAsLiked(card.id);
+      } else {
+        console.warn("You've already liked this card!");
+      }
     }
   };
 
