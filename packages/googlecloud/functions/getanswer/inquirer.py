@@ -155,7 +155,7 @@ def get_general_summary_response_from_query(db, query, k):
 
     docs_page_content = " ".join([d.page_content for d in docs])
     prompt = PromptTemplate(
-        input_variables=["question", "docs", "members"],
+        input_variables=["question", "docs"],
         template="""
         As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
 
