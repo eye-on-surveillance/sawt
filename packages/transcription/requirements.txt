@@ -5,3 +5,6 @@ google-api-python-client>=2.8.0
 
 # YouTube transcript API
 youtube_transcript_api>=0.4.1
+
+# Environment stuff
+load_dotenv
