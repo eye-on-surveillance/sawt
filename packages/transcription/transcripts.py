@@ -1,9 +1,14 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from googleapiclient.discovery import build
+import os
+from dotenv import load_dotenv
 
+load_dotenv("cred\\cred.env")
 
-# Mikey's personal API key
-API_KEY = "AIzaSyDRjhxf8iUAieo-2UQQtk_Gj8Gd-MWYKjY"
+# Get credentials from environment variables
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 '''
     From a playlist, get all the video ids in the playlist and then download the transcripts for each video.
