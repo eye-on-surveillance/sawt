@@ -1,46 +1,49 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from googleapiclient.discovery import build
-import os
-from dotenv import load_dotenv
+import oauth
 
-os.chdir("packages\\transcription")
-load_dotenv("cred\\cred.env")
 
 # Get credentials from environment variables
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-GOOGLE_APPLICATION_CREDENTIALS= os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+env_vars = oauth.import_env_vars()
+YOUTUBE_API_KEY = env_vars.get("YOUTUBE_API_KEY")
+CLIENT_ID       = env_vars.get("CLIENT_ID")
+CLIENT_SECRET   = env_vars.get("CLIENT_SECRET")
+GOOGLE_APPLICATION_CREDENTIALS= env_vars.get("GOOGLE_APPLICATION_CREDENTIALS")
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+def get_latest_videos(channel_id, max_results=5): 
 
+    """
+    Fetches the latest x-number of videos from a YouTube channel.
 
-'''
-    From a playlist, get all the video ids in the playlist and then download the transcripts for each video.
+    Args:
+        channel_id (str): The ID of the YouTube channel to monitor.
+        max_results (int): The maximum number of latest videos to fetch. Default is 5.
 
-    Currently doesn't fully work -- need some Oauth stuff. Currently, just using a generic playlist on my personal.
+    Returns:
+        list: A list of video IDs for the latest videos.
+    """
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+
+    # Fetch channel details to get the ID of the uploads playlist
+    request = youtube.channels().list(
+        part='contentDetails',
+        id=channel_id
+    )
+    response = request.execute()
+
+    if not response.get('items'):
+        raise ValueError(f"No channel found with ID {channel_id}")
     
-    The idea rn is to place all the videos on the https://www.youtube.com/@neworleanscitycouncil488 in 
-    a playlist on my personal YouTube account.
-
-    Then we can use this to get the video ids and download the transcripts.
-
-    We'll also need to figure out how to get all of the videos in a playlist (non-manually)
-
-'''
-
-def get_video_ids(playlist_id):
-    # generic Youtube API client
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY,)
+    playlist_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     
     request = youtube.playlistItems().list(
-        part="contentDetails",
-        maxResults=200,
-        playlistId=playlist_id
+        part='snippet',
+        playlistId=playlist_id,
+        maxResults=max_results
     )
-    response = request.execute() # Ez API http request
+    response = request.execute()
     
-    video_ids = [item['contentDetails']['videoId'] for item in response['items']]
+    video_ids = [item['snippet']['resourceId']['videoId'] for item in response['items']]
     
     return video_ids
 
@@ -70,6 +73,6 @@ def download_transcripts(video_ids):
             print(f'An error occurred while fetching the transcript for {video_id}: {e}')
 
 
-playlist_id = "PLHbnwZ0jWOeM6Pdpz9s63sDgk_74LaW6p" ## Testing playlist
-video_ids = get_video_ids(playlist_id)
+channel_id = "UC8oPEsQe9a0v6TdJ4K_QXoA"
+video_ids = get_latest_videos(channel_id)
 download_transcripts(video_ids)
