@@ -2,6 +2,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from googleapiclient.discovery import build
 import oauth
 import json
+import os
 
 # Get credentials from environment variables
 env_vars = oauth.import_env_vars()
@@ -52,24 +53,15 @@ def download_transcripts(video_ids):
         try:
             # Grabs transcript for the video
             transcript = YouTubeTranscriptApi.get_transcript(video_id)
-
-            with open(f'transcripts\\{video_id}_transcript.txt', 'w', encoding='utf-8') as file:
-                for entry in transcript:
-                    start = entry['start']
-                    duration = entry['duration']
-                    text = entry['text']
-
-                    data = {"timestamp": (entry['start'], entry['start'] + entry['duration']),
-                            "text": entry['text']
-                    }
-                    json.dump(data, rf"packages\transcription\transcripts-data\YT_transcripts\{video_id}")
+            print(transcript)
+            with open(f'transcripts-data\\YT_transcripts\\{video_id}_transcript.json', 'w+', encoding='utf-8') as file:
+                  json.dump(transcript, file)
 
             print(f'Transcript for {video_id} saved successfully.')
 
         except Exception as e:
             print(f'An error occurred while fetching the transcript for {video_id}: {e}')
 
-
 channel_id = "UC8oPEsQe9a0v6TdJ4K_QXoA"
-video_ids = get_latest_videos(channel_id)
+video_ids = get_latest_videos(channel_id, 10)
 download_transcripts(video_ids)
