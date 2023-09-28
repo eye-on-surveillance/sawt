@@ -59,6 +59,7 @@ export default function NewQuery() {
         source_title: citation.Title,
         source_name: citation.Name,
         source_publish_date: citation.Published,
+        source_url: citation.URL, 
       };
     });
     card = card as ICard;
