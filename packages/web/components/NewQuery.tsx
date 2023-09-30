@@ -19,7 +19,7 @@ function YouTubeEmbed({ url }: { url: string }) {
       src={`https://www.youtube.com/embed/${videoId}`} 
       frameBorder="0" 
       title="YouTube Video"
-      allowfullscreen
+      allowFullScreen
     ></iframe>
   );
 }
