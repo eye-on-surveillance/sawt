@@ -9,7 +9,7 @@ const citationKeyMap: { [key: string]: string } = {
   source_title: "Source Title",
   source_name: "Source Name",
   source_publish_date: "Source Publish Date",
-  source_url: "Source URL",
+  source_url: "Source URL (with timestamp)",
 };
 
 const Citation = ({ citation, index }: CitationProps) => {
