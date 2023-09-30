@@ -8,12 +8,30 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
 
+function YouTubeEmbed({ url }: { url: string }) {
+  const videoId = url.split("v=")[1]?.split("&")[0];
+  if (!videoId) return null;
+
+  return (
+    <iframe 
+      width="560" 
+      height="315" 
+      src={`https://www.youtube.com/embed/${videoId}`} 
+      frameBorder="0" 
+      title="YouTube Video"
+      allowfullscreen
+    ></iframe>
+  );
+}
+
 export default function NewQuery() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
   const { addMyCard } = useCardResults();
+  const [card, setCard] = useState<ICard | null>(null);  
+
 
   const insertSupabaseCard = async (): Promise<ICard> => {
     const newCard: ICard = {
@@ -74,9 +92,7 @@ export default function NewQuery() {
   ) => {
     const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
     const queryUpdate = {
-      // responses: JSON.stringify(card.responses),
       responses: card.responses,
-      // citations: JSON.stringify(card.citations),
       citations: card.citations,
       processing_time_ms: genResponseMs,
     };
@@ -90,7 +106,6 @@ export default function NewQuery() {
       console.warn(error);
       return;
     } else {
-      // successfully updated
     }
   };
 
@@ -110,7 +125,7 @@ export default function NewQuery() {
   return (
     <div className="my-12">
       <form onSubmit={submitQuery}>
-        <div className="relative  block">
+        <div className="relative block">
           <FontAwesomeIcon
             className="absolute left-2 top-1/2 ml-2 h-[28px] w-[28px] -translate-y-1/2 cursor-pointer object-contain"
             icon={faMagnifyingGlass}
@@ -127,7 +142,6 @@ export default function NewQuery() {
               setQuery(e.currentTarget.value);
             }}
           ></input>
-          {/* <p className="text-xs italic text-red-500">Please choose a password.</p> */}
         </div>
         <button
           className={`w-full rounded-lg md:w-1/2 ${
@@ -139,6 +153,16 @@ export default function NewQuery() {
           Get answer
         </button>
       </form>
+  
+      {/* Display the YouTube embeds*/}
+      <div className="mt-10">
+        {card?.citations.map((citation, index) => (
+          <div key={index}>
+            <p>{citation.source_title}</p>
+            {citation.source_url.includes("youtube.com") && <YouTubeEmbed url={citation.source_url} />}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

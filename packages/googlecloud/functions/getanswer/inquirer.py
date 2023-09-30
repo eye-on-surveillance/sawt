@@ -17,6 +17,12 @@ from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 logger = logging.getLogger(__name__)
 
 
+def timestamp_to_seconds(timestamp):
+    start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
+    h, m, s = [int(i) for i in start_time.split(":")]
+    return h * 3600 + m * 60 + s
+
+
 def process_responses_llm(responses_llm, docs=None):
     generated_responses = responses_llm.split("\n\n")
     responses = []
@@ -61,13 +67,19 @@ def process_responses_llm(responses_llm, docs=None):
             section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
             section["source_url"] = urls[i] if i < len(urls) else None
 
+            if section["source_url"] and section["source_timestamp"]:
+                time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
+                if "?" in section["source_url"]:                      section["source_url"] += f"&t={time_in_seconds}s"
+                else:
+                    section["source_url"] += f"?t={time_in_seconds}s"
+
             citation = {}
             if section["source_title"] is not None:
                 citation["Title"] = section["source_title"]
             if section["source_publish_date"] is not None:
                 citation["Published"] = section["source_publish_date"]
             if section["source_url"] is not None:
-                citation["URL"] = section["source_url"]
+                citation["URL"] = section["source_url"]  # Add this line
             if section["source_timestamp"] is not None:
                 citation["Video timestamp"] = section["source_timestamp"]
             if section["source_name"] is not None:
