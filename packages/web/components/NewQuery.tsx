@@ -154,9 +154,8 @@ export default function NewQuery() {
         </button>
       </form>
   
-      {/* Display the YouTube embeds*/}
       <div className="mt-10">
-        {card?.citations.map((citation, index) => (
+        {card?.citations?.map((citation, index) => (
           <div key={index}>
             <p>{citation.source_title}</p>
             {citation.source_url.includes("youtube.com") && <YouTubeEmbed url={citation.source_url} />}
