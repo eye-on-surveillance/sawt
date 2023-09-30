@@ -158,7 +158,8 @@ export default function NewQuery() {
         {card?.citations?.map((citation, index) => (
           <div key={index}>
             <p>{citation.source_title}</p>
-            {citation.source_url.includes("youtube.com") && <YouTubeEmbed url={citation.source_url} />}
+            {citation.source_url && citation.source_url.includes("youtube.com") && 
+              <YouTubeEmbed url={citation.source_url} />}
           </div>
         ))}
       </div>
