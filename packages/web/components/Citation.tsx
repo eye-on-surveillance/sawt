@@ -9,8 +9,18 @@ const citationKeyMap: { [key: string]: string } = {
   source_title: "Source Title",
   source_name: "Source Name",
   source_publish_date: "Source Publish Date",
-  source_url: "Source URL (with timestamp)",
+  source_url: "Council Meeting",
 };
+
+function isYouTubeURL(url: string): boolean {
+  return url.includes('youtube.com');
+}
+
+function getYouTubeThumbnail(url: string): string | undefined {
+  const videoId = url.split("v=")[1]?.split("&")[0];
+  if (!videoId) return undefined;
+  return `https://img.youtube.com/vi/${videoId}/0.jpg`;
+}
 
 const Citation = ({ citation, index }: CitationProps) => {
   const hasMetadata = Object.values(citation).some(
@@ -26,10 +36,16 @@ const Citation = ({ citation, index }: CitationProps) => {
             {"\u2022"} {citationKeyMap[key] || key} 
           </strong>
           :{" "}
-          {key === "source_url" && citation[key] ? ( // Check if the current key is 'source_url' and it exists
-            <a href={citation[key]} target="_blank" rel="noopener noreferrer">
-              {citation[key]}
-            </a>
+          {key === "source_url" && citation[key] ? (
+            isYouTubeURL(citation[key]) && getYouTubeThumbnail(citation[key]) ? (
+              <a href={citation[key]} target="_blank" rel="noopener noreferrer">
+                <img src={getYouTubeThumbnail(citation[key])!} alt="YouTube Thumbnail" width="200"/>
+              </a>
+            ) : (
+              <a href={citation[key]} target="_blank" rel="noopener noreferrer">
+                {citation[key]}
+              </a>
+            )
           ) : (
             citation[key]
           )}

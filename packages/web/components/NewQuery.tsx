@@ -24,6 +24,22 @@ function YouTubeEmbed({ url }: { url: string }) {
   );
 }
 
+function YouTubeThumbnail({ url }: { url: string }) {
+  const videoId = url.split("v=")[1]?.split("&")[0];
+  if (!videoId) return null;
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      <img 
+        width="560" 
+        height="315" 
+        src={`https://img.youtube.com/vi/${videoId}/0.jpg`} 
+        alt="YouTube Thumbnail"
+      />
+    </a>
+  );
+}
+
 export default function NewQuery() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [query, setQuery] = useState("");
@@ -159,7 +175,7 @@ export default function NewQuery() {
           <div key={index}>
             <p>{citation.source_title}</p>
             {citation.source_url && citation.source_url.includes("youtube.com") && 
-              <YouTubeEmbed url={citation.source_url} />}
+              <YouTubeThumbnail url={citation.source_url} />}
           </div>
         ))}
       </div>
