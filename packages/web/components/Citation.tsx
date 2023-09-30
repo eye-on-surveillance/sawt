@@ -16,9 +16,9 @@ function isYouTubeURL(url: string): boolean {
   return url.includes('youtube.com');
 }
 
-function getYouTubeThumbnail(url: string): string | null {
+function getYouTubeThumbnail(url: string): string | undefined {
   const videoId = url.split("v=")[1]?.split("&")[0];
-  if (!videoId) return null;
+  if (!videoId) return undefined;
   return `https://img.youtube.com/vi/${videoId}/0.jpg`;
 }
 
@@ -37,9 +37,9 @@ const Citation = ({ citation, index }: CitationProps) => {
           </strong>
           :{" "}
           {key === "source_url" && citation[key] ? (
-            isYouTubeURL(citation[key]) ? (
+            isYouTubeURL(citation[key]) && getYouTubeThumbnail(citation[key]) ? (
               <a href={citation[key]} target="_blank" rel="noopener noreferrer">
-                <img src={getYouTubeThumbnail(citation[key])} alt="YouTube Thumbnail" width="200"/>
+                <img src={getYouTubeThumbnail(citation[key])!} alt="YouTube Thumbnail" width="200"/>
               </a>
             ) : (
               <a href={citation[key]} target="_blank" rel="noopener noreferrer">
