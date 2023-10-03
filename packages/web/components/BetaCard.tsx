@@ -175,12 +175,12 @@ const BetaCard = ({ card }: { card: ICard }) => {
 
         {showComments && (
           <>
-            <h2 className="mb-4 text-xl font-bold">Comments</h2>
+            <h2 className="mb-4 text-xl font-bold"></h2>
 
             <div className="mb-2">
               <input
                 className="w-full rounded border p-2"
-                placeholder="Your Display Name..."
+                placeholder="Please write your name or the organization that you represent"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
               />
@@ -189,7 +189,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
             <div className="mb-4">
               <textarea
                 className="w-full rounded border p-2"
-                placeholder="Write a comment..."
+                placeholder="Please write your comments here"
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
               />
