@@ -110,6 +110,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
     }
   };
 
+
   return (
     <div className="w-full">
       {/* Card Header */}
@@ -180,20 +181,22 @@ const BetaCard = ({ card }: { card: ICard }) => {
             <div className="mb-2">
               <input
                 className="w-full rounded border p-2"
-                placeholder="Please write your name or the organization that you represent"
+                placeholder="Please write your name/organization/community"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
               />
             </div>
+            
 
             <div className="mb-4">
               <textarea
-                className="w-full rounded border p-2"
-                placeholder="Please write your comments here"
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                  style={{ height: '125px' }}
+                  className="w-full rounded border p-2"
+                  placeholder="Please write your comments here. If relevant, please include citations to news articles, social media posts, and other information that supports for your comment as this will help us improve our model."
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
               />
-            </div>
+          </div>
 
             <button
               className="text-black mb-2 rounded px-4 py-2"
