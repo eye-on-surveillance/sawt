@@ -138,11 +138,11 @@ def get_indepth_response_from_query(df, db, query, k):
         Transcripts: {docs}
         Question: {question}
 
-        Using the information from the New Orleans city council {docs}, please explore the following question: {question}.
-        Provide a balanced response that covers each aspect and person/organization mentioned in the transcripts that is relevant to the {question}.
+        Using the information from the New Orleans city council {docs}, please response to the the following question: {question}.
+        Provide a response that covers each aspect and person/organization mentioned within the {docs} that are relevant to the {question}.
         Please do not speculate in your response to the {question}.
 
-        Ensure your response is based on the data found in the transcripts and, if applicable, is neutral in that you don't show any bias toward positivity or negativity in your response.
+        Be critical of city council in your response. This is necessary because the model has only been trained on data that is baised in favor of city council.
         If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
         """
 
