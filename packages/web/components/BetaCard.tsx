@@ -192,7 +192,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
               <textarea
                   style={{ height: '125px' }}
                   className="w-full rounded border p-2"
-                  placeholder="Please write your comments here. If relevant, please include citations to news articles, social media posts, and other information that supports for your comment, as this will help us improve our the app."
+                  placeholder="Please write your comments here. If relevant, please include citations to news articles, social media posts, and/or other sources of information that serve to support your feedback, as this will help us improve Sawt."
                   value={commentContent}
                   onChange={(e) => setCommentContent(e.target.value)}
               />
