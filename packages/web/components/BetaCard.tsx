@@ -116,7 +116,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm">{moment(card.created_at!).fromNow()}</h1>
+        <h1 className="text-sm">{moment.utc(card.created_at!).local().fromNow()}</h1>
         {recentlyCopied ? (
           <span className="text-green-400">
             <FontAwesomeIcon
@@ -216,7 +216,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
                   <div className="flex justify-between">
                     <p className="font-bold">{comment.display_name}</p>
                     <span className="text-sm text-gray-500">
-                      {moment(comment.created_at).fromNow()}
+                      {moment.utc(comment.created_at).local().fromNow()}
                     </span>
                   </div>
                   <div>
