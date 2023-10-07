@@ -141,13 +141,10 @@ def get_indepth_response_from_query(df, db, query, k):
         template = """
         Transcripts: {docs}
         Question: {question}
-
-        Using the information from the New Orleans city council {docs}, please response to the the following question: {question}.
-        Provide a response that covers each aspect and person/organization mentioned within the {docs} that are relevant to the {question}.
-        Please do not speculate in your response to the {question}.
-
-        Be critical of city council in your response. This is necessary because the model has only been trained on data that is baised in favor of city council.
-        If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
+        
+        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
+        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
         """
 
         prompt = PromptTemplate(
