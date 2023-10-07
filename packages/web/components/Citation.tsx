@@ -9,7 +9,7 @@ const citationKeyMap: { [key: string]: string } = {
   source_title: "Source Title",
   source_name: "Source Name",
   source_publish_date: "Source Publish Date",
-  source_url: "Council Meeting",
+  source_url: "Source URL",
 };
 
 function isYouTubeURL(url: string): boolean {
