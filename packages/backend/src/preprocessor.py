@@ -91,6 +91,36 @@ def metadata_func(record: dict, metadata: dict) -> dict:
     return metadata
 
 
+def metadata_news(record: dict, metadata: dict) -> dict:
+    metadata["url"] = record.get("url")
+    metadata["title"] = record.get("title")
+    return metadata
+
+    
+def create_db_from_news_transcripts(news_json_directory):
+    logger.info("Creating database from CJ transcripts...")
+    all_docs = []
+    for doc_file in os.listdir(news_json_directory):
+        if not doc_file.endswith(".json"):
+            continue
+        doc_path = os.path.join(news_json_directory, doc_file)
+        loader = JSONLoader(
+            file_path=doc_path,
+            jq_schema=".messages[]",
+            content_key="page_content",
+            metadata_func=metadata_news,
+        )
+
+        data = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500, chunk_overlap=250
+        )
+        docs = text_splitter.split_documents(data)
+        all_docs.extend(docs)
+    logger.info("Finished database from news transcripts...")
+    return all_docs
+
+
 def create_db_from_cj_transcripts(cj_json_directory):
     logger.info("Creating database from CJ transcripts...")
     all_docs = []
@@ -168,6 +198,7 @@ def create_db_from_youtube_urls_and_pdfs(
     cj_json_directory,
     doc_directory,
     pc_directory,
+    news_directory,
     general_embeddings,
     in_depth_embeddings,
 ):
@@ -175,8 +206,9 @@ def create_db_from_youtube_urls_and_pdfs(
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
     pdf_docs = create_db_from_minutes_and_agendas(doc_directory)
     pc_docs = create_db_from_public_comments(pc_directory)
+    news_docs = create_db_from_news_transcripts(news_directory)
 
-    all_docs = fc_video_docs + cj_video_docs + pc_docs
+    all_docs = fc_video_docs + cj_video_docs + pc_docs + news_docs
 
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)

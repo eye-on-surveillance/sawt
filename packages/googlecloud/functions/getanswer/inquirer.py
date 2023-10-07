@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 def timestamp_to_seconds(timestamp):
+    if 'timestamp not available' in timestamp:
+        return None  # or another default value like -1 or 0
     start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
     h, m, s = [int(i) for i in start_time.split(":")]
     return h * 3600 + m * 60 + s
@@ -69,9 +71,11 @@ def process_responses_llm(responses_llm, docs=None):
 
             if section["source_url"] and section["source_timestamp"]:
                 time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
-                if "?" in section["source_url"]:                      section["source_url"] += f"&t={time_in_seconds}s"
-                else:
-                    section["source_url"] += f"?t={time_in_seconds}s"
+                if time_in_seconds is not None:  # Make sure the timestamp was available
+                    if "?" in section["source_url"]:
+                        section["source_url"] += f"&t={time_in_seconds}s"
+                    else:
+                        section["source_url"] += f"?t={time_in_seconds}s"
 
             citation = {}
             if section["source_title"] is not None:

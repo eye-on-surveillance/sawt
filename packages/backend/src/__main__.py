@@ -15,6 +15,7 @@ def main():
     cj_json_directory = "json_cj_directory"
     fc_json_directory = "json_fc_directory"
     pc_json_directory = "json_public_comment_directory"
+    news_json_directory = "news_directory"
     print(f"Preprocessing videos, agendas, and minutes to generate a cache.")
     general_embeddings, in_depth_embeddings = create_embeddings()
 
@@ -24,6 +25,7 @@ def main():
         cj_json_directory,
         pdf_directory,
         pc_json_directory,
+        news_json_directory,
         general_embeddings,
         in_depth_embeddings,
     )
