@@ -8,8 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
-import CardResponse from "../CardResponse";
-import Citation from "../Citation";
+import CardResponse from "./CardResponse";
+import Citation from "./Citation";
 
 type SupabaseRealtimePayload<T = any> = {
   old: T;
@@ -33,6 +33,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const [commentContent, setCommentContent] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showCitations, setShowCitations] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -82,6 +83,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       created_at: new Date(),
     };
 
+
     setComments((prevComments) =>
       prevComments
         ? prevComments.filter((comment) => comment !== newComment)
@@ -108,12 +110,13 @@ const BetaCard = ({ card }: { card: ICard }) => {
     }
   };
 
+
   return (
     <div className="w-full">
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm">{moment(card.created_at!).fromNow()}</h1>
+        <h1 className="text-sm">{moment.utc(card.created_at!).local().fromNow()}</h1>
         {recentlyCopied ? (
           <span className="text-green-400">
             <FontAwesomeIcon
@@ -147,7 +150,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       {/* Citations Section */}
       <div className="mb-6 mt-4">
         <button
-          className="bg-blue-500 mb-2 rounded px-4 py-2 text-white"
+          className="text-black mb-2 rounded px-4 py-2"
           onClick={() => setShowCitations((prev) => !prev)}
         >
           {showCitations ? "Hide Citations" : "Show Citations"}
@@ -164,64 +167,77 @@ const BetaCard = ({ card }: { card: ICard }) => {
 
       {/* Comments Section */}
       <div className="mt-6">
-        <h2 className="mb-4 text-xl font-bold">Comments</h2>
-
-        <div className="mb-2">
-          <input
-            className="w-full rounded border p-2"
-            placeholder="Your Display Name..."
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-4">
-          <textarea
-            className="w-full rounded border p-2"
-            placeholder="Write a comment..."
-            value={commentContent}
-            onChange={(e) => setCommentContent(e.target.value)}
-          />
-        </div>
-
         <button
-          className="bg-blue-500 rounded px-4 py-2 text-white"
-          onClick={handleCommentSubmit}
+          className="text-black mb-2 rounded px-4 py-2"
+          onClick={() => setShowComments((prev) => !prev)}
         >
-          Post Comment
+          {showComments ? "Hide Comments" : "Show Comments"}
         </button>
 
-        {comments &&
-          comments.map((comment, index) => (
-            <div
-              key={index}
-              className={`mb-2 mt-4 p-2 ${
-                index < comments.length - 1 ? "border-b-2" : ""
-              } border-black`}
-            >
-              <div className="flex justify-between">
-                <p className="font-bold">{comment.display_name}</p>
-                <span className="text-sm text-gray-500">
-                  {moment(comment.created_at).fromNow()}
-                </span>
-              </div>
-              <div>
-                {comment.content.split("\n").map((str, idx) =>
-                  idx === comment.content.split("\n").length - 1 ? (
-                    str
-                  ) : (
-                    <>
-                      {str}
-                      <br />
-                    </>
-                  )
-                )}
-              </div>
+        {showComments && (
+          <>
+            <h2 className="mb-4 text-xl font-bold"></h2>
+
+            <div className="mb-2">
+              <input
+                className="w-full rounded border p-2"
+                placeholder="Please write your name/organization/community affiliation"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+              />
             </div>
-          ))}
+            
+
+            <div className="mb-4">
+              <textarea
+                  style={{ height: '125px' }}
+                  className="w-full rounded border p-2"
+                  placeholder="Please write your comments here. If relevant, please include citations to news articles, social media posts, and/or other sources of information that serve to support your feedback, as this will help us improve Sawt."
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+              />
+          </div>
+
+            <button
+              className="text-black mb-2 rounded px-4 py-2"
+              onClick={handleCommentSubmit}
+            >
+              Post Comment
+            </button>
+
+            {comments &&
+              comments.map((comment, index) => (
+                <div
+                  key={index}
+                  className={`mb-2 mt-4 p-2 ${
+                    index < comments.length - 1 ? "border-b-2" : ""
+                  } border-black`}
+                >
+                  <div className="flex justify-between">
+                    <p className="font-bold">{comment.display_name}</p>
+                    <span className="text-sm text-gray-500">
+                      {moment.utc(comment.created_at).local().fromNow()}
+                    </span>
+                  </div>
+                  <div>
+                    {comment.content.split("\n").map((str, idx) =>
+                      idx === comment.content.split("\n").length - 1 ? (
+                        str
+                      ) : (
+                        <>
+                          {str}
+                          <br />
+                        </>
+                      )
+                    )}
+                  </div>
+                </div>
+              ))}
+          </>
+        )}
       </div>
     </div>
-  );
+);
 };
 
 export default BetaCard;

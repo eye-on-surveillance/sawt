@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "PLACEHOLDER";
 const supabaseSecretServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_SECRET || "PLACEHOLDER";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "PLACEHOLDER";
 
 /* Create card
  * Not creating directly from client because:
