@@ -91,34 +91,35 @@ export default function CardResultsProvider({
 
   const fetchMoreCards = async () => {
     try {
-        const lastCard = cards[cards.length - 1];
-        const lastCreatedAt = lastCard?.created_at;
+      const lastCard = cards[cards.length - 1];
+      const lastCreatedAt = lastCard?.created_at;
 
-        if (!lastCreatedAt) {
-            return;
-        }
+      if (!lastCreatedAt) {
+        return;
+      }
 
-        const isoString = new Date(lastCreatedAt).toISOString();
-        const formattedLastCreatedAt = isoString.replace("T", " ").slice(0, -1) + "+00";
+      const isoString = new Date(lastCreatedAt).toISOString();
+      const formattedLastCreatedAt =
+        isoString.replace("T", " ").slice(0, -1) + "+00";
 
-        const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
+      const newCards = await fetchCardsFromSupabase(formattedLastCreatedAt);
 
-        if (!newCards || newCards.length === 0) {
-            setHasMoreCards(false);
-            return;
-        }
+      if (!newCards || newCards.length === 0) {
+        setHasMoreCards(false);
+        return;
+      }
 
-        setCards((prevCards) => {
-            const uniqueNewCards = newCards.filter(
-                (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
-            );
+      setCards((prevCards) => {
+        const uniqueNewCards = newCards.filter(
+          (newCard) => !prevCards.some((prevCard) => prevCard.id === newCard.id)
+        );
 
-            return [...prevCards, ...uniqueNewCards].sort(compareCards);
-        });
+        return [...prevCards, ...uniqueNewCards].sort(compareCards);
+      });
     } catch (error) {
-        console.error("Error fetching more cards:", error);
+      console.error("Error fetching more cards:", error);
     }
-};
+  };
 
   useEffect(() => {
     setIndexedCards(getIndexedCards(cards));

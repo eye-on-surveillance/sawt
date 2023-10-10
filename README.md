@@ -2,32 +2,32 @@
 
 Work in Progress
 
-Sawt is a tool designed to bridge the communication gap between New Orleanians and their city council representatives. 
+Sawt is a tool designed to bridge the communication gap between New Orleanians and their city council representatives.
 
-## Quickstart (no web)
-1. `cd packages/backend && pip install -r requirements && python src`
-2. `cd packages/googlecloud/functions && pip install -r requirements && python getanswer`
+## Prerequisites
+
+- Install [DVC](https://dvc.org/doc/install)
+
+## Quickstart
+
+1. Pull data: `dvc pull`
+1. Start cloud function locally:
+
+```
+cd packages/googlecloud/functions
+pip install -r requirements.txt
+OPENAI_API_KEY=sk-XXX functions-framework --target=getanswer --debug
+```
+
+1. Get answer:
+
+```
+curl -XPOST http://localhost:8080 -v -H "Content-Type: application/json" \
+    -d '{"query":"Is surveillance effective?","response_type":"in_depth"}'
+```
 
 ## Project structure
-- `backend`: Preprocessor, only needs to be run once
-- `web`: NextJS web site
-- `googlecloud`: Google Cloud Function invoked for every query
 
-## Getting started 
-Follow the instructions below to run test locally 
-```bash
-# Pull data (transcripts, minutes, agendas) from the preprocessed stage using DVC
-dvc pull
-
-# Navigate to the 'src' directory inside 'packages/backend'
-cd packages/backend/src
-
-# Install the required Python dependencies
-pip install -r requirements.txt
-
-# Navigate to the 'getanswer' function directory inside 'packages/googlecloud/functions'
-cd ../../googlecloud/functions/getanswer 
-
-# Run the main Python script
-python __main__.py
-```
+- `packages/backend`: Preprocessor, only needs to be run once
+- `packages/googlecloud`: Google Cloud Function invoked for every query
+- `packages/web`: NextJS web site

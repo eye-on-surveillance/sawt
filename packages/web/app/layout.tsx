@@ -11,9 +11,15 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Analytics } from "@vercel/analytics/react";
 import { cookies } from "next/headers";
 import "./globals.css";
+
 config.autoAddCss = false;
 
 export const dynamic = "force-dynamic";
+
+// Metadata export for favicon
+export const metadata = {
+  favicon: "/photos/favicon.ico",
+};
 
 export default async function RootLayout({
   children,
