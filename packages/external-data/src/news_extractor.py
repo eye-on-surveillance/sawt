@@ -35,7 +35,6 @@ def sanitize_filename(title):
     return sanitized[:max_len]
 
 
-
 def url_to_json_selenium(url, retries=3, retry_delay=10):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")

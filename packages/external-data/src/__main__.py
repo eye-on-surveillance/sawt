@@ -41,7 +41,7 @@ def main():
         "https://fightbacknews.org/articles/city-new-orleans-attempts-exit-consent-decree-protesters-demand-community-control-police",
         "https://www.nola.com/news/politics/council-tables-plan-to-bar-food-distribution-to-homeless/article_1ba8e916-2a40-11ee-bcb2-dbfdb794bc4f.html",
         "https://www.wwno.org/news/2023-07-13/meeting-on-controversial-new-orleans-jail-project-draws-passionate-comments-and-a-heated-exchange",
-        "https://www.wwltv.com/article/news/local/orleans/new-orleans-affordable-housing-city-council-32-million/289-7516fd45-2562-4414-94eb-2c46e810515c", 
+        "https://www.wwltv.com/article/news/local/orleans/new-orleans-affordable-housing-city-council-32-million/289-7516fd45-2562-4414-94eb-2c46e810515c",
         "https://www.nola.com/news/politics/new-orleans-swb-floats-rolling-forward-tax-rate/article_a6ce3f46-6474-11ee-b72f-b7a906a8f9ef.html",
         "https://www.wwno.org/news/2023-04-04/advocates-to-city-council-spend-covid-aid-surplus-dollars-on-housing-and-youth-development",
         "https://www.nola.com/news/politics/cantrell-administration-should-boost-transparency-on-388-million-in-federal-funds-bgr-says/article_6b591a1a-7d7c-11ed-b58f-0371d99e2538.html",
