@@ -9,20 +9,20 @@ MAX_WORKERS = 5
 def process_url(url):
     try:
         data = url_to_json_selenium(url)
+        if not data or not data["messages"][0]["title"]:
+            # No title found, return the URL to be logged
+            return url
+
         output_dir = "../../backend/src/news_directory"
-        sanitized_title = (
-            data["messages"][0]["title"]
-            .replace(" ", "_")
-            .replace("/", "-")
-            .replace("?", "")
-        )
-        filename = f"{sanitized_title}.json"
+        filename = f"{data['messages'][0]['title']}.json"
         filename = os.path.join(output_dir, filename)
 
         with open(filename, "w") as f:
             f.write(json.dumps(data, indent=4))
+        return None  # No issues, so return None
     except Exception as e:
         print(f"Exception for URL {url}: {str(e)}")
+        return url
 
 
 def main():
@@ -39,6 +39,12 @@ def main():
         "https://www.nola.com/gambit/news/the_latest/no-excuses-frustrated-council-members-press-richard-s-disposal-over-garbage-failures/article_e62546c4-8df8-11ed-bab6-2b43058e872b.html",
         "https://www.wdsu.com/article/new-orleans-council-members-consent-decree-mayor-concerns/43556031",
         "https://fightbacknews.org/articles/city-new-orleans-attempts-exit-consent-decree-protesters-demand-community-control-police",
+        "https://www.nola.com/news/politics/council-tables-plan-to-bar-food-distribution-to-homeless/article_1ba8e916-2a40-11ee-bcb2-dbfdb794bc4f.html",
+        "https://www.wwno.org/news/2023-07-13/meeting-on-controversial-new-orleans-jail-project-draws-passionate-comments-and-a-heated-exchange",
+        "https://www.wwltv.com/article/news/local/orleans/new-orleans-affordable-housing-city-council-32-million/289-7516fd45-2562-4414-94eb-2c46e810515c",
+        "https://www.nola.com/news/politics/new-orleans-swb-floats-rolling-forward-tax-rate/article_a6ce3f46-6474-11ee-b72f-b7a906a8f9ef.html",
+        "https://www.wwno.org/news/2023-04-04/advocates-to-city-council-spend-covid-aid-surplus-dollars-on-housing-and-youth-development",
+        "https://www.nola.com/news/politics/cantrell-administration-should-boost-transparency-on-388-million-in-federal-funds-bgr-says/article_6b591a1a-7d7c-11ed-b58f-0371d99e2538.html",
     ]
 
     output_dir = "../../backend/src/news_directory"
@@ -46,7 +52,11 @@ def main():
         os.makedirs(output_dir)
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        executor.map(process_url, url_list)
+        failed_urls = list(filter(None, executor.map(process_url, url_list)))
+
+    with open(os.path.join(output_dir, "failed_urls.log"), "w") as log_file:
+        for failed_url in failed_urls:
+            log_file.write(f"{failed_url}\n")
 
 
 if __name__ == "__main__":
