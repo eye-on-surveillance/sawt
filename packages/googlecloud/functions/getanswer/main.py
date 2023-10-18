@@ -2,14 +2,14 @@ import logging
 import time
 import math
 
-import google.cloud.logging
+#import google.cloud.logging
 import functions_framework
 
 from helper import parse_field, get_dbs
 from inquirer import answer_query
 
-logging_client = google.cloud.logging.Client()
-logging_client.setup_logging()
+#logging_client = google.cloud.logging.Client()
+#logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 

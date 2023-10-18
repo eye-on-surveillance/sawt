@@ -12,7 +12,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_types import AgentType
 
 from helper import sort_retrived_documents
-from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_VARIED
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def timestamp_to_seconds(timestamp):
     return h * 3600 + m * 60 + s
 
 
-def process_responses_llm(responses_llm, docs=None):
+def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
     generated_responses = responses_llm.split("\n\n")
     responses = []
     citations = []
@@ -106,7 +106,7 @@ def process_responses_llm(responses_llm, docs=None):
             responses.append({"response": generated_responses[0]})
 
     card = {
-        "card_type": RESPONSE_TYPE_DEPTH,
+        "card_type": card_type,
         "responses": responses,
         "citations": citations,
     }
@@ -114,7 +114,7 @@ def process_responses_llm(responses_llm, docs=None):
     return card_json
 
 
-def get_indepth_response_from_query(df, db, query, k):
+def get_indepth_response_from_query(df, db, query, k, query_type):
     logger.info("Performing in-depth summary query...")
 
     # Convert the query to lowercase for case-insensitive comparison
@@ -157,10 +157,66 @@ def get_indepth_response_from_query(df, db, query, k):
             question=query, docs=docs_page_content, temperature=0
         )
 
-        return process_responses_llm(responses_llm, docs)
+        return process_responses_llm(responses_llm, docs, query_type)
+
+## varied responses for user annotation
+def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "in_depth"):
+    logger.info("Performing varied summary query...")
+
+    # Convert the query to lowercase for case-insensitive comparison
+    query_lower = query.lower()
 
 
-def get_general_summary_response_from_query(db, query, k):
+    # commenting out vote count subroutine
+    """
+    if query_lower.startswith(
+        "what is the summary of ordinance"
+    ) or query_lower.startswith("what are the votes of ordinance"):
+        agent = create_pandas_dataframe_agent(
+            ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
+            df,
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            verbose=True,
+        )
+        responses_llm = agent.run(query)
+        return process_responses_llm(responses_llm)
+    
+    else:
+    """
+
+    llm = ChatOpenAI(model_name="gpt-4")
+    doc_list = db.similarity_search_with_score(query, k=k)
+    docs = sort_retrived_documents(doc_list)
+    docs_page_content = " ".join([d[0].page_content for d in docs])
+
+    template = """
+    Transcripts: {docs}
+    Question: {question}
+    
+    Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+    Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
+    If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
+    """
+
+    prompt = PromptTemplate(
+        input_variables=["question", "docs"],
+        template=template,
+    )
+
+    chain_llm = LLMChain(llm=llm, prompt=prompt)
+    responses_llm = chain_llm.run(
+        question=query, docs=docs_page_content, temperature=0, n = n
+    )
+
+    return process_responses_llm(responses_llm, docs, card_type)
+
+
+
+
+
+
+
+def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_TYPE_GENERAL):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
@@ -180,19 +236,21 @@ def get_general_summary_response_from_query(db, query, k):
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
     response = {"response": responses_llm}
-    card = {"card_type": RESPONSE_TYPE_GENERAL, "responses": [response]}
+    card = {"card_type": query_type, "responses": [response]}
     card_json = json.dumps(card)
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10):
+def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 1):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(df, db_in_depth, query, k)
+        return get_indepth_response_from_query(df, db_in_depth, query, k, query_type)
+    elif query_type == RESPONSE_TYPE_VARIED:
+        return get_varied_response_from_query(df, db_in_depth, query, k, n, query_type)
     elif query_type == RESPONSE_TYPE_GENERAL:
-        return get_general_summary_response_from_query(db_general, query, k)
+        return get_general_summary_response_from_query(db_general, query, k, query_type)
     else:
         raise ValueError(
-            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL} or {RESPONSE_TYPE_VARIED}, got: {query_type}"
         )
 
 
