@@ -96,7 +96,7 @@ def metadata_news(record: dict, metadata: dict) -> dict:
     metadata["title"] = record.get("title")
     return metadata
 
-    
+
 def create_db_from_news_transcripts(news_json_directory):
     logger.info("Creating database from CJ transcripts...")
     all_docs = []
