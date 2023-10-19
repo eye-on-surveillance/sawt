@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def timestamp_to_seconds(timestamp):
-    if 'timestamp not available' in timestamp:
+    if "timestamp not available" in timestamp:
         return None  # or another default value like -1 or 0
     start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
     h, m, s = [int(i) for i in start_time.split(":")]
@@ -119,9 +119,9 @@ def get_indepth_response_from_query(df, db, query, k):
 
     query_lower = query.lower()
 
-    if query_lower.startswith(
-        "list the votes for ordinance"
-    ) or query_lower.startswith("what were the votes for ordinance"):
+    if query_lower.startswith("list the votes for ordinance") or query_lower.startswith(
+        "what were the votes for ordinance"
+    ):
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
             df,
