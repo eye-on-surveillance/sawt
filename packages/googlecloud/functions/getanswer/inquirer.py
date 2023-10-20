@@ -110,8 +110,12 @@ def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
         "responses": responses,
         "citations": citations,
     }
-    card_json = json.dumps(card)
-    return card_json
+
+    if card_type == "varied":
+        return card
+    else:
+        card_json = json.dumps(card)
+        return card_json
 
 
 def get_indepth_response_from_query(df, db, query, k, query_type):
@@ -160,32 +164,14 @@ def get_indepth_response_from_query(df, db, query, k, query_type):
         return process_responses_llm(responses_llm, docs, query_type)
 
 ## varied responses for user annotation
-def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "in_depth"):
+def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
     logger.info("Performing varied summary query...")
 
-    # Convert the query to lowercase for case-insensitive comparison
-    query_lower = query.lower()
 
 
-    # commenting out vote count subroutine
-    """
-    if query_lower.startswith(
-        "what is the summary of ordinance"
-    ) or query_lower.startswith("what are the votes of ordinance"):
-        agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
-            df,
-            agent_type=AgentType.OPENAI_FUNCTIONS,
-            verbose=True,
-        )
-        responses_llm = agent.run(query)
-        return process_responses_llm(responses_llm)
-    
-    else:
-    """
 
     llm = ChatOpenAI(model_name="gpt-4")
-    doc_list = db.similarity_search_with_score(query, k=k)
+    doc_list = db.similarity_search_with_score(query, k=k, n = n)
     docs = sort_retrived_documents(doc_list)
     docs_page_content = " ".join([d[0].page_content for d in docs])
 
@@ -194,8 +180,7 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "in_dept
     Question: {question}
     
     Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-    Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
-    If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
+    Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
     """
 
     prompt = PromptTemplate(
@@ -207,8 +192,16 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "in_dept
     responses_llm = chain_llm.run(
         question=query, docs=docs_page_content, temperature=0, n = n
     )
+    master_response = {}
+    master_response["card_type"] = "varied"
+    response_list = {}
+    for i in range(n):
+        single_response = process_responses_llm(responses_llm, docs, card_type)
+        print(single_response, "\n")
+        response_list[i] = single_response
+    master_response["responses"] = response_list
+    return master_response
 
-    return process_responses_llm(responses_llm, docs, card_type)
 
 
 
@@ -241,7 +234,7 @@ def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 1):
+def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 3):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(df, db_in_depth, query, k, query_type)
     elif query_type == RESPONSE_TYPE_VARIED:
