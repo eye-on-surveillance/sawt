@@ -111,11 +111,8 @@ def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
         "citations": citations,
     }
 
-    if card_type == "varied":
-        return card
-    else:
-        card_json = json.dumps(card)
-        return card_json
+    card_json = json.dumps(card)
+    return card_json
 
 
 def get_indepth_response_from_query(df, db, query, k, query_type):
@@ -166,8 +163,6 @@ def get_indepth_response_from_query(df, db, query, k, query_type):
 ## varied responses for user annotation
 def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
     logger.info("Performing varied summary query...")
-
-
 
 
     llm = ChatOpenAI(model_name="gpt-4")
