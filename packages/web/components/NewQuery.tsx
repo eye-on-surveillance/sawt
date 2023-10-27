@@ -44,7 +44,7 @@ export default function NewQuery() {
   const apiEndpoint = process.env.NEXT_PUBLIC_TGI_API_ENDPOINT!;
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
+  const [cardType, setCardType] = useState(ECardType.QUERY_VARIED);
   const { addMyCard } = useCardResults();
   const [card, setCard] = useState<ICard | null>(null);  
 

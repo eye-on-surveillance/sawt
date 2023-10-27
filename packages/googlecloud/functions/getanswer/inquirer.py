@@ -166,7 +166,7 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
 
 
     llm = ChatOpenAI(model_name="gpt-4")
-    doc_list = db.similarity_search_with_score(query, k=k, n = n)
+    doc_list = db.similarity_search_with_score(query, k=k)
     docs = sort_retrived_documents(doc_list)
     docs_page_content = " ".join([d[0].page_content for d in docs])
 
@@ -185,7 +185,7 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
 
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0, n = n
+        question=query, docs=docs_page_content, temperature=0,
     )
     master_response = {}
     master_response["card_type"] = "varied"
