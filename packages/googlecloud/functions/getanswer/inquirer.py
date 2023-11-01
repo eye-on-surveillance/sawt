@@ -1,15 +1,11 @@
-import logging
-from langchain.chat_models import ChatOpenAI
-from langchain import PromptTemplate
-from langchain.chains import LLMChain
 import json
 import os
+import logging
 
 from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
-from langchain.agents import create_pandas_dataframe_agent
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
 
 from helper import sort_retrived_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
@@ -117,27 +113,12 @@ def process_responses_llm(responses_llm, docs=None):
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
 
-    query_lower = query.lower()
+    llm = ChatOpenAI(model_name="gpt-4")
+    doc_list = db.similarity_search_with_score(query, k=k)
+    docs = sort_retrived_documents(doc_list)
+    docs_page_content = " ".join([d[0].page_content for d in docs])
 
-    if query_lower.startswith("list the votes for ordinance") or query_lower.startswith(
-        "what were the votes for ordinance"
-    ):
-        agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
-            df,
-            agent_type=AgentType.OPENAI_FUNCTIONS,
-            verbose=True,
-        )
-        responses_llm = agent.run(query)
-        return process_responses_llm(responses_llm)
-
-    else:
-        llm = ChatOpenAI(model_name="gpt-4")
-        doc_list = db.similarity_search_with_score(query, k=k)
-        docs = sort_retrived_documents(doc_list)
-        docs_page_content = " ".join([d[0].page_content for d in docs])
-
-        template = """
+    template = """
         Transcripts: {docs}
         Question: {question}
         
@@ -146,17 +127,15 @@ def get_indepth_response_from_query(df, db, query, k):
         If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
         """
 
-        prompt = PromptTemplate(
-            input_variables=["question", "docs"],
-            template=template,
-        )
+    prompt = PromptTemplate(
+        input_variables=["question", "docs"],
+        template=template,
+    )
 
-        chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(
-            question=query, docs=docs_page_content, temperature=0
-        )
+    chain_llm = LLMChain(llm=llm, prompt=prompt)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
 
-        return process_responses_llm(responses_llm, docs)
+    return process_responses_llm(responses_llm, docs)
 
 
 def get_general_summary_response_from_query(db, query, k):
