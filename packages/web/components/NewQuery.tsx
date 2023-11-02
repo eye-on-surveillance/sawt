@@ -125,8 +125,8 @@ export default function NewQuery() {
     }
   };
 
-  const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
 
     if (query.length <= 10) return;
 
@@ -135,7 +135,7 @@ export default function NewQuery() {
     const newCard = await insertSupabaseCard();
     const cardWResp = await sendQueryToFunction(newCard);
     addMyCard(cardWResp);
-    await updateQueryResponded(cardWResp, startedProcessingAt);
+    await updateQueryResponded(cardWResp, startedProcessingAt);  
   };
 
   return (
@@ -143,7 +143,7 @@ export default function NewQuery() {
       <form onSubmit={submitQuery}>
         <div className="relative block">
           <FontAwesomeIcon
-            className="absolute left-2 top-1/2 ml-2 h-[28px] w-[28px] -translate-y-1/2 cursor-pointer object-contain"
+            className="absolute left-2 top-1/2 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
             icon={faMagnifyingGlass}
           />
           <input
@@ -151,25 +151,20 @@ export default function NewQuery() {
             id="new-query"
             type="text"
             value={query}
-            placeholder={`Ask ${APP_NAME}`}
+            placeholder={`Ask ${APP_NAME} a question`}
             autoFocus
             disabled={isProcessing}
-            onChange={(e: React.FormEvent<HTMLInputElement>) => {
-              setQuery(e.currentTarget.value);
+            onChange={(e) => setQuery(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); 
+                submitQuery();
+              }
             }}
-          ></input>
+          />
         </div>
-        <button
-          className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "bg-blue-900 cursor-wait" : "bg-secondary"
-          } p-2 text-2xl text-blue`}
-          type="submit"
-          disabled={isProcessing}
-        >
-          Get answer
-        </button>
       </form>
-  
+
       <div className="mt-10">
         {card?.citations?.map((citation, index) => (
           <div key={index}>
