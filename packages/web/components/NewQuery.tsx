@@ -143,7 +143,7 @@ export default function NewQuery() {
       <form onSubmit={submitQuery}>
         <div className="relative block">
           <FontAwesomeIcon
-            className="absolute left-2 top-1/2 ml-2 h-[28px] w-[28px] -translate-y-1/2 cursor-pointer object-contain"
+            className="absolute left-2 top-1/2 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
             icon={faMagnifyingGlass}
           />
           <input
@@ -151,23 +151,14 @@ export default function NewQuery() {
             id="new-query"
             type="text"
             value={query}
-            placeholder={`Ask ${APP_NAME}`}
+            placeholder={`Ask ${APP_NAME} a question`}
             autoFocus
             disabled={isProcessing}
             onChange={(e: React.FormEvent<HTMLInputElement>) => {
               setQuery(e.currentTarget.value);
             }}
-          ></input>
+          />
         </div>
-        <button
-          className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "bg-blue-900 cursor-wait" : "bg-secondary"
-          } p-2 text-2xl text-blue`}
-          type="submit"
-          disabled={isProcessing}
-        >
-          Get answer
-        </button>
       </form>
   
       <div className="mt-10">
