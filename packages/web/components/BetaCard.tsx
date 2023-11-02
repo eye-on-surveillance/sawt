@@ -149,12 +149,13 @@ const BetaCard = ({ card }: { card: ICard }) => {
 
       {/* Citations Section */}
       <div className="mb-6 mt-4">
-        <button
-          className="text-black mb-2 rounded px-4 py-2"
-          onClick={() => setShowCitations((prev) => !prev)}
-        >
-          {showCitations ? "Hide Citations" : "Show Citations"}
-        </button>
+      <button
+        className="bg-brighter-blue text-black hover:bg-even-brighter-blue font-bold py-2 px-4 rounded cursor-pointer focus:outline-none focus:shadow-outline"
+        aria-label={showCitations ? "Hide Citations" : "Show Citations"}
+        onClick={() => setShowCitations((prev) => !prev)}
+      >
+        {showCitations ? "Hide Citations" : "Show Citations"}
+      </button>
 
         {showCitations && (
           <div className="mt-2 text-sm">
