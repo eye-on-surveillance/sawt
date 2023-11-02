@@ -1,25 +1,15 @@
 
 import { supabase } from '../../lib/supabase/supabaseClient';
+import ThreeCardLayout from '../../components/ThreeCardLayout';
+
 
 export const dynamic = "force-dynamic";
 
-const ThreeCardLayout = ({ cards }) => {
-  return (
-    <div className="flex justify-center mt-10 space-x-4">
-      {cards && cards.map((card, index) => (
-        <div key={index} className="flex-none w-1/4 bg-white p-6 rounded shadow hover:bg-gray-100 active:bg-gray-200 transition">
-          {card.content}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export default async function userFeedback() {
   const { data: cards, error } = await supabase
-    .from('userFeedback') 
+    .from('cards') 
     .select('*')
-    .limit(3);
+    .limit(1);
 
   if (error) {
     console.error("Error fetching cards:", error);
@@ -28,9 +18,9 @@ export default async function userFeedback() {
 
   return (
     <>
-      <ThreeCardLayout cards={cards} />
+      <ThreeCardLayout/>
     </>
   );
-}
+};
 
 
