@@ -125,8 +125,8 @@ export default function NewQuery() {
     }
   };
 
-  const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
 
     if (query.length <= 10) return;
 
@@ -135,7 +135,7 @@ export default function NewQuery() {
     const newCard = await insertSupabaseCard();
     const cardWResp = await sendQueryToFunction(newCard);
     addMyCard(cardWResp);
-    await updateQueryResponded(cardWResp, startedProcessingAt);
+    await updateQueryResponded(cardWResp, startedProcessingAt);  
   };
 
   return (
@@ -154,13 +154,17 @@ export default function NewQuery() {
             placeholder={`Ask ${APP_NAME} a question`}
             autoFocus
             disabled={isProcessing}
-            onChange={(e: React.FormEvent<HTMLInputElement>) => {
-              setQuery(e.currentTarget.value);
+            onChange={(e) => setQuery(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); 
+                submitQuery();
+              }
             }}
           />
         </div>
       </form>
-  
+
       <div className="mt-10">
         {card?.citations?.map((citation, index) => (
           <div key={index}>
