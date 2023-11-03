@@ -1,7 +1,6 @@
 "use client";
 
-import { ABOUT_BETA_PATH } from "@/lib/paths";
-import Link from "next/link";
+
 import { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
 import CardLoading from "./CardLoading";
@@ -56,17 +55,6 @@ export default function HomeBanner() {
       <div className="md:flex">
         <div className="md:grow"></div>
         <div className="md:w-3/4 md:max-w-2xl">
-          <div className="mb-3 space-y-2 rounded-lg bg-red-600 p-4 text-white">
-            <h1 className="text-2xl">Warning: Experimental</h1>
-            <p>
-              This tool is under active development. Responses have a tendency
-              to repeat false and misleading statements without fact checking.{" "}
-              <Link href={ABOUT_BETA_PATH} className="text-primary">
-                Learn more
-              </Link>{" "}
-              about the risks associated with this tool and AI generally.
-            </p>
-          </div>
           {hasCards &&
             cards.map((card) => <QueryResult key={card.id} card={card} />)}
 

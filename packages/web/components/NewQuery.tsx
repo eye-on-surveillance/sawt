@@ -7,6 +7,8 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
+import { ABOUT_BETA_PATH } from "@/lib/paths";
+import Link from "next/link";
 
 function YouTubeEmbed({ url }: { url: string }) {
   const videoId = url.split("v=")[1]?.split("&")[0];
@@ -151,7 +153,7 @@ export default function NewQuery() {
             id="new-query"
             type="text"
             value={query}
-            placeholder={`Ask ${APP_NAME} a question`}
+            placeholder={`Ask ${APP_NAME} a question about New Orleans' City Council`}
             autoFocus
             disabled={isProcessing}
             onChange={(e) => setQuery(e.currentTarget.value)}
@@ -164,6 +166,13 @@ export default function NewQuery() {
           />
         </div>
       </form>
+
+        <p>
+          This tool is under active development. Responses may be inaccurate.{" "}
+          <Link href={ABOUT_BETA_PATH} className="underline">
+            Learn more
+          </Link>
+        </p>
 
       <div className="mt-10">
         {card?.citations?.map((citation, index) => (
