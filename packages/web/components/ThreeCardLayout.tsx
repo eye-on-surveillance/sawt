@@ -84,7 +84,7 @@ export default function ThreeCardLayout({ card }: { card: ICard }) {
 
 
   return (
-    <div className="flex justify-center mt-10 space-x-4">
+    <div className="flex justify-center mt-10 space-x-4-x">
       {card && card.map((card, index) => (
         <div key={index} className={`my-6 rounded-lg bg-blue p-6 text-primary 
         ${isLoading ? "border-4 border-dashed border-yellow-500" : ""
