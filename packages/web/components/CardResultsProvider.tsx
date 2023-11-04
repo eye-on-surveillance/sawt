@@ -1,32 +1,37 @@
 "use client";
 
-import { ICard } from "@/lib/api";
-import { supabase } from "@/lib/supabase/supabaseClient";
-import { createContext, useContext, useEffect, useState } from "react";
+// Import statements
+import { ICard } from "@/lib/api"; // Importing the interface for card objects
+import { supabase } from "@/lib/supabase/supabaseClient"; // Importing the initialized Supabase client
+import { createContext, useContext, useEffect, useState } from "react"; // Importing React hooks and context functions
 
+// Defining the shape of the context for card results
 type ResultsContext = {
-  addMyCard: (card: ICard) => void;
-  fetchMoreCards: () => Promise<void>;
-  cards: ICard[];
-  indexedCards: Map<string, ICard>;
-  hasMoreCards: boolean;
-  likesForCard: (cardId: string) => number;
-  handleLike: (cardId: string) => Promise<void>;
+  addMyCard: (card: ICard) => void; // Function to add a new card to the context
+  fetchMoreCards: () => Promise<void>; // Function to load more cards from the database
+  cards: ICard[]; // An array of card objects
+  indexedCards: Map<string, ICard>; // A map to hold cards indexed by their IDs for easy retrieval
+  hasMoreCards: boolean; // Boolean to indicate if there are more cards to load
+  likesForCard: (cardId: string) => number; // Function to get the number of likes for a specific card
+  handleLike: (cardId: string) => Promise<void>; // Function to handle liking a card
 };
 
+// Creating the context with default values
 const Context = createContext<ResultsContext>({
-  addMyCard: () => {},
-  fetchMoreCards: async () => {},
-  cards: [],
-  indexedCards: new Map<string, ICard>(),
-  hasMoreCards: true,
-  likesForCard: () => 0,
-  handleLike: async () => {},
+  addMyCard: () => {}, // No-op function for adding a card
+  fetchMoreCards: async () => {}, // No-op async function for fetching more cards
+  cards: [], // Initially, the card list is empty
+  indexedCards: new Map<string, ICard>(), // Initializing the indexed map
+  hasMoreCards: true, // Initially assume there are more cards to load
+  likesForCard: () => 0, // Function returning 0 likes for any card by default
+  handleLike: async () => {}, // No-op async function for handling likes
 });
 
+// Utility function to compare cards by their creation date
 const compareCards = (a: ICard, b: ICard) => {
-  if (!a.created_at) return 1;
-  if (!b.created_at) return -1;
+  if (!a.created_at) return 1; // If 'a' doesn't have a creation date, it comes last
+  if (!b.created_at) return -1; // If 'b' doesn't have a creation date, it comes last
+  // Otherwise, compare by the timestamp of the creation dates
   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
 };
 
