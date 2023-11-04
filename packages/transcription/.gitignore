@@ -1,7 +1,8 @@
 .env
 .log
 __pycache__/
-transcripts/
+transcripts-data/
 audio/
 cred/
 .vscode/
+

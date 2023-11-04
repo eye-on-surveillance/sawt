@@ -15,6 +15,9 @@ NEXT_PUBLIC_TGI_API_ENDPOINT=https://us-east1-the-great-inquirer.cloudfunctions.
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
+First, install:
+npm install 
+
 
 Then, run the development server:
 

@@ -61,10 +61,11 @@ def download_audio(video_ids):
         ys = yt.streams.filter(only_audio=True).first()
         
         # Download the audio stream to the specified output path
-        ys.download(output_path=r'\audio')
+        print(f'Downloading audio for {video_id}...')
+        ys.download(output_path=r'transcripts-data\audio', filename=video_id+".mp4")
 
 # Get the latest videos
-video_ids = get_latest_videos(channel_id)
+video_ids = get_latest_videos(channel_id, 10)
 
 # Download the audio of the new videos
 download_audio(video_ids)
