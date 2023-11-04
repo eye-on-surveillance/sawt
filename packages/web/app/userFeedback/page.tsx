@@ -17,14 +17,10 @@ export default async function userFeedback() {
   }
 
 
-  const card = [
-    { response: 'Card 1 Content' },
-    { response: 'Card 2 Content' },
-    { response: 'Card 3 Content' },
-  ];
+
   return (
     <>
-      <ThreeCardLayout cards= {cards}/>
+      <ThreeCardLayout card= {cards}/>
     </>
   );
 };
