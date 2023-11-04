@@ -7,6 +7,7 @@ python3.10 getanswer
 ```
 
 ## Running locally
+
 [Docs](https://cloud.google.com/functions/docs/running/function-frameworks)
 
 ```
@@ -43,9 +44,8 @@ gcloud functions deploy getanswer-staging \
 
 gcloud functions describe highlight-to-nft --gen2 --region us-east1 --format="value(serviceConfig.uri)"
 
-curl -XPOST hhttps://getanswer-q5odwl64qa-ue.a.run.app \
-    -H "Content-Type: application/json" \
-    -d '{"question":"Outline concerns raised during the meeting? What were the responses to those concerns?","response_type":"general"}'
+curl -XPOST https://us-east1-the-great-inquirer.cloudfunctions.net/getanswer-staging -v -H "Content-Type: application/json" \
+    -d '{"query":"Is councilmember Green effective?","response_type":"in_depth"}'
 ```
 
 response_types = 'general' or 'in_depth'

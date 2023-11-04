@@ -12,12 +12,20 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_types import AgentType
 
 from helper import sort_retrived_documents
-from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_VARIED
 
 logger = logging.getLogger(__name__)
 
 
-def process_responses_llm(responses_llm, docs=None):
+def timestamp_to_seconds(timestamp):
+    if 'timestamp not available' in timestamp:
+        return None  # or another default value like -1 or 0
+    start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
+    h, m, s = [int(i) for i in start_time.split(":")]
+    return h * 3600 + m * 60 + s
+
+
+def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
     generated_responses = responses_llm.split("\n\n")
     responses = []
     citations = []
@@ -61,13 +69,21 @@ def process_responses_llm(responses_llm, docs=None):
             section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
             section["source_url"] = urls[i] if i < len(urls) else None
 
+            if section["source_url"] and section["source_timestamp"]:
+                time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
+                if time_in_seconds is not None:  # Make sure the timestamp was available
+                    if "?" in section["source_url"]:
+                        section["source_url"] += f"&t={time_in_seconds}s"
+                    else:
+                        section["source_url"] += f"?t={time_in_seconds}s"
+
             citation = {}
             if section["source_title"] is not None:
                 citation["Title"] = section["source_title"]
             if section["source_publish_date"] is not None:
                 citation["Published"] = section["source_publish_date"]
             if section["source_url"] is not None:
-                citation["URL"] = section["source_url"]
+                citation["URL"] = section["source_url"]  # Add this line
             if section["source_timestamp"] is not None:
                 citation["Video timestamp"] = section["source_timestamp"]
             if section["source_name"] is not None:
@@ -90,15 +106,14 @@ def process_responses_llm(responses_llm, docs=None):
             responses.append({"response": generated_responses[0]})
 
     card = {
-        "card_type": RESPONSE_TYPE_DEPTH,
+        "card_type": card_type,
         "responses": responses,
         "citations": citations,
     }
-    card_json = json.dumps(card)
-    return card_json
+    return(card)
 
 
-def get_indepth_response_from_query(df, db, query, k):
+def get_indepth_response_from_query(df, db, query, k, query_type):
     logger.info("Performing in-depth summary query...")
 
     # Convert the query to lowercase for case-insensitive comparison
@@ -125,13 +140,10 @@ def get_indepth_response_from_query(df, db, query, k):
         template = """
         Transcripts: {docs}
         Question: {question}
-
-        Using the information from the New Orleans city council {docs}, please explore the following question: {question}.
-        Provide a balanced response that covers each aspect and person/organization mentioned in the transcripts that is relevant to the {question}.
-        Please do not speculate in your response to the {question}.
-
-        Ensure your response is based on the data found in the transcripts and, if applicable, is neutral in that you don't show any bias toward positivity or negativity in your response.
-        If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
+        
+        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
+        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
         """
 
         prompt = PromptTemplate(
@@ -144,10 +156,53 @@ def get_indepth_response_from_query(df, db, query, k):
             question=query, docs=docs_page_content, temperature=0
         )
 
-        return process_responses_llm(responses_llm, docs)
+        return process_responses_llm(responses_llm, docs, query_type)
+
+## varied responses for user annotation
+def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
+    logger.info("Performing varied summary query...")
 
 
-def get_general_summary_response_from_query(db, query, k):
+    llm = ChatOpenAI(model_name="gpt-4")
+    doc_list = db.similarity_search_with_score(query, k=k)
+    docs = sort_retrived_documents(doc_list)
+    docs_page_content = " ".join([d[0].page_content for d in docs])
+
+    template = """
+    Transcripts: {docs}
+    Question: {question}
+    
+    Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+    Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
+    """
+
+    prompt = PromptTemplate(
+        input_variables=["question", "docs"],
+        template=template,
+    )
+
+
+    master_response = {}
+    master_response["card_type"] = "varied"
+    response_list = {}
+    for i in range(n):
+        chain_llm = LLMChain(llm=llm, prompt=prompt)
+        responses_llm = chain_llm.run(
+        question=query, docs=docs_page_content, temperature=0)
+        single_response = process_responses_llm(responses_llm, docs, card_type)
+        #print(single_response, "\n")
+        response_list[i] = single_response
+    master_response["responses"] = response_list
+    return master_response
+
+
+
+
+
+
+
+
+def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_TYPE_GENERAL):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
@@ -167,19 +222,21 @@ def get_general_summary_response_from_query(db, query, k):
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
     response = {"response": responses_llm}
-    card = {"card_type": RESPONSE_TYPE_GENERAL, "responses": [response]}
+    card = {"card_type": query_type, "responses": [response]}
     card_json = json.dumps(card)
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10):
+def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 3):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(df, db_in_depth, query, k)
+        return json.dumps(get_indepth_response_from_query(df, db_in_depth, query, k, query_type))
+    elif query_type == RESPONSE_TYPE_VARIED:
+        return json.dumps(get_varied_response_from_query(df, db_in_depth, query, k, n, query_type))
     elif query_type == RESPONSE_TYPE_GENERAL:
-        return get_general_summary_response_from_query(db_general, query, k)
+        return json.dumps(get_general_summary_response_from_query(db_general, query, k, query_type))
     else:
         raise ValueError(
-            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL} or {RESPONSE_TYPE_VARIED}, got: {query_type}"
         )
 
 
@@ -189,3 +246,4 @@ def answer_query(
     final_response = route_question(df, db_general, db_in_depth, query, response_type)
 
     return final_response
+

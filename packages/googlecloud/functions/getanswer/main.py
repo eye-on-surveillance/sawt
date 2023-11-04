@@ -2,14 +2,14 @@ import logging
 import time
 import math
 
-import google.cloud.logging
+#import google.cloud.logging
 import functions_framework
 
 from helper import parse_field, get_dbs
 from inquirer import answer_query
 
-logging_client = google.cloud.logging.Client()
-logging_client.setup_logging()
+#logging_client = google.cloud.logging.Client()
+#logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 
@@ -50,6 +50,7 @@ def getanswer(request):
     start = time.time()
 
     # Parse args
+    #print(request.headers)
     content_type = request.headers["Content-Type"]
     if content_type == "application/json":
         request_json = request.get_json(silent=True)

@@ -28,7 +28,6 @@ def get_dbs():
     general_faiss_index_path = dir.joinpath("cache/faiss_index_general")
     in_depth_faiss_index_path = dir.joinpath("cache/faiss_index_in_depth")
     voting_roll_df_path = dir.joinpath("cache/parsed_voting_rolls.csv")
-
     db_general = FAISS.load_local(general_faiss_index_path, general_embeddings)
     db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
     logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
