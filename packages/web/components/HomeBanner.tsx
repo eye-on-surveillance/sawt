@@ -20,9 +20,9 @@ export default function HomeBanner() {
     <div className="bg-blue px-6 py-5 text-center text-primary sm:px-16 md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
-        <h1 className="text-lg">What New Orleans City Council is doing</h1>
+        <h1 className="text-lg">What is New Orleans City Council is doing about</h1>
         <h2 className="mt-3 text-4xl">
-          about <span className="bg-primary text-secondary">{word}</span>
+          <span className="bg-brighter-blue text-secondary">{word}?</span>
         </h2>
         <NewQuery />
       </div>

@@ -1,6 +1,6 @@
 outs:
-- md5: b87a371a58ce1b75b05b03486ed4789f
-  size: 3713248
+- md5: 70c8889908bf5aa5326402e402ec9e3e
+  size: 2942875
   isexec: true
   hash: md5
   path: parsed_voting_rolls.csv
