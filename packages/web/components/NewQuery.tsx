@@ -87,7 +87,6 @@ export default function NewQuery() {
     let card: any = await answerResp.json();
 
     card = Object.assign({}, newCard, card);
-
     card.citations = card.citations!.map((citation: any) => {
       return {
         source_title: citation.Title,

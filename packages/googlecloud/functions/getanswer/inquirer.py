@@ -110,9 +110,7 @@ def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
         "responses": responses,
         "citations": citations,
     }
-
-    card_json = json.dumps(card)
-    return card_json
+    return(card)
 
 
 def get_indepth_response_from_query(df, db, query, k, query_type):
@@ -183,16 +181,16 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
         template=template,
     )
 
-    chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0,
-    )
+
     master_response = {}
     master_response["card_type"] = "varied"
     response_list = {}
     for i in range(n):
+        chain_llm = LLMChain(llm=llm, prompt=prompt)
+        responses_llm = chain_llm.run(
+        question=query, docs=docs_page_content, temperature=0)
         single_response = process_responses_llm(responses_llm, docs, card_type)
-        print(single_response, "\n")
+        #print(single_response, "\n")
         response_list[i] = single_response
     master_response["responses"] = response_list
     return master_response
@@ -231,11 +229,11 @@ def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_
 
 def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 3):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(df, db_in_depth, query, k, query_type)
+        return json.dumps(get_indepth_response_from_query(df, db_in_depth, query, k, query_type))
     elif query_type == RESPONSE_TYPE_VARIED:
-        return get_varied_response_from_query(df, db_in_depth, query, k, n, query_type)
+        return json.dumps(get_varied_response_from_query(df, db_in_depth, query, k, n, query_type))
     elif query_type == RESPONSE_TYPE_GENERAL:
-        return get_general_summary_response_from_query(db_general, query, k, query_type)
+        return json.dumps(get_general_summary_response_from_query(db_general, query, k, query_type))
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL} or {RESPONSE_TYPE_VARIED}, got: {query_type}"
@@ -248,3 +246,4 @@ def answer_query(
     final_response = route_question(df, db_general, db_in_depth, query, response_type)
 
     return final_response
+
