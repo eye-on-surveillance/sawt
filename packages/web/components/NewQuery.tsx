@@ -1,30 +1,21 @@
-import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
 import { API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
-import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
 import { ABOUT_BETA_PATH } from "@/lib/paths";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/supabaseClient"
+import { ECardStatus, ECardType, ICard } from "@/lib/api";;
 
-function YouTubeEmbed({ url }: { url: string }) {
-  const videoId = url.split("v=")[1]?.split("&")[0];
-  if (!videoId) return null;
+type SupabaseRealtimePayload<T = any> = {
+  old: T;
+  new: T;
+};
 
-  return (
-    <iframe 
-      width="560" 
-      height="315" 
-      src={`https://www.youtube.com/embed/${videoId}`} 
-      frameBorder="0" 
-      title="YouTube Video"
-      allowFullScreen
-    ></iframe>
-  );
-}
+
 
 function YouTubeThumbnail({ url }: { url: string }) {
   const videoId = url.split("v=")[1]?.split("&")[0];
@@ -127,11 +118,33 @@ export default function NewQuery() {
     }
   };
 
+  
+  useEffect(() => {
+    if (!card) {
+      return;
+    }
+  
+    const channel = supabase.channel(`cards:id=eq.${card.id}`)
+      .on('postgres_changes', {
+        event: "INSERT",
+        schema: "public",
+      }, (payload: SupabaseRealtimePayload<ICard>) => {
+        if (payload.new.id === card.id) {
+          setCard((prevCard) => ({ ...prevCard, ...payload.new }));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card]); /
+
+  
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
-
     if (query.length <= 10) return;
-
+  
     const startedProcessingAt = Date.now();
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
