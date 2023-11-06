@@ -16,7 +16,6 @@ type SupabaseRealtimePayload<T = any> = {
 };
 
 
-
 function YouTubeThumbnail({ url }: { url: string }) {
   const videoId = url.split("v=")[1]?.split("&")[0];
   if (!videoId) return null;
@@ -118,7 +117,6 @@ export default function NewQuery() {
     }
   };
 
-  
   useEffect(() => {
     if (!card) {
       return;
@@ -138,9 +136,8 @@ export default function NewQuery() {
     return () => {
       channel.unsubscribe();
     };
-  }, [card]); /
+  }, [card]); 
 
-  
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (query.length <= 10) return;
