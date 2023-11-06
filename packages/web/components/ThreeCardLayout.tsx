@@ -18,6 +18,16 @@ import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
 
+import Rubric from '@/components/Rubric';
+
+const criteria = [
+  { id: 'criterion1', description: 'Criterion 1 Description' },
+  { id: 'criterion2', description: 'Criterion 2 Description' },
+  // Add more criteria as needed
+];
+
+
+
 const MAX_CHARACTERS_PREVIEW = 300;
 
 const LOADING_MESSAGES = [
@@ -53,39 +63,24 @@ type SupabaseRealtimePayload<T = any> = {
 };
 
 
-// IDEA: Use similar system to the likes to format the choice
 
-function hasLikedCardBefore(cardId?: string): boolean {
-  if (!cardId || typeof window === "undefined") {
-    return false;
-  }
-  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
-  return likedCards.includes(cardId);
-}
-
-function markCardAsLiked(cardId: string) {
-  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
-  likedCards.push(cardId);
-  localStorage.setItem("likedCards", JSON.stringify(likedCards));
-}
-
-export default function ThreeCardLayout({ card }: { card: ICard }) {
+export default function ThreeCardLayout({ cards }: { cards: ICard }) {
 
   const [msgIndex, setMsgIndex] = useState<number>(0);
-  const isLoading = !card.responses || card.responses.length <= 0;
+  const isLoading = !cards.responses || cards.responses.length <= 0;
   const [value, copy] = useClipboardApi();
-  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
+  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${cards.id}`);
   const [recentlyCopied, setRecentlyCopied] = useState(false);
   const [prettyCreatedAt, setPrettyCreatedAt] = useState(
-    !!card.created_at && new Date(card.created_at) < new Date()
-      ? moment(card.created_at).fromNow()
+    !!cards.created_at && new Date(cards.created_at) < new Date()
+      ? moment(cards.created_at).fromNow()
       : moment().fromNow()
   );
 
 
   return (
     <div className="flex justify-center mt-10 space-x-4-x">
-      {card && card.map((card, index) => (
+      {cards && cards.map((card, index) => (
         <div key={index} className={`my-6 rounded-lg bg-blue p-6 text-primary 
         ${isLoading ? "border-4 border-dashed border-yellow-500" : ""
           }`}>
@@ -118,9 +113,15 @@ export default function ThreeCardLayout({ card }: { card: ICard }) {
             </div>
           </Link>
 
+
+          <hr></hr>
+          <label className="flex justify-center mt-10 space-x-1-x">Rubric</label>
+          <Rubric criteria={criteria} />
+
         </div>
       ))
       }
+
     </div>
   );
 }
