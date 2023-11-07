@@ -122,7 +122,7 @@ export default function NewQuery() {
       return;
     }
   
-    const channel = supabase.channel(`cards:id=eq.${card.id}`)
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
       .on('postgres_changes', {
         event: "INSERT",
         schema: "public",
@@ -132,11 +132,12 @@ export default function NewQuery() {
         }
       })
       .subscribe();
-
+  
     return () => {
       channel.unsubscribe();
     };
-  }, [card]); 
+  }, [card]);
+  
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
