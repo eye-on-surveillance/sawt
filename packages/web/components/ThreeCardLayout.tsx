@@ -78,8 +78,6 @@ interface CommentBoxProps {
 
 function CommentBox({ onSubmit, card }: CommentBoxProps) {
   const [comment, setComment] = useState<string>("");
-  // const [ getCard] = useState<ICard>();
-
   const handleSubmit = () => {
     onSubmit( { comment , card});
     setComment("");
@@ -89,19 +87,19 @@ function CommentBox({ onSubmit, card }: CommentBoxProps) {
   return (
         <div className="my-12">
         <div className="relative  block">
-          <FontAwesomeIcon
-            className="absolute left-2 top-1/2 ml-2 h-[28px] w-[28px] -translate-y-1/2 cursor-pointer object-contain"
+         <label htmlFor="comment" className="mb-2 mt-4 block">
+         <FontAwesomeIcon
+            className="left-2 top-1/2 ml-2 h-[20px] w-[28px] cursor-pointer object-contain"
             icon={faComment}
           />
-         <label htmlFor="comment" className="mb-2 mt-4 block">
-            Comments:
+          Comments:
          </label>
          <textarea
             id="comment"
             className="h-20 w-full rounded border p-2"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Add additional feedback here"
+            placeholder="Add feedback here"
           ></textarea>
         </div>
         <button
