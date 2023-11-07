@@ -50,4 +50,6 @@ jobs:
               --entry-point=getanswer \
               --trigger-http \
               --allow-unauthenticated \
-              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY_STAGING }}
+              --set-env-vars OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY_STAGING }},\
+                        SUPABASE_URL=${{ secrets.SUPABASE_URL_STAGING }},\
+                        SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY_STAGING }}
