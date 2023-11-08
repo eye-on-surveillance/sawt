@@ -8,7 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain.chat_models import ChatOpenAI
+from langchain import OpenAI
 from pathlib import Path
 import shutil
 
@@ -17,7 +17,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    llm = ChatOpenAI(model="gpt-4")
+    llm = OpenAI(model="gpt-4")
 
     base_embeddings = OpenAIEmbeddings()
 
