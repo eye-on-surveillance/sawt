@@ -1,7 +1,6 @@
 import logging
 import os
 from langchain.document_loaders import (
-    Docx2txtLoader,
     JSONLoader,
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -13,13 +12,12 @@ from langchain.chat_models import ChatOpenAI
 from pathlib import Path
 import shutil
 
-
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    # llm = ChatOpenAI()
+    llm = ChatOpenAI(model="gpt-4-1106-preview")
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -38,18 +36,18 @@ def create_embeddings():
         input_variables=["user_query"], template=in_depth_prompt_template
     )
 
-    # llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
-    # llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
+    llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
+    llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
-    # general_embeddings = HypotheticalDocumentEmbedder(
-    #     llm_chain=llm_chain_general,
-    #     base_embeddings=base_embeddings,
-    # )
-    # in_depth_embeddings = HypotheticalDocumentEmbedder(
-    #     llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
-    # )
+    general_embeddings = HypotheticalDocumentEmbedder(
+        llm_chain=llm_chain_general,
+        base_embeddings=base_embeddings,
+    )
+    in_depth_embeddings = HypotheticalDocumentEmbedder(
+        llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
+    )
 
-    return base_embeddings, base_embeddings
+    return general_embeddings, in_depth_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
