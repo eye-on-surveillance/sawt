@@ -9,7 +9,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from pathlib import Path
 import shutil
 
@@ -19,7 +19,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    llm = OpenAI()
+    llm = ChatOpenAI()
 
     base_embeddings = OpenAIEmbeddings()
 
