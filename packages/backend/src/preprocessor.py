@@ -19,7 +19,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    llm = ChatOpenAI()
+    # llm = ChatOpenAI()
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -38,16 +38,16 @@ def create_embeddings():
         input_variables=["user_query"], template=in_depth_prompt_template
     )
 
-    llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
-    llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
+    # llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
+    # llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
-    general_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_general,
-        base_embeddings=base_embeddings,
-    )
-    in_depth_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
-    )
+    # general_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_general,
+    #     base_embeddings=base_embeddings,
+    # )
+    # in_depth_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
+    # )
 
     return base_embeddings, base_embeddings
 

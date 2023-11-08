@@ -37,8 +37,6 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = ChatOpenAI()
-
     general_prompt_template = """
     As an AI assistant tasked with generating brief general summaries, your role is to provide succinct, balanced information from the transcripts of New Orleans City Council meetings in response to the question "{question}". The response should not exceed one paragraph in length. If the available information from the transcripts is insufficient to accurately summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
     Answer:"""
@@ -54,19 +52,19 @@ def create_embeddings():
         input_variables=["question"], template=in_depth_prompt_template
     )
 
-    llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
-    llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
+    # llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
+    # llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
     base_embeddings = OpenAIEmbeddings()
 
-    general_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_general, base_embeddings=base_embeddings
-    )
-    in_depth_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
-    )
+    # general_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_general, base_embeddings=base_embeddings
+    # )
+    # in_depth_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
+    # )
 
-    return general_embeddings, in_depth_embeddings
+    return base_embeddings, base_embeddings
 
 
 def sort_retrived_documents(doc_list):
