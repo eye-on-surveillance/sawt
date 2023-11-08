@@ -116,7 +116,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
 
           <hr></hr>
           <label className="flex justify-center mt-10 space-x-1-x">Rubric</label>
-          <Rubric criteria={criteria} />
+          <Rubric criteria={criteria}/>
 
         </div>
       ))
