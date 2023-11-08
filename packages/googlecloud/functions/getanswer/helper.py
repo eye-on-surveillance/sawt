@@ -37,7 +37,7 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = ChatOpenAI(model="gpt-4-1106-preview")
+    llm = ChatOpenAI(model="gpt-4")
 
     base_embeddings = OpenAIEmbeddings()
 
