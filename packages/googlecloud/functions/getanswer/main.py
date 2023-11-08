@@ -4,7 +4,7 @@ import math
 
 import google.cloud.logging
 import functions_framework
-from supabase_py import create_client
+from supabase import create_client
 
 from helper import parse_field, get_dbs
 from inquirer import answer_query
