@@ -4,6 +4,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
+from langchain import OpenAI
 import logging
 import pandas as pd
 
@@ -37,7 +38,7 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = ChatOpenAI(model="gpt-4")
+    llm = OpenAI(model="gpt-4")
 
     base_embeddings = OpenAIEmbeddings()
 
