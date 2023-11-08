@@ -14,4 +14,4 @@ faiss-cpu
 wikipedia
 pandas 
 tabulate
-supabase_py
+supabase
