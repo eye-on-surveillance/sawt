@@ -2,6 +2,7 @@
 import { supabase } from '../../lib/supabase/supabaseClient';
 import ThreeCardLayout from '@/components/ThreeCardLayout';
 
+import NewComment from '@/components/Comment';
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function userFeedback() {
 
   return (
     <>
-          <ThreeCardLayout cards={cards} />
+      <ThreeCardLayout cards = {cards}/>
     </>
   );
 };
