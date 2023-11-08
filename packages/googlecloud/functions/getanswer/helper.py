@@ -3,7 +3,7 @@ from pathlib import Path
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 import logging
 import pandas as pd
 
@@ -37,7 +37,7 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = OpenAI()
+    llm = ChatOpenAI()
 
     general_prompt_template = """
     As an AI assistant tasked with generating brief general summaries, your role is to provide succinct, balanced information from the transcripts of New Orleans City Council meetings in response to the question "{question}". The response should not exceed one paragraph in length. If the available information from the transcripts is insufficient to accurately summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
