@@ -4,7 +4,7 @@ flask
 google-cloud-error-reporting
 python-dotenv
 langchain
-openai==1.1.1
+openai==0.28.1
 google-api-python-client # Google API
 google-search-results # SerpAPI
 youtube-transcript-api
