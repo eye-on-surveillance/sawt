@@ -4,20 +4,15 @@ import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import {
-  faCheck,
-  faShare,
   faSpinner,
-  faThumbsUp,
-  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useClipboardApi from "use-clipboard-api";
-import { useInterval } from "usehooks-ts";
-import { v4 as uuidv4 } from "uuid";
-import { faComment, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { v4 as uuidv4 } from "uuid"; //will need
+import CommentBox from "./CommentBoxes";
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -71,47 +66,6 @@ function markCardAsLiked(cardId: string) {
 }
 
 
-interface CommentBoxProps {
-  card: ICard;
-  onSubmit: ( data: { comment: string, card: ICard }) => void;
-}
-
-function CommentBox({ onSubmit, card }: CommentBoxProps) {
-  const [comment, setComment] = useState<string>("");
-  const handleSubmit = () => {
-    onSubmit( { comment , card});
-    setComment("");
-  };
-
-
-  return (
-        <div className="my-12">
-        <div className="relative  block">
-         <label htmlFor="comment" className="mb-2 mt-4 block">
-         <FontAwesomeIcon
-            className="left-2 top-1/2 ml-2 h-[20px] w-[28px] cursor-pointer object-contain"
-            icon={faComment}
-          />
-          Comments:
-         </label>
-         <textarea
-            id="comment"
-            className="h-20 w-full rounded border p-2"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Add feedback here"
-          ></textarea>
-        </div>
-        <button
-          onClick={handleSubmit}
-          className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
-        >
-          Submit
-        </button>
-      </div>
-  );
-}
-
 export default function ThreeCardLayout({ cards }: { cards: ICard }) {
 
   const [msgIndex, setMsgIndex] = useState<number>(0);
@@ -125,7 +79,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
       : moment().fromNow()
   );
 
-
+  //Function that sends comments to supabase under respective card.comment
   const submitCommentFeedback = async ({
     comment,
     card
@@ -134,6 +88,9 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
     card: ICard;
   }) => {
     try {
+      
+      /* This commented out code is for if we want to add the ability to update previous comments.
+      */
       // let { data: cards, error: fetchError } = await supabase
       //   .from("cards")
       //   .select("comment")
@@ -165,6 +122,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
       }
     } catch (error) {}
   };
+
 
   return (
     <div className="flex justify-center mt-10 space-x-4-x">
