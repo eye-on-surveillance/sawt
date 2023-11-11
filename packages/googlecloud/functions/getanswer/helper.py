@@ -38,7 +38,7 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = OpenAI(model="gpt-4")
+    llm = ChatOpenAI(model="gpt-4")
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -67,6 +67,7 @@ def create_embeddings():
     in_depth_embeddings = HypotheticalDocumentEmbedder(
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
+
     return general_embeddings, in_depth_embeddings
 
 
