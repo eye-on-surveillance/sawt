@@ -137,7 +137,7 @@ def transform_query_for_date(query):
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4")
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
 
     template_date_detection = """
         Analyze the following query: "{query}".
