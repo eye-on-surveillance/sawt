@@ -80,15 +80,6 @@ def create_db_from_minutes_and_agendas(doc_directory):
     return all_docs
 
 
-def metadata_func(record: dict, metadata: dict) -> dict:
-    metadata["timestamp"] = record.get("timestamp")
-    metadata["url"] = record.get("url")
-    metadata["title"] = record.get("title")
-    metadata["publish_date"] = record.get("publish_date")
-
-    return metadata
-
-
 def metadata_news(record: dict, metadata: dict) -> dict:
     metadata["url"] = record.get("url")
     metadata["title"] = record.get("title")
@@ -119,6 +110,15 @@ def create_db_from_news_transcripts(news_json_directory):
     return all_docs
 
 
+def metadata_func(record: dict, metadata: dict) -> dict:
+    metadata["timestamp"] = record.get("timestamp")
+    metadata["url"] = record.get("url")
+    metadata["title"] = record.get("title")
+    metadata["publish_date"] = record.get("publish_date")
+
+    return metadata
+
+
 def create_db_from_cj_transcripts(cj_json_directory):
     logger.info("Creating database from CJ transcripts...")
     all_docs = []
@@ -138,7 +138,16 @@ def create_db_from_cj_transcripts(cj_json_directory):
             chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
+
+        for doc in docs:
+            publish_date = doc.metadata.get("publish_date")
+            if publish_date:
+                doc.page_content += f" -- publish_date: {publish_date}"
+            else:
+                logger.warning(f"No publish date found for document: {doc}")
+
         all_docs.extend(docs)
+
     logger.info("Finished database from CJ transcripts...")
     return all_docs
 
@@ -162,8 +171,14 @@ def create_db_from_fc_transcripts(fc_json_directory):
             chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
+        # Append the publish date to the end of page_content
+        for doc in docs:
+            publish_date = doc.metadata.get("publish_date")
+            if publish_date:
+                doc.page_content += f" -- publish_date: {publish_date}"
+
         all_docs.extend(docs)
-    logger.info("Finished database from FC transcripts...")
+    logger.info("Finished database from news transcripts...")
     return all_docs
 
 
