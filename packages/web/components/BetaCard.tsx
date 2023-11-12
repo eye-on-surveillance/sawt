@@ -4,11 +4,10 @@ import { ICard, ICitation, IResponse } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { getThumbnail, getYouTubeEmbedUrl, isYouTubeURL } from "@/lib/utils";
-import { faCheck, faShare } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
+import CardActions from "./CardActions";
 import CardResponse from "./CardResponse";
 import Citation from "./Citation";
 
@@ -79,36 +78,13 @@ const BetaCard = ({ card }: { card: ICard }) => {
   }, [card.id]);
 
   return (
-    <div className="w-full">
+    <div className="w-full text-primary">
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm">
+        <h1 className="text-sm text-secondary">
           {moment.utc(card.created_at!).local().fromNow()}
         </h1>
-        {recentlyCopied ? (
-          <span className="text-green-400">
-            <FontAwesomeIcon
-              icon={faCheck}
-              className="mr-2 h-5 w-5 align-middle"
-            />
-            Copied
-          </span>
-        ) : (
-          <span
-            className="cursor-pointer"
-            onClick={() => {
-              copy(currentUrl);
-              setRecentlyCopied(true);
-            }}
-          >
-            <FontAwesomeIcon
-              icon={faShare}
-              className="mr-2 h-5 w-5 align-middle"
-            />
-            Share
-          </span>
-        )}
       </div>
 
       {/* Card Responses */}
@@ -126,6 +102,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
           ></iframe>
         )}
       </div>
+
+      <CardActions card={card} />
 
       {/* Citations Section */}
       <div className="mb-6 mt-4">
