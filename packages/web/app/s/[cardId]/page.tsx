@@ -15,6 +15,7 @@ export async function generateMetadata({
     .eq("id", cardId)
     .single();
 
+  if (!!error) return getPageMetadata("Error");
   return getPageMetadata(card.title, true);
 }
 
@@ -25,6 +26,8 @@ export default async function Card({ params }: { params: { cardId: string } }) {
     .select()
     .eq("id", cardId)
     .single();
+
+  if (error) throw new Error("Could not find card");
 
   return (
     <div className="px-6 py-5 text-left sm:px-16 md:flex">
