@@ -3,6 +3,7 @@
 import { ICard, ICitation, IResponse } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { getThumbnail, getYouTubeEmbedUrl, isYouTubeURL } from "@/lib/utils";
 import { faCheck, faShare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
@@ -34,6 +35,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
   const [displayName, setDisplayName] = useState("");
   const [showCitations, setShowCitations] = useState(false);
   const [showComments, setShowComments] = useState(false);
+
+  const thumbnail = getThumbnail(citations);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -75,48 +78,14 @@ const BetaCard = ({ card }: { card: ICard }) => {
     };
   }, [card.id]);
 
-  const handleCommentSubmit = async () => {
-    const newComment = {
-      card_id: card.id,
-      content: commentContent,
-      display_name: displayName,
-      created_at: new Date(),
-    };
-
-
-    setComments((prevComments) =>
-      prevComments
-        ? prevComments.filter((comment) => comment !== newComment)
-        : null
-    );
-
-    setDisplayName(""); // Resetting display name
-    setCommentContent(""); // Resetting comment content
-
-    try {
-      const { data, error } = await supabase
-        .from("comments")
-        .insert([newComment]);
-      if (error) throw error;
-      setDisplayName(""); // Resetting display name after successful post
-      setCommentContent(""); // Resetting comment content after successful post
-    } catch (error) {
-      // If there's an error, revert the change to the comments
-      setComments((prevComments) =>
-        prevComments
-          ? prevComments.filter((comment) => comment !== newComment)
-          : null
-      );
-    }
-  };
-
-
   return (
     <div className="w-full">
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm">{moment.utc(card.created_at!).local().fromNow()}</h1>
+        <h1 className="text-sm">
+          {moment.utc(card.created_at!).local().fromNow()}
+        </h1>
         {recentlyCopied ? (
           <span className="text-green-400">
             <FontAwesomeIcon
@@ -147,18 +116,29 @@ const BetaCard = ({ card }: { card: ICard }) => {
         <CardResponse response={response} key={index} />
       ))}
 
+      <div>
+        {isYouTubeURL(thumbnail?.source_url) && (
+          <iframe
+            id="ytplayer"
+            src={getYouTubeEmbedUrl(thumbnail?.source_url)}
+            frameBorder="0"
+            className="h-64 w-full lg:h-96"
+          ></iframe>
+        )}
+      </div>
+
       {/* Citations Section */}
       <div className="mb-6 mt-4">
-      <button
-        className="bg-brighter-blue text-black hover:bg-even-brighter-blue font-bold py-2 px-4 rounded cursor-pointer focus:outline-none focus:shadow-outline"
-        aria-label={showCitations ? "Hide Citations" : "Show Citations"}
-        onClick={() => setShowCitations((prev) => !prev)}
-      >
-        {showCitations ? "Hide Citations" : "Show Citations"}
-      </button>
+        <button
+          className="bg-brighter-blue hover:bg-even-brighter-blue focus:shadow-outline w-full cursor-pointer rounded-md bg-secondary px-4 py-2 font-bold text-primary focus:outline-none"
+          aria-label={showCitations ? "Hide Citations" : `Show all citations`}
+          onClick={() => setShowCitations((prev) => !prev)}
+        >
+          {showCitations ? "Hide Citations" : `Show all citations`}
+        </button>
 
         {showCitations && (
-          <div className="mt-2 text-sm">
+          <div className="mt-6 flex flex-row flex-wrap text-sm">
             {citations.map((citation, index) => (
               <Citation citation={citation} index={index} key={index} />
             ))}
@@ -166,7 +146,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
         )}
       </div>
     </div>
-);
+  );
 };
 
 export default BetaCard;
