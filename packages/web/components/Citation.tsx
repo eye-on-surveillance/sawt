@@ -1,4 +1,8 @@
-import { getYouTubeThumbnail, isYouTubeURL } from "@/lib/utils";
+import {
+  getYouTubeEmbedUrl,
+  getYouTubeThumbnail,
+  isYouTubeURL,
+} from "@/lib/utils";
 import moment from "moment";
 import "./Citation.css";
 
@@ -41,13 +45,12 @@ const Citation = ({ citation: originalCitation, index }: CitationProps) => {
 
       <div>
         {isYoutube ? (
-          <a href={source_url} target="_blank" rel="noopener noreferrer">
-            <img
-              src={getYouTubeThumbnail(source_url)!}
-              alt={name}
-              className="w-full"
-            />
-          </a>
+          <iframe
+            id="ytplayer"
+            src={getYouTubeEmbedUrl(source_url)}
+            frameBorder="0"
+            className="h-64 w-full lg:h-96"
+          ></iframe>
         ) : (
           <a href={source_url} target="_blank" rel="noopener noreferrer">
             {source_url}
