@@ -5,6 +5,29 @@ export const HOME_PATH = "/";
 
 export const API_NEW_CARD_PATH = "/api/v1/cards";
 
+export const BRAND = "SAWT";
+export const getPageMetadata = (
+  subtitle: string,
+  overrideTitle: boolean = false
+) => {
+  const title = overrideTitle ? subtitle : `${BRAND} - ${subtitle}`;
+  return {
+    title,
+    description:
+      "Find out what's happening in New Orleans City Council, using AI. Powered by Eye on Surveillance",
+    keywords: [
+      "city council",
+      "new orleans",
+      "nola",
+      "ai",
+      "llm",
+      "surveillance",
+      "transparency",
+    ],
+    creator: "Eye on Surveillance",
+  };
+};
+
 export const getURL = () => {
   let url =
     process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.

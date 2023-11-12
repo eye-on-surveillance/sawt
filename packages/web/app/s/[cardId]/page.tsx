@@ -1,6 +1,22 @@
 import BetaCard from "@/components/BetaCard";
+import { getPageMetadata } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { cardId: string };
+}) {
+  const { cardId } = params;
+  const { error, data: card } = await supabase
+    .from(TABLES.CARDS)
+    .select()
+    .eq("id", cardId)
+    .single();
+
+  return getPageMetadata(card.title, true);
+}
 
 export default async function Card({ params }: { params: { cardId: string } }) {
   const { cardId } = params;
