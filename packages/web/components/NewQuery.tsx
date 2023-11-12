@@ -1,20 +1,17 @@
+import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
-import { API_NEW_CARD_PATH } from "@/lib/paths";
+import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCardResults } from "./CardResultsProvider";
-import { ABOUT_BETA_PATH } from "@/lib/paths";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/supabaseClient"
-import { ECardStatus, ECardType, ICard } from "@/lib/api";;
-
+import { useCardResults } from "./CardResultsProvider";
 type SupabaseRealtimePayload<T = any> = {
   old: T;
   new: T;
 };
-
 
 function YouTubeThumbnail({ url }: { url: string }) {
   const videoId = url.split("v=")[1]?.split("&")[0];
@@ -22,10 +19,10 @@ function YouTubeThumbnail({ url }: { url: string }) {
 
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
-      <img 
-        width="560" 
-        height="315" 
-        src={`https://img.youtube.com/vi/${videoId}/0.jpg`} 
+      <img
+        width="560"
+        height="315"
+        src={`https://img.youtube.com/vi/${videoId}/0.jpg`}
         alt="YouTube Thumbnail"
       />
     </a>
@@ -38,8 +35,7 @@ export default function NewQuery() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
   const { addMyCard } = useCardResults();
-  const [card, setCard] = useState<ICard | null>(null);  
-
+  const [card, setCard] = useState<ICard | null>(null);
 
   const insertSupabaseCard = async (): Promise<ICard> => {
     const newCard: ICard = {
@@ -85,7 +81,7 @@ export default function NewQuery() {
         source_title: citation.Title,
         source_name: citation.Name,
         source_publish_date: citation.Published,
-        source_url: citation.URL, 
+        source_url: citation.URL,
       };
     });
     card = card as ICard;
@@ -121,34 +117,37 @@ export default function NewQuery() {
     if (!card) {
       return;
     }
-  
+
     const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
-      .on('postgres_changes', {
-        event: "INSERT",
-        schema: "public",
-      }, (payload: SupabaseRealtimePayload<ICard>) => {
-        if (payload.new.id === card.id) {
-          setCard((prevCard) => ({ ...prevCard, ...payload.new }));
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          if (payload.new.id === card.id) {
+            setCard((prevCard) => ({ ...prevCard, ...payload.new }));
+          }
         }
-      })
+      )
       .subscribe();
-  
+
     return () => {
       channel.unsubscribe();
     };
   }, [card]);
-  
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (query.length <= 10) return;
-  
+
     const startedProcessingAt = Date.now();
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
     const cardWResp = await sendQueryToFunction(newCard);
     addMyCard(cardWResp);
-    await updateQueryResponded(cardWResp, startedProcessingAt);  
+    await updateQueryResponded(cardWResp, startedProcessingAt);
   };
 
   return (
@@ -169,8 +168,8 @@ export default function NewQuery() {
             disabled={isProcessing}
             onChange={(e) => setQuery(e.currentTarget.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault(); 
+              if (e.key === "Enter") {
+                e.preventDefault();
                 submitQuery();
               }
             }}
@@ -178,19 +177,21 @@ export default function NewQuery() {
         </div>
       </form>
 
-        <p>
-          This tool is under active development. Responses may be inaccurate.{" "}
-          <Link href={ABOUT_BETA_PATH} className="underline">
-            Learn more
-          </Link>
-        </p>
+      <p className="text-left font-light">
+        This tool is under active development. Responses may be inaccurate.{" "}
+        <Link href={ABOUT_BETA_PATH} className="underline">
+          Learn more
+        </Link>
+      </p>
 
       <div className="mt-10">
         {card?.citations?.map((citation, index) => (
           <div key={index}>
             <p>{citation.source_title}</p>
-            {citation.source_url && citation.source_url.includes("youtube.com") && 
-              <YouTubeThumbnail url={citation.source_url} />}
+            {citation.source_url &&
+              citation.source_url.includes("youtube.com") && (
+                <YouTubeThumbnail url={citation.source_url} />
+              )}
           </div>
         ))}
       </div>

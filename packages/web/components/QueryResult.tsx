@@ -3,8 +3,11 @@
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { getThumbnail, getYouTubeEmbedUrl, isYouTubeURL } from "@/lib/utils";
 import {
+  faBook,
   faCheck,
+  faFlag,
   faShare,
   faSpinner,
   faThumbsUp,
@@ -153,18 +156,20 @@ function markCardAsLiked(cardId: string) {
 }
 
 export default function QueryResult({ card }: { card: ICard }) {
+  const { created_at: createdAt, citations, responses, id: cardId } = card;
   const [msgIndex, setMsgIndex] = useState<number>(0);
-  const isLoading = !card.responses || card.responses.length <= 0;
+  const isLoading = !responses || responses.length <= 0;
   const [value, copy] = useClipboardApi();
-  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${card.id}`);
+  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${cardId}`);
   const [recentlyCopied, setRecentlyCopied] = useState(false);
   const [prettyCreatedAt, setPrettyCreatedAt] = useState(
-    !!card.created_at && new Date(card.created_at) < new Date()
-      ? moment(card.created_at).fromNow()
+    !!createdAt && new Date(createdAt) < new Date()
+      ? moment(createdAt).fromNow()
       : moment().fromNow()
   );
   const [likes, setLikes] = useState<number>(card.likes || 0);
   const [isBiasModalOpen, setBiasModalOpen] = useState(false);
+  const thumbnail = getThumbnail(citations || []);
 
   const handleBiasReport = () => {
     setBiasModalOpen(true);
@@ -281,12 +286,8 @@ export default function QueryResult({ card }: { card: ICard }) {
     }
   };
 
-  return (
-    <div
-      className={`my-6 rounded-lg bg-blue p-6 text-primary ${
-        isLoading ? "border-4 border-dashed border-yellow-500" : ""
-      }`}
-    >
+  const CardBody = () => {
+    return (
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <div>
           <h4 className="text-xl font-bold">{card.title}</h4>
@@ -297,10 +298,10 @@ export default function QueryResult({ card }: { card: ICard }) {
             <span className="text-secondary">{prettyCreatedAt}</span>
           </h6>
 
-          {!isLoading && !!card.responses ? (
+          {!isLoading && !!responses ? (
             <p className="my-5">
-              {card.responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
-              {card.responses[0].response.length > MAX_CHARACTERS_PREVIEW
+              {responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
+              {responses[0].response.length > MAX_CHARACTERS_PREVIEW
                 ? "..."
                 : null}
             </p>
@@ -313,9 +314,22 @@ export default function QueryResult({ card }: { card: ICard }) {
               {LOADING_MESSAGES[msgIndex]}
             </p>
           )}
+
+          {isYouTubeURL(thumbnail?.source_url) && (
+            <iframe
+              id="ytplayer"
+              src={getYouTubeEmbedUrl(thumbnail?.source_url)}
+              frameBorder="0"
+              className="h-64 w-full lg:h-96"
+            ></iframe>
+          )}
         </div>
       </Link>
+    );
+  };
 
+  const CardFooter = () => {
+    return (
       <div className="flex items-center justify-start text-sm text-secondary">
         <span className="ml-3 cursor-pointer" onClick={handleCardLike}>
           <FontAwesomeIcon
@@ -350,11 +364,33 @@ export default function QueryResult({ card }: { card: ICard }) {
             Share
           </span>
         )}
+        <span className="ml-3">
+          <FontAwesomeIcon
+            icon={faBook}
+            className="mx-2 h-5 w-5 align-middle"
+          />
+          {citations?.length}
+        </span>
 
         <span className="ml-3 cursor-pointer" onClick={handleBiasReport}>
-          Report Response
+          <FontAwesomeIcon
+            icon={faFlag}
+            className="mx-2 h-5 w-5 align-middle"
+          />
+          Report
         </span>
       </div>
+    );
+  };
+
+  return (
+    <div
+      className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
+        isLoading ? "border-4 border-dashed border-yellow-500" : ""
+      }`}
+    >
+      <CardBody />
+      <CardFooter />
 
       <BiasModal
         isOpen={isBiasModalOpen}
