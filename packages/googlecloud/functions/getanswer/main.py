@@ -24,7 +24,7 @@ supabase = create_client(supabase_url, supabase_key)
 
 def update_supabase(response):
     # Assume you have a table named 'answers' with a column named 'answer'
-    response = supabase.table('cards').insert({'response': response}).execute()
+    response = supabase.table('cards').insert({'responses': response}).execute()
     if response.error:
         logging.error(f"Failed to update Supabase: {response.error}")
 
