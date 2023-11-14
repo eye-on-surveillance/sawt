@@ -23,10 +23,16 @@ supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 supabase = create_client(supabase_url, supabase_key)
 
 def update_supabase(response, query, response_type):
-    # Assume you have a table named 'answers' with a column named 'answer'
-    response = supabase.table('cards').insert({'title': query, 'responses': response, 'card_type': response_type}).execute()
-    if response.error:
-        logging.error(f"Failed to update Supabase: {response.error}")
+    # Insert data into the Supabase table
+    result = supabase.table('cards').insert({'title': query, 'card_type': response_type, 'responses': response}).execute()
+
+    # Check for errors in the response
+    if result.status_code != 200:  # or another appropriate success code
+        # Log the error or handle it as per your application logic
+        logging.error(f"Failed to update Supabase: {result}")
+    else:
+        # Handle successful insertion
+        logging.info("Data successfully inserted into Supabase")
 
 @functions_framework.http
 def getanswer(request):
