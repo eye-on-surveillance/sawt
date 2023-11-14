@@ -117,7 +117,7 @@ export default function NewQuery() {
     if (!card) {
       return;
     }
-
+  
     const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
       .on(
         "postgres_changes",
@@ -127,16 +127,21 @@ export default function NewQuery() {
         },
         (payload: SupabaseRealtimePayload<ICard>) => {
           if (payload.new.responses !== payload.old.responses) {
-            // Update the card state with the new responses
-            setCard(prevCard => ({ ...prevCard, responses: payload.new.responses }));
+            setCard(prevCard => {
+              if (!prevCard) {
+                return null;
+              }
+              return { ...prevCard, responses: payload.new.responses };
+            });
           }
         })
-        .subscribe();
-
+      .subscribe();
+  
     return () => {
       channel.unsubscribe();
     };
   }, [card]);
+  
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
