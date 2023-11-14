@@ -16,8 +16,20 @@ logger = logging.getLogger(__name__)
 def timestamp_to_seconds(timestamp):
     if "timestamp not available" in timestamp:
         return None  # or another default value like -1 or 0
+    
     start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
-    h, m, s = [int(i) for i in start_time.split(":")]
+    print(start_time)
+    
+    time_parts = [int(i) for i in start_time.split(":")]
+    
+    if len(time_parts) == 3:
+        h, m, s = time_parts
+    elif len(time_parts) == 2:
+        h, m = time_parts
+        s = 0 
+    else:
+        raise ValueError("Invalid timestamp format: " + timestamp)
+
     return h * 3600 + m * 60 + s
 
 
