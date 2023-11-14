@@ -65,8 +65,8 @@ export default function NewQuery() {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
       method: "POST",
-      // Pass responseMode to your API endpoint
-      body: JSON.stringify({ query, response_type: cardType }),
+      // Pass responseMode to your API endpoint 
+      body: JSON.stringify({ query, response_type: cardType, card_id: newCard.id }),
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
@@ -122,16 +122,16 @@ export default function NewQuery() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "UPDATE",
           schema: "public",
         },
         (payload: SupabaseRealtimePayload<ICard>) => {
-          if (payload.new.id === card.id) {
-            setCard((prevCard) => ({ ...prevCard, ...payload.new }));
+          if (payload.new.responses !== payload.old.responses) {
+            // Update the card state with the new responses
+            setCard(prevCard => ({ ...prevCard, responses: payload.new.responses }));
           }
-        }
-      )
-      .subscribe();
+        })
+        .subscribe();
 
     return () => {
       channel.unsubscribe();
