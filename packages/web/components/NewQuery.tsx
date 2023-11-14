@@ -65,8 +65,8 @@ export default function NewQuery() {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
       method: "POST",
-      // Pass responseMode to your API endpoint
-      body: JSON.stringify({ query, response_type: cardType }),
+      // Pass responseMode to your API endpoint 
+      body: JSON.stringify({ query, response_type: cardType, card_id: newCard.id }),
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
@@ -117,26 +117,31 @@ export default function NewQuery() {
     if (!card) {
       return;
     }
-
+  
     const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "UPDATE",
           schema: "public",
         },
         (payload: SupabaseRealtimePayload<ICard>) => {
-          if (payload.new.id === card.id) {
-            setCard((prevCard) => ({ ...prevCard, ...payload.new }));
+          if (payload.new.responses !== payload.old.responses) {
+            setCard(prevCard => {
+              if (!prevCard) {
+                return null;
+              }
+              return { ...prevCard, responses: payload.new.responses };
+            });
           }
-        }
-      )
+        })
       .subscribe();
-
+  
     return () => {
       channel.unsubscribe();
     };
   }, [card]);
+  
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
