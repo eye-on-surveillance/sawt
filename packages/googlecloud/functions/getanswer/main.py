@@ -22,9 +22,9 @@ supabase_url = os.environ.get("SUPABASE_URL_STAGING")
 supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 supabase = create_client(supabase_url, supabase_key)
 
-def update_supabase(response):
+def update_supabase(response, query):
     # Assume you have a table named 'answers' with a column named 'answer'
-    response = supabase.table('cards').insert({'responses': response}).execute()
+    response = supabase.table('cards').insert({'title': query, 'responses': response}).execute()
     if response.error:
         logging.error(f"Failed to update Supabase: {response.error}")
 
@@ -74,7 +74,7 @@ def getanswer(request):
     answer = answer_query(query, response_type, voting_roll_df, db_general, db_in_depth)
 
     # Update Supabase instead of returning the answer to the client
-    update_supabase(answer)
+    update_supabase(answer, query)
 
     end = time.time()
     elapsed = math.ceil(end - start)
