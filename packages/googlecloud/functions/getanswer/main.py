@@ -22,7 +22,7 @@ supabase_url = os.environ.get("SUPABASE_URL_STAGING")
 supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 supabase = create_client(supabase_url, supabase_key)
 
-def update_supabase(supabase, response, query, response_type):
+def update_supabase(response, query, response_type):
     try:
         response = supabase.table('cards').insert({'title': query, 'card_type': response_type, 'responses': response}).execute()
         logging.info("Data successfully inserted into Supabase")
