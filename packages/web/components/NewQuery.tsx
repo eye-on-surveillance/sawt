@@ -43,8 +43,8 @@ export default function NewQuery() {
   const [pollingIntervalId, setPollingIntervalId] =
     useState<NodeJS.Timeout | null>(null);
 
-  const submitQuery = async (e) => {
-    e?.preventDefault();
+    const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault(); 
     if (query.length <= 10) return;
 
     setIsProcessing(true);
