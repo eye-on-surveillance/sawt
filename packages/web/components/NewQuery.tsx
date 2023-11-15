@@ -1,13 +1,13 @@
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
-import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
+
 type SupabaseRealtimePayload<T = any> = {
   old: T;
   new: T;
@@ -65,8 +65,12 @@ export default function NewQuery() {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
       method: "POST",
-      // Pass responseMode to your API endpoint 
-      body: JSON.stringify({ query, response_type: cardType, card_id: newCard.id }),
+      // Pass responseMode to your API endpoint
+      body: JSON.stringify({
+        query,
+        response_type: cardType,
+        card_id: newCard.id,
+      }),
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
@@ -87,36 +91,10 @@ export default function NewQuery() {
     card = card as ICard;
     setQuery("");
     setIsProcessing(false);
-    return card;
-  };
-
-  const updateQueryResponded = async (
-    card: ICard,
-    startedProcessingAt: number
-  ) => {
-    const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
-    const queryUpdate = {
-      responses: card.responses,
-      citations: card.citations,
-      processing_time_ms: genResponseMs,
-    };
-    const { error } = await supabase
-      .from(TABLES.CARDS)
-      .update(queryUpdate)
-      .eq("id", card.id);
-
-    if (error) {
-      console.warn("Could not record query");
-      console.warn(error);
-      return;
-    } else {
-    }
   };
 
   useEffect(() => {
-    if (!card) {
-      return;
-    }
+    if (!card) return;
   
     const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
       .on(
@@ -125,16 +103,26 @@ export default function NewQuery() {
           event: "UPDATE",
           schema: "public",
         },
-        (payload: SupabaseRealtimePayload<ICard>) => {
-          if (payload.new.responses !== payload.old.responses) {
-            setCard(prevCard => {
-              if (!prevCard) {
-                return null;
-              }
-              return { ...prevCard, responses: payload.new.responses };
-            });
-          }
-        })
+        (payload: SupabaseRealtimePayload<typeof card>) => {
+          setCard((prevCard) => {
+            if (!prevCard || payload.new.id !== prevCard.id) return prevCard;
+  
+            const updatedCard = payload.new;
+            const hasNewResponse = updatedCard.responses !== prevCard.responses;
+            const hasNewCitations = updatedCard.citations !== prevCard.citations;
+  
+            if (hasNewResponse || hasNewCitations) {
+              return {
+                ...prevCard,
+                responses: hasNewResponse ? updatedCard.responses || [] : prevCard.responses,
+                citations: hasNewCitations ? updatedCard.citations || [] : prevCard.citations,
+              };
+            }
+  
+            return prevCard;
+          });
+        }
+      )
       .subscribe();
   
     return () => {
@@ -142,18 +130,17 @@ export default function NewQuery() {
     };
   }, [card]);
   
-
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (query.length <= 10) return;
 
-    const startedProcessingAt = Date.now();
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
-    const cardWResp = await sendQueryToFunction(newCard);
-    addMyCard(cardWResp);
-    await updateQueryResponded(cardWResp, startedProcessingAt);
-  };
+    addMyCard(newCard); 
+    await sendQueryToFunction(newCard); 
+    setIsProcessing(false);
+    setQuery("");
+};
 
   return (
     <div className="my-12">
