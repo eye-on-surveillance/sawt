@@ -80,6 +80,12 @@ def getanswer(request):
 
     answer = answer_query(query, response_type, voting_roll_df, db_general, db_in_depth)
 
+    try:
+        answer = json.loads(answer)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse answer string to JSON: {e}")
+        return ("Failed to process answer", 500, headers)
+
     responses_data = answer.get("responses")
 
     citations_data = answer.get("citations")
