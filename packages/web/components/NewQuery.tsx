@@ -123,33 +123,32 @@ export default function NewQuery() {
           event: "UPDATE",
           schema: "public",
         },
-        (payload: SupabaseRealtimePayload<typeof card>) => {
-          setCard((prevCard) => {
-            if (!prevCard || payload.new.id !== prevCard.id) return prevCard;
+        (payload: SupabaseRealtimePayload<ICard>) => {
+          if (payload.new.id === card.id) {
+            setCard((prevCard) => {
+              // Update only if there are changes in responses or citations
+              const hasNewResponse = payload.new.responses !== prevCard?.responses;
+              const hasNewCitations = payload.new.citations !== prevCard?.citations;
   
-            const updatedCard = payload.new;
-            const hasNewResponse = updatedCard.responses !== prevCard.responses;
-            const hasNewCitations = updatedCard.citations !== prevCard.citations;
+              if (hasNewResponse || hasNewCitations) {
+                return { ...prevCard, ...payload.new };
+              }
   
-            if (hasNewResponse || hasNewCitations) {
-              return {
-                ...prevCard,
-                responses: hasNewResponse ? updatedCard.responses || [] : prevCard.responses,
-                citations: hasNewCitations ? updatedCard.citations || [] : prevCard.citations,
-              };
-            }
-  
-            return prevCard;
-          });
+              return prevCard;
+            });
+          }
         }
       )
       .subscribe();
   
+    // Cleanup subscription on component unmount
     return () => {
       channel.unsubscribe();
     };
   }, [card]);
   
+
+
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (query.length <= 10) return;
