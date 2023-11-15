@@ -1,6 +1,7 @@
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
+import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,6 +37,24 @@ export default function NewQuery() {
   const [cardType, setCardType] = useState(ECardType.QUERY_IN_DEPTH);
   const { addMyCard } = useCardResults();
   const [card, setCard] = useState<ICard | null>(null);
+  const [submissionStarted, setSubmissionStarted] = useState(false);
+  const [processingComplete, setProcessingComplete] = useState(false);
+  const [currentCardId, setCurrentCardId] = useState<string | null>(null);
+  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(null);
+
+
+    const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+      e?.preventDefault();
+  
+      if (query.length <= 10) return;
+
+    setIsProcessing(true);
+    const newCard = await insertSupabaseCard();
+    if (newCard) {
+      await sendQueryToFunction(newCard);
+      setCurrentCardId(newCard.id ?? null);
+    }
+  };
 
   const insertSupabaseCard = async (): Promise<ICard> => {
     const newCard: ICard = {
@@ -57,109 +76,72 @@ export default function NewQuery() {
       createdCard.status = ECardStatus.PUBLIC;
 
       addMyCard(createdCard);
+      setCurrentCardId(createdCard.id ?? null);
       return createdCard;
     }
   };
 
-  const fetchUpdatedCard = async (cardId: string) => {
-    const { data, error } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('id', cardId)
-        .single();
-
-    if (error) {
-        console.error('Error fetching updated card:', error);
-    } else if (data) {
-        setCard(data);
-    }
-};
-
-
   const sendQueryToFunction = async (newCard: ICard) => {
-    // Start processing question
-    const answerResp = await fetch(apiEndpoint, {
-      method: "POST",
-      // Pass responseMode to your API endpoint
-      body: JSON.stringify({
-        query,
-        response_type: cardType,
-        card_id: newCard.id,
-      }),
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    let card: any = await answerResp.json();
+    setIsProcessing(true);
 
-    card = Object.assign({}, newCard, card);
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        body: JSON.stringify({
+          query,
+          response_type: cardType,
+          card_id: newCard.id,
+        }),
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    card.citations = card.citations!.map((citation: any) => {
-      return {
-        source_title: citation.Title,
-        source_name: citation.Name,
-        source_publish_date: citation.Published,
-        source_url: citation.URL,
-      };
-    });
-    card = card as ICard;
-    setQuery("");
-    setIsProcessing(false);
-    if (newCard.id) {
-      await fetchUpdatedCard(newCard.id);
-  } else {
-      console.error('Card ID is undefined');
-  }
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      // Start polling Supabase for updates
+      const interval = setInterval(async () => {
+        const { data, error } = await supabase
+          .from(TABLES.CARDS)
+          .select("*")
+          .eq("id", newCard.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching updated card:", error);
+          clearInterval(interval);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (data && data.responses && data.citations) {
+          setCard(data);
+          addMyCard(data);
+          clearInterval(interval);
+          setIsProcessing(false);
+        }
+      }, 5000);
+
+      setPollingIntervalId(interval as unknown as number);
+    } catch (error) {
+      console.error("There was a problem with the fetch operation: ", error);
+      if (pollingIntervalId !== null) {
+        clearInterval(pollingIntervalId);
+      }
+      setIsProcessing(false);
+    }
   };
 
   useEffect(() => {
-    if (!card) return;
-  
-    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-        },
-        (payload: SupabaseRealtimePayload<ICard>) => {
-          if (payload.new.id === card.id) {
-            setCard((prevCard) => {
-              // Update only if there are changes in responses or citations
-              const hasNewResponse = payload.new.responses !== prevCard?.responses;
-              const hasNewCitations = payload.new.citations !== prevCard?.citations;
-  
-              if (hasNewResponse || hasNewCitations) {
-                return { ...prevCard, ...payload.new };
-              }
-  
-              return prevCard;
-            });
-          }
-        }
-      )
-      .subscribe();
-  
-    // Cleanup subscription on component unmount
     return () => {
-      channel.unsubscribe();
+      if (pollingIntervalId) {
+        clearInterval(pollingIntervalId);
+      }
     };
-  }, [card]);
-  
-
-
-  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault();
-    if (query.length <= 10) return;
-
-    setIsProcessing(true);
-    const newCard = await insertSupabaseCard();
-    addMyCard(newCard); 
-    await sendQueryToFunction(newCard); 
-    setIsProcessing(false);
-    setQuery("");
-};
+  }, [pollingIntervalId]);
 
   return (
     <div className="my-12">
@@ -194,18 +176,6 @@ export default function NewQuery() {
           Learn more
         </Link>
       </p>
-
-      <div className="mt-10">
-        {card?.citations?.map((citation, index) => (
-          <div key={index}>
-            <p>{citation.source_title}</p>
-            {citation.source_url &&
-              citation.source_url.includes("youtube.com") && (
-                <YouTubeThumbnail url={citation.source_url} />
-              )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
