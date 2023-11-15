@@ -101,7 +101,7 @@ def getanswer(request):
     citations_data = answer.get("citations")
 
     end = time.time()
-    elapsed = math.ceil(end - start)
+    elapsed = int((end - start) * 1000)
     update_supabase(responses_data, citations_data, card_id, elapsed)
     logging.info(f"Completed getanswer in {elapsed} seconds")
     print(f"\n\t--------- Completed getanswer in {elapsed} seconds --------\n")
