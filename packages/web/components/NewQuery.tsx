@@ -40,12 +40,13 @@ export default function NewQuery() {
   const [submissionStarted, setSubmissionStarted] = useState(false);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [currentCardId, setCurrentCardId] = useState<string | null>(null);
-  const [pollingIntervalId, setPollingIntervalId] =
-    useState<NodeJS.Timeout | null>(null);
+  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(null);
 
-    const submitQuery = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault(); 
-    if (query.length <= 10) return;
+
+    const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+      e?.preventDefault();
+  
+      if (query.length <= 10) return;
 
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
@@ -124,10 +125,12 @@ export default function NewQuery() {
         }
       }, 5000);
 
-      setPollingIntervalId(interval);
+      setPollingIntervalId(interval as unknown as number);
     } catch (error) {
       console.error("There was a problem with the fetch operation: ", error);
-      clearInterval(pollingIntervalId);
+      if (pollingIntervalId !== null) {
+        clearInterval(pollingIntervalId);
+      }
       setIsProcessing(false);
     }
   };
