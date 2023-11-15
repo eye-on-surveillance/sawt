@@ -130,17 +130,17 @@ export default function NewQuery() {
     };
   }, [card]);
   
-
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (query.length <= 10) return;
 
-    const startedProcessingAt = Date.now();
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
-    const cardWResp = await sendQueryToFunction(newCard);
-    addMyCard(cardWResp);
-  };
+    addMyCard(newCard); 
+    await sendQueryToFunction(newCard); 
+    setIsProcessing(false);
+    setQuery("");
+};
 
   return (
     <div className="my-12">
