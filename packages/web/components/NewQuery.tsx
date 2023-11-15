@@ -95,72 +95,41 @@ export default function NewQuery() {
 
   useEffect(() => {
     if (!card) return;
-
-    const parseResponses = (data) => {
-      try {
-        const parsed = JSON.parse(data);
-        return parsed || [];
-      } catch (error) {
-        console.error("Error parsing responses:", error);
-        return [];
-      }
-    };
-
-    const parseCitations = (data) => {
-      try {
-        const parsed = JSON.parse(data);
-        return (
-          parsed.map((citation) => ({
-            source_url: citation.URL,
-            source_name: citation.Name,
-            source_title: citation.Title,
-            source_publish_date: citation.Published,
-          })) || []
-        );
-      } catch (error) {
-        console.error("Error parsing citations:", error);
-        return [];
-      }
-    };
-
-  const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
-  .on(
-    "postgres_changes",
-    {
-      event: "UPDATE",
-      schema: "public",
-    },
-    (payload: SupabaseRealtimePayload<typeof card>) => {
-      setCard((prevCard) => {
-        if (!prevCard || payload.new.id !== prevCard.id) return prevCard;
-
-        const updatedCard = payload.new;
-        const hasNewResponse = updatedCard.responses !== prevCard.responses;
-        const hasNewCitations = updatedCard.citations !== prevCard.citations;
-
-        if (hasNewResponse || hasNewCitations) {
-          return {
-            ...prevCard,
-            responses: hasNewResponse
-              ? parseResponses(updatedCard.responses)
-              : prevCard.responses,
-            citations: hasNewCitations
-              ? parseCitations(updatedCard.citations)
-              : prevCard.citations,
-          };
+  
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+        },
+        (payload: SupabaseRealtimePayload<typeof card>) => {
+          setCard((prevCard) => {
+            if (!prevCard || payload.new.id !== prevCard.id) return prevCard;
+  
+            const updatedCard = payload.new;
+            const hasNewResponse = updatedCard.responses !== prevCard.responses;
+            const hasNewCitations = updatedCard.citations !== prevCard.citations;
+  
+            if (hasNewResponse || hasNewCitations) {
+              return {
+                ...prevCard,
+                responses: hasNewResponse ? updatedCard.responses || [] : prevCard.responses,
+                citations: hasNewCitations ? updatedCard.citations || [] : prevCard.citations,
+              };
+            }
+  
+            return prevCard;
+          });
         }
-
-        return prevCard;
-      });
-    }
-  )
-  .subscribe();
-
-// Cleanup subscription on component unmount
-return () => {
-  channel.unsubscribe();
-};
-}, [card]);
+      )
+      .subscribe();
+  
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [card]);
+  
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
