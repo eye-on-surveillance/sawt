@@ -23,8 +23,7 @@ supabase_url = os.environ.get("SUPABASE_URL_STAGING")
 supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 supabase = create_client(supabase_url, supabase_key)
 
-
-def update_supabase(responses, citations, card_id):
+def update_supabase(responses, citations, card_id, processing_time_ms):
     transformed_citations = []
     for citation in citations:
         transformed_citations.append({
@@ -36,11 +35,14 @@ def update_supabase(responses, citations, card_id):
 
     try:
         supabase.table("cards").update(
-            {"responses": responses, "citations": transformed_citations}
+            {"responses": responses, 
+             "citations": transformed_citations,
+             "processing_time_ms": processing_time_ms}  # Update this line
         ).eq("id", card_id).execute()
         logging.info("Data successfully updated in Supabase")
     except Exception as e:
         logging.error(f"Failed to update Supabase: {e}")
+
 
 
 @functions_framework.http
@@ -96,13 +98,11 @@ def getanswer(request):
         return ("Failed to process answer", 500, headers)
 
     responses_data = answer.get("responses")
-
     citations_data = answer.get("citations")
-
-    update_supabase(responses_data, citations_data, card_id)
 
     end = time.time()
     elapsed = math.ceil(end - start)
+    update_supabase(responses_data, citations_data, card_id, elapsed)
     logging.info(f"Completed getanswer in {elapsed} seconds")
     print(f"\n\t--------- Completed getanswer in {elapsed} seconds --------\n")
 
