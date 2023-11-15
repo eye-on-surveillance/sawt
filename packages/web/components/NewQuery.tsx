@@ -1,13 +1,13 @@
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
-import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
+
 type SupabaseRealtimePayload<T = any> = {
   old: T;
   new: T;
@@ -65,8 +65,12 @@ export default function NewQuery() {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
       method: "POST",
-      // Pass responseMode to your API endpoint 
-      body: JSON.stringify({ query, response_type: cardType, card_id: newCard.id }),
+      // Pass responseMode to your API endpoint
+      body: JSON.stringify({
+        query,
+        response_type: cardType,
+        card_id: newCard.id,
+      }),
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
@@ -87,61 +91,76 @@ export default function NewQuery() {
     card = card as ICard;
     setQuery("");
     setIsProcessing(false);
-    return card;
-  };
-
-  const updateQueryResponded = async (
-    card: ICard,
-    startedProcessingAt: number
-  ) => {
-    const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
-    const queryUpdate = {
-      responses: card.responses,
-      citations: card.citations,
-      processing_time_ms: genResponseMs,
-    };
-    const { error } = await supabase
-      .from(TABLES.CARDS)
-      .update(queryUpdate)
-      .eq("id", card.id);
-
-    if (error) {
-      console.warn("Could not record query");
-      console.warn(error);
-      return;
-    } else {
-    }
   };
 
   useEffect(() => {
-    if (!card) {
-      return;
-    }
-  
-    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-        },
-        (payload: SupabaseRealtimePayload<ICard>) => {
-          if (payload.new.responses !== payload.old.responses) {
-            setCard(prevCard => {
-              if (!prevCard) {
-                return null;
-              }
-              return { ...prevCard, responses: payload.new.responses };
-            });
-          }
-        })
-      .subscribe();
-  
-    return () => {
-      channel.unsubscribe();
+    if (!card) return;
+
+    const parseResponses = (data) => {
+      try {
+        const parsed = JSON.parse(data);
+        return parsed || [];
+      } catch (error) {
+        console.error("Error parsing responses:", error);
+        return [];
+      }
     };
-  }, [card]);
-  
+
+    const parseCitations = (data) => {
+      try {
+        const parsed = JSON.parse(data);
+        return (
+          parsed.map((citation) => ({
+            source_url: citation.URL,
+            source_name: citation.Name,
+            source_title: citation.Title,
+            source_publish_date: citation.Published,
+          })) || []
+        );
+      } catch (error) {
+        console.error("Error parsing citations:", error);
+        return [];
+      }
+    };
+
+  const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+    },
+    (payload: SupabaseRealtimePayload<typeof card>) => {
+      setCard((prevCard) => {
+        if (!prevCard || payload.new.id !== prevCard.id) return prevCard;
+
+        const updatedCard = payload.new;
+        const hasNewResponse = updatedCard.responses !== prevCard.responses;
+        const hasNewCitations = updatedCard.citations !== prevCard.citations;
+
+        if (hasNewResponse || hasNewCitations) {
+          return {
+            ...prevCard,
+            responses: hasNewResponse
+              ? parseResponses(updatedCard.responses)
+              : prevCard.responses,
+            citations: hasNewCitations
+              ? parseCitations(updatedCard.citations)
+              : prevCard.citations,
+          };
+        }
+
+        return prevCard;
+      });
+    }
+  )
+  .subscribe();
+
+// Cleanup subscription on component unmount
+return () => {
+  channel.unsubscribe();
+};
+}, [card]);
 
   const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -152,7 +171,6 @@ export default function NewQuery() {
     const newCard = await insertSupabaseCard();
     const cardWResp = await sendQueryToFunction(newCard);
     addMyCard(cardWResp);
-    await updateQueryResponded(cardWResp, startedProcessingAt);
   };
 
   return (

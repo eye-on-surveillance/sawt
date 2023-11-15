@@ -9,6 +9,7 @@ from supabase import create_client
 from helper import parse_field, get_dbs
 from inquirer import answer_query
 import os
+import json
 
 logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
@@ -22,10 +23,13 @@ supabase_url = os.environ.get("SUPABASE_URL_STAGING")
 supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 supabase = create_client(supabase_url, supabase_key)
 
-def update_supabase(response, card_id):
+
+def update_supabase(responses, citations, card_id):
     try:
-        response = supabase.table('cards').update({'responses': response}).eq('id', card_id).execute()
-        logging.info("Data successfully inserted into Supabase")
+        supabase.table("cards").update(
+            {"responses": responses, "citations": citations}
+        ).eq("id", card_id).execute()
+        logging.info("Data successfully updated in Supabase")
     except Exception as e:
         logging.error(f"Failed to update Supabase: {e}")
 
@@ -68,16 +72,19 @@ def getanswer(request):
 
         query = parse_field(request_json, "query")
         response_type = parse_field(request_json, "response_type")
-        card_id = parse_field(request_json, "card_id") 
+        card_id = parse_field(request_json, "card_id")
     else:
         raise ValueError("Unknown content type: {}".format(content_type))
-    
+
     logging.info("Request parsed")
 
     answer = answer_query(query, response_type, voting_roll_df, db_general, db_in_depth)
 
-    # Update Supabase instead of returning the answer to the client
-    update_supabase(answer, card_id)
+    responses_data = answer.get("responses")
+
+    citations_data = answer.get("citations")
+
+    update_supabase(responses_data, citations_data, card_id)
 
     end = time.time()
     elapsed = math.ceil(end - start)
