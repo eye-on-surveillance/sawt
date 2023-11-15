@@ -25,9 +25,18 @@ supabase = create_client(supabase_url, supabase_key)
 
 
 def update_supabase(responses, citations, card_id):
+    transformed_citations = []
+    for citation in citations:
+        transformed_citations.append({
+            "source_title": citation.get("Title"),
+            "source_name": citation.get("Name"),
+            "source_publish_date": citation.get("Published"),
+            "source_url": citation.get("URL")
+        })
+
     try:
         supabase.table("cards").update(
-            {"responses": responses, "citations": citations}
+            {"responses": responses, "citations": transformed_citations}
         ).eq("id", card_id).execute()
         logging.info("Data successfully updated in Supabase")
     except Exception as e:

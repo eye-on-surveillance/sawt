@@ -61,6 +61,21 @@ export default function NewQuery() {
     }
   };
 
+  const fetchUpdatedCard = async (cardId: string) => {
+    const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('id', cardId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching updated card:', error);
+    } else if (data) {
+        setCard(data);
+    }
+};
+
+
   const sendQueryToFunction = async (newCard: ICard) => {
     // Start processing question
     const answerResp = await fetch(apiEndpoint, {
@@ -91,6 +106,11 @@ export default function NewQuery() {
     card = card as ICard;
     setQuery("");
     setIsProcessing(false);
+    if (newCard.id) {
+      await fetchUpdatedCard(newCard.id);
+  } else {
+      console.error('Card ID is undefined');
+  }
   };
 
   useEffect(() => {
