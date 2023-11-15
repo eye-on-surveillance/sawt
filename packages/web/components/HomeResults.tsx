@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
 import CardLoading from "./CardLoading";
