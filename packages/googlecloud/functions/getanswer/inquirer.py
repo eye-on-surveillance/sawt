@@ -151,55 +151,39 @@ def get_indepth_response_from_query(df, db, query, k):
 
     llm = ChatOpenAI(model_name="gpt-4")
 
-    template_date_detection = """
-        Analyze the following query: "{query}".
-        Does this query pertain to a specific date or time period, or require sorting the city council documents by date? 
-        Respond with 'yes' or 'no'.
-    """
+    # template_date_detection = """
+    #     Analyze the following query: "{query}".
+    #     Does this query pertain to a specific date or time period, or require sorting the city council documents by date? 
+    #     Respond with 'yes' or 'no'.
+    # """
 
-    prompt_date = PromptTemplate(
-        input_variables=["query"],
-        template=template_date_detection,
-    )
-    is_date_related_chain = LLMChain(llm=llm, prompt=prompt_date)
+    # prompt_date = PromptTemplate(
+    #     input_variables=["query"],
+    #     template=template_date_detection,
+    # )
+    # is_date_related_chain = LLMChain(llm=llm, prompt=prompt_date)
 
-    is_date_related = is_date_related_chain.run(query=query)
+    # is_date_related = is_date_related_chain.run(query=query)
 
-    # Modify the query if it is date-related
-    if is_date_related.strip().lower() == "yes":
-        print("Date related")
-        query = transform_query_for_date(query)
+    # # Modify the query if it is date-related
+    # if is_date_related.strip().lower() == "yes":
+    #     print("Date related")
+    #     query = transform_query_for_date(query)
 
     doc_list = db.similarity_search_with_score(query, k=k)
     docs = sort_retrived_documents(doc_list)
     docs_page_content = append_metadata_to_content(doc_list)
 
     template = """
-    Transcripts: {docs}
+        Transcripts: {docs}
+        Question: {question}
+        
+        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
+        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
     
-    Question: {question}
-
-    
-    As an AI assistant, your role is to analyze New Orleans' City Council Transcripts in order to answer a question.
-    
-
-    Using the selected approach: the documents as a reference:
-            a. Extract the key points, decisions, and actions discussed during the city council meetings relevant to {question}.
-            b. Highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}.
-
-    Building upon the initial analysis, engage in a deeper examination:
-            a. Elaborate on the implications and broader societal or community impacts of the identified issues.
-            b. Investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}.
-    
-    With the output from your deeper analysis stage, use the transcripts to synthesize your findings in the following manner:
-            a. Identify and draw connections between the discussed points, examining any patterns of behavior or recurrent issues relevant to {question}.
-            b. Offer a critical perspective on the city council's actions or decisions related to {question}, utilizing external knowledge if necessary. Highlight any inconsistencies or contradictions.
-            c. Summarize the critical insights derived from the analysis regarding {question}.
-
-    If the question pertains to a certain time period, check the metadata for a publish date to effectively sort by time.
-    
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
-    The final output should not include any reference to the model's active sorting by date.
+        The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
+        The final output should not include any reference to the model's active sorting by date.
     """
 
     prompt = PromptTemplate(
