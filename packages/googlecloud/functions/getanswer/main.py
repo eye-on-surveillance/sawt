@@ -105,8 +105,13 @@ def getanswer(request):
         logging.error(f"Failed to parse answer string to JSON: {e}")
         return ("Failed to process answer", 500, headers)
 
+    print(f"Answer: {answer}")
     responses_data = answer.get("responses")
+    
+    print(f"Responses: {responses_data}")
     citations_data = answer.get("citations")
+
+    print(f"Citations: {citations_data}")
 
     end = time.time()
     elapsed = int((end - start) * 1000)
