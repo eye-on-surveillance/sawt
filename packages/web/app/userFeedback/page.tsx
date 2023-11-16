@@ -2,14 +2,14 @@
 import { supabase } from '../../lib/supabase/supabaseClient';
 import ThreeCardLayout from '@/components/ThreeCardLayout';
 
-import NewComment from '@/components/Comment';
 
 export const dynamic = "force-dynamic";
 
 export default async function userFeedback() {
   const { data: cards, error } = await supabase
     .from('cards') 
-    .select('*')
+    .select("*")
+    //.select("createdAt> '2023-01-11'")
     .limit(3)
     ;
 
