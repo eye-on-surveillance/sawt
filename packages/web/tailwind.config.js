@@ -7,9 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#998FC7", // Dark blue
-        secondary: "#998FC7", // Sky blue
-        blue: "#28262C", // Light blue
+        primary: "#16054D", // Dark blue
+        secondary: "#61B0E0", // Sky blue
+        blue: "#D6FFFD", // Light blue
+        purple: "#726CDA",
       },
       fontFamily: {
         body: ["Roboto", "sans-serif"],
