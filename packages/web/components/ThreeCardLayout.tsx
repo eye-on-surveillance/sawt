@@ -14,6 +14,16 @@ import useClipboardApi from "use-clipboard-api";
 import { v4 as uuidv4 } from "uuid"; //will need
 import CommentBox from "./CommentBoxes";
 
+import Rubric from '@/components/Rubric';
+
+const criteria = [
+  { id: 'criterion1', description: 'Criterion 1 Description' },
+  { id: 'criterion2', description: 'Criterion 2 Description' },
+  // Add more criteria as needed
+];
+
+
+
 const MAX_CHARACTERS_PREVIEW = 300;
 
 const LOADING_MESSAGES = [
@@ -162,6 +172,11 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
         card = {card}
         onSubmit={submitCommentFeedback}
       />
+
+          <hr></hr>
+          <label className="flex justify-center mt-10 space-x-1-x">Rubric</label>
+          <Rubric criteria={criteria}/>
+
         </div>
       ))
       }
