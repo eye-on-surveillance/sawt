@@ -151,39 +151,46 @@ def get_indepth_response_from_query(df, db, query, k):
 
     llm = ChatOpenAI(model_name="gpt-4")
 
-    # template_date_detection = """
-    #     Analyze the following query: "{query}".
-    #     Does this query pertain to a specific date or time period, or require sorting the city council documents by date? 
-    #     Respond with 'yes' or 'no'.
-    # """
+    template_date_detection = """
+        Analyze the following query: "{query}".
+        Does this query pertain to a specific date or time period, or require sorting the city council documents by date? 
+        Respond with 'yes' or 'no'.
+    """
 
-    # prompt_date = PromptTemplate(
-    #     input_variables=["query"],
-    #     template=template_date_detection,
-    # )
-    # is_date_related_chain = LLMChain(llm=llm, prompt=prompt_date)
+    prompt_date = PromptTemplate(
+        input_variables=["query"],
+        template=template_date_detection,
+    )
+    is_date_related_chain = LLMChain(llm=llm, prompt=prompt_date)
 
-    # is_date_related = is_date_related_chain.run(query=query)
+    is_date_related = is_date_related_chain.run(query=query)
 
-    # # Modify the query if it is date-related
-    # if is_date_related.strip().lower() == "yes":
-    #     print("Date related")
-    #     query = transform_query_for_date(query)
+    # Modify the query if it is date-related
+    if is_date_related.strip().lower() == "yes":
+        print("Date related")
+        query = transform_query_for_date(query)
 
     doc_list = db.similarity_search_with_score(query, k=k)
+    print(doc_list)
     docs = sort_retrived_documents(doc_list)
     docs_page_content = append_metadata_to_content(doc_list)
 
     template = """
-        Transcripts: {docs}
-        Question: {question}
-        
-        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
-        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
+    Documents: {docs}
     
-        The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
-        The final output should not include any reference to the model's active sorting by date.
+    Question: {question}
+
+
+    Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
+    
+    If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    
+    Summarize your answer from the analysis regarding {question} into one cohesive paragraph. 
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
+    The final output should not include any reference to the model's active sorting by date.
     """
 
     prompt = PromptTemplate(
@@ -192,7 +199,7 @@ def get_indepth_response_from_query(df, db, query, k):
     )
 
     chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=1)
 
     return process_responses_llm(responses_llm, docs)
 
@@ -222,7 +229,7 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10):
+def route_question(df, db_general, db_in_depth, query, query_type, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(df, db_in_depth, query, k)
     elif query_type == RESPONSE_TYPE_GENERAL:
