@@ -19,8 +19,16 @@ API_VERSION = "0.0.1"
 db_general, db_in_depth, voting_roll_df = get_dbs()
 
 # Setup Supabase client
-supabase_url = os.environ.get("SUPABASE_URL_STAGING")
-supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
+try:
+    supabase_url = os.environ["SUPABASE_URL_PRODUCTION"]
+    supabase_key = os.environ["SUPABASE_SERVICE_KEY_PRODUCTION"]
+except KeyError:
+    supabase_url = os.environ.get("SUPABASE_URL_STAGING")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
+
+if not supabase_url or not supabase_key:
+    raise ValueError("Supabase URL and key must be set in environment variables")
+
 supabase = create_client(supabase_url, supabase_key)
 
 def update_supabase(responses, citations, card_id, processing_time_ms):
