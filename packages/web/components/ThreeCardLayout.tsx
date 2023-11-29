@@ -18,20 +18,15 @@ import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import {
-  faCheck,
-  faShare,
   faSpinner,
-  faThumbsUp,
-  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useClipboardApi from "use-clipboard-api";
-import { useInterval } from "usehooks-ts";
-import { v4 as uuidv4 } from "uuid";
-import { faComment, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { v4 as uuidv4 } from "uuid"; //will need
+import CommentBox from "./CommentBoxes";
 
 import Rubric from '@/components/Rubric';
 
@@ -82,7 +77,7 @@ interface CommentBoxProps {
   card: ICard;
   onSubmit: ( data: { comment: string, card: ICard }) => void;
 }
-
+        
 
 function CommentBox({ onSubmit, card }: CommentBoxProps) {
   const [comment, setComment] = useState<string>("");
@@ -145,7 +140,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
       : moment().fromNow()
   );
 
-
+  //Function that sends comments to supabase under respective card.comment
   const submitCommentFeedback = async ({
     comment,
     card
@@ -191,6 +186,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
       }
     } catch (error) {}
   };
+
 
   return (
     <div className="flex justify-center mt-10 space-x-4-x">

@@ -1,15 +1,11 @@
-import logging
-from langchain.chat_models import ChatOpenAI
-from langchain import PromptTemplate
-from langchain.chains import LLMChain
 import json
 import os
+import logging
 
 from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
-from langchain.agents import create_pandas_dataframe_agent
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
 
 from helper import sort_retrived_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_VARIED
@@ -18,10 +14,22 @@ logger = logging.getLogger(__name__)
 
 
 def timestamp_to_seconds(timestamp):
-    if 'timestamp not available' in timestamp:
+    if "timestamp not available" in timestamp:
         return None  # or another default value like -1 or 0
+    
     start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
-    h, m, s = [int(i) for i in start_time.split(":")]
+    print(start_time)
+    
+    time_parts = [int(i) for i in start_time.split(":")]
+    
+    if len(time_parts) == 3:
+        h, m, s = time_parts
+    elif len(time_parts) == 2:
+        h, m = time_parts
+        s = 0 
+    else:
+        raise ValueError("Invalid timestamp format: " + timestamp)
+
     return h * 3600 + m * 60 + s
 
 
@@ -113,7 +121,39 @@ def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
     return(card)
 
 
-def get_indepth_response_from_query(df, db, query, k, query_type):
+def append_metadata_to_content(doc_list):
+    combined_docs = []
+
+    for doc in doc_list:
+        metadata = doc[0].metadata
+        publish_date = metadata.get("publish_date")
+
+        if publish_date is None:
+            continue
+
+        doc_str = f"Document: {doc[0].page_content} (Published on: {publish_date})"
+        combined_docs.append(doc_str)
+
+    combined_docs_content = " ".join(combined_docs)
+    return combined_docs_content
+
+
+def transform_query_for_date(query):
+    return (
+        query
+        + "Note for the model: this query related to a specific time period, therefore, you should sort the documents by the relevant publish date"
+    )
+
+
+
+def transform_query_for_date(query):
+    return (
+        query
+        + "Note for the model: this query related to a specific time period, therefore, you should sort the documents by the relevant publish date"
+    )
+
+
+def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
 
     # Convert the query to lowercase for case-insensitive comparison
@@ -142,39 +182,8 @@ def get_indepth_response_from_query(df, db, query, k, query_type):
         Question: {question}
         
         Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
-        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
+        Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
         """
-
-        prompt = PromptTemplate(
-            input_variables=["question", "docs"],
-            template=template,
-        )
-
-        chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(
-            question=query, docs=docs_page_content, temperature=0
-        )
-
-        return process_responses_llm(responses_llm, docs, query_type)
-
-## varied responses for user annotation
-def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
-    logger.info("Performing varied summary query...")
-
-
-    llm = ChatOpenAI(model_name="gpt-4")
-    doc_list = db.similarity_search_with_score(query, k=k)
-    docs = sort_retrived_documents(doc_list)
-    docs_page_content = " ".join([d[0].page_content for d in docs])
-
-    template = """
-    Transcripts: {docs}
-    Question: {question}
-    
-    Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-    Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
-    """
 
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
@@ -182,24 +191,11 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
     )
 
 
-    master_response = {}
-    master_response["card_type"] = "varied"
-    response_list = {}
-    for i in range(n):
-        chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0)
-        single_response = process_responses_llm(responses_llm, docs, card_type)
-        #print(single_response, "\n")
-        response_list[i] = single_response
-    master_response["responses"] = response_list
-    return master_response
 
+    chain_llm = LLMChain(llm=llm, prompt=prompt)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=1)
 
-
-
-
-
+    return process_responses_llm(responses_llm, docs)
 
 
 def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_TYPE_GENERAL):
@@ -227,9 +223,9 @@ def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 3):
+def route_question(df, db_general, db_in_depth, query, query_type, k=20, n = 3):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return json.dumps(get_indepth_response_from_query(df, db_in_depth, query, k, query_type))
+        return json.dumps(get_indepth_response_from_query(df, db_in_depth, query, k))
     elif query_type == RESPONSE_TYPE_VARIED:
         return json.dumps(get_varied_response_from_query(df, db_in_depth, query, k, n, query_type))
     elif query_type == RESPONSE_TYPE_GENERAL:

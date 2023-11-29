@@ -1,3 +1,4 @@
+import { getPageMetadata } from "@/lib/paths";
 import React from "react";
 
 const Step = ({ title, text }: { title: string; text: string }) => {
@@ -8,6 +9,8 @@ const Step = ({ title, text }: { title: string; text: string }) => {
     </div>
   );
 };
+
+export const metadata = getPageMetadata("Tips");
 
 const TipsPage: React.FC = () => {
   return (
