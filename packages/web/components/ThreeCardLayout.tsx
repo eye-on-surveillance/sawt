@@ -1,5 +1,19 @@
 "use client";
 
+/*
+TODO: 
+  - Database schema for user feedback
+    - UserIDs?
+      - Some identifiers
+      - Enter email? Or Name + DeviceID to create unique identifier.
+    
+  - Next button
+    - Refresh 3 new responses to question
+  
+*/
+
+
+
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -59,22 +73,59 @@ type SupabaseRealtimePayload<T = any> = {
 };
 
 
-// IDEA: Use similar system to the likes to format the choice
-
-function hasLikedCardBefore(cardId?: string): boolean {
-  if (!cardId || typeof window === "undefined") {
-    return false;
-  }
-  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
-  return likedCards.includes(cardId);
+interface CommentBoxProps {
+  card: ICard;
+  onSubmit: ( data: { comment: string, card: ICard }) => void;
 }
+        
 
-function markCardAsLiked(cardId: string) {
-  const likedCards = JSON.parse(localStorage.getItem("likedCards") || "[]");
-  likedCards.push(cardId);
-  localStorage.setItem("likedCards", JSON.stringify(likedCards));
+function CommentBox({ onSubmit, card }: CommentBoxProps) {
+  const [comment, setComment] = useState<string>("");
+  const handleSubmit = () => {
+    onSubmit( { comment , card});
+    setComment("");
+  };
+
+  const submitButtonStyle = {
+    padding: '10px 20px', 
+    fontSize: '16px', 
+    color: 'white', 
+    backgroundColor: '#007bff', 
+    border: 'none', 
+    borderRadius: '5px', 
+    cursor: 'pointer', 
+    outline: 'none',
+    marginTop: '20px', 
+  };
+
+  return (
+        <div className="my-12">
+        <div className="relative  block">
+         <label htmlFor="comment" className="mb-2 mt-4 block">
+         <FontAwesomeIcon
+            className="left-2 top-1/2 ml-2 h-[20px] w-[28px] cursor-pointer object-contain"
+            icon={faComment}
+          />
+          Comments:
+         </label>
+         <textarea
+            id="comment"
+            className="h-20 w-full rounded border p-2"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add feedback here"
+          ></textarea>
+        </div>
+        <button
+          onClick={handleSubmit}
+          // className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
+          style={submitButtonStyle}
+        >
+          Submit
+        </button>
+      </div>
+  );
 }
-
 
 export default function ThreeCardLayout({ cards }: { cards: ICard }) {
 
@@ -98,9 +149,12 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
     card: ICard;
   }) => {
     try {
-      
-      /* This commented out code is for if we want to add the ability to update previous comments.
+
+      /*
+       This commented out code is for if we want to update previous comments. 
+       Like if they submit their comment and then realize they want to add more.
       */
+
       // let { data: cards, error: fetchError } = await supabase
       //   .from("cards")
       //   .select("comment")
@@ -137,9 +191,8 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
   return (
     <div className="flex justify-center mt-10 space-x-4-x">
       {cards && cards.map((card, index) => (
-        <div key={index} className={`my-6 rounded-lg bg-blue p-6 text-primary 
-        ${isLoading ? "border-4 border-dashed border-yellow-500" : ""
-          }`}>
+        <div key={index} className={`my-6 rounded-lg bg-blue p-6 text-primary border-4 border-blue-500
+        `}>
           <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
             <div>
               <h4 className="text-xl font-bold">{card.title}</h4>
@@ -165,7 +218,7 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
                   />
                   {LOADING_MESSAGES[msgIndex]}
                 </p>
-              )}
+              )}            
             </div>
           </Link>
       <CommentBox
@@ -184,3 +237,26 @@ export default function ThreeCardLayout({ cards }: { cards: ICard }) {
     </div>
   );
 }
+/*
+${isLoading ? "border-4  border-blue-500" : ""}
+
+    {card.responses[0].response}
+
+
+{!isLoading && !!card.responses ? (
+                <p className="my-5">
+                  {card.responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
+                  {card.responses[0].response.length > MAX_CHARACTERS_PREVIEW
+                    ? "..."
+                    : null}
+                </p>
+              ) : (
+                <p className="my-5">
+                  <FontAwesomeIcon
+                    icon={faSpinner}
+                    className="mx-2 h-5 w-5 animate-spin align-middle duration-300"
+                  />
+                  {LOADING_MESSAGES[msgIndex]}
+                </p>
+              )}
+*/
