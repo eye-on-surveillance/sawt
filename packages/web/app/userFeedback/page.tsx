@@ -1,5 +1,6 @@
 
 import { supabase } from '../../lib/supabase/supabaseClient';
+
 import ThreeCardLayout from '@/components/ThreeCardLayout';
 
 import NewComment from '@/components/Comment';
