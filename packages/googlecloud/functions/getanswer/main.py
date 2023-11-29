@@ -50,10 +50,12 @@ def getanswer(request):
     start = time.time()
 
     # Parse args
-    #print(request.headers)
+    print(request.headers)
     content_type = request.headers["Content-Type"]
     if content_type == "application/json":
+
         request_json = request.get_json(silent=True)
+        print(request_json)
         logging.info(request_json)
 
         query = parse_field(request_json, "query")

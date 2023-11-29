@@ -161,38 +161,40 @@ def get_indepth_response_from_query(df, db, query, k, query_type):
 ## varied responses for user annotation
 def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
     logger.info("Performing varied summary query...")
-
-
-    llm = ChatOpenAI(model_name="gpt-4")
-    doc_list = db.similarity_search_with_score(query, k=k)
-    docs = sort_retrived_documents(doc_list)
-    docs_page_content = " ".join([d[0].page_content for d in docs])
-
-    template = """
-    Transcripts: {docs}
-    Question: {question}
-    
-    Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-    Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
-    """
-
-    prompt = PromptTemplate(
-        input_variables=["question", "docs"],
-        template=template,
-    )
-
-
     master_response = {}
     master_response["card_type"] = "varied"
     response_list = {}
+    k_list = [3,5,7]
     for i in range(n):
+
+        llm = ChatOpenAI(model_name="gpt-4")
+        doc_list = db.similarity_search_with_score(query, k=k_list[i])
+        docs = sort_retrived_documents(doc_list)
+        docs_page_content = " ".join([d[0].page_content for d in docs])
+
+        template = """
+        Transcripts: {docs}
+        Question: {question}
+        
+        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
+        Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
+        """
+
+        prompt = PromptTemplate(
+            input_variables=["question", "docs"],
+            template=template,
+        )
+
+
+
         chain_llm = LLMChain(llm=llm, prompt=prompt)
         responses_llm = chain_llm.run(
         question=query, docs=docs_page_content, temperature=0)
         single_response = process_responses_llm(responses_llm, docs, card_type)
-        #print(single_response, "\n")
+        single_response["k"] = k_list[i]
         response_list[i] = single_response
-    master_response["responses"] = response_list
+        master_response["responses"] = response_list
+    print(master_response)
     return master_response
 
 
