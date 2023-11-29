@@ -3,8 +3,8 @@ functions-framework
 flask
 google-cloud-error-reporting
 python-dotenv
-langchain==0.0.330
-openai==0.28.1
+langchain
+openai
 google-api-python-client # Google API
 google-search-results # SerpAPI
 youtube-transcript-api
@@ -14,4 +14,3 @@ faiss-cpu
 wikipedia
 pandas 
 tabulate
-supabase

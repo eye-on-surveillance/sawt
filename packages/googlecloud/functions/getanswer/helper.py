@@ -3,8 +3,7 @@ from pathlib import Path
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain import OpenAI
+from langchain.llms import OpenAI
 import logging
 import pandas as pd
 
@@ -37,31 +36,30 @@ def get_dbs():
 
 
 def create_embeddings():
-    llm = ChatOpenAI(model="gpt-4")
-
-    base_embeddings = OpenAIEmbeddings()
+    llm = OpenAI()
 
     general_prompt_template = """
-    As an AI assistant, your role is to provide concise, balanced summaries from the transcripts of New Orleans City Council meetings in response to the user's query "{user_query}". Your response should not exceed one paragraph in length. If the available information from the transcripts is insufficient to accurately summarize the issue, respond with 'Insufficient information available.' If the user's query extends beyond the scope of information contained in the transcripts, state 'I don't know.'
+    As an AI assistant tasked with generating brief general summaries, your role is to provide succinct, balanced information from the transcripts of New Orleans City Council meetings in response to the question "{question}". The response should not exceed one paragraph in length. If the available information from the transcripts is insufficient to accurately summarize the issue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
     Answer:"""
 
     in_depth_prompt_template = """
-    As an AI assistant, use the New Orleans City Council transcript data that you were trained on to provide an in-depth and balanced response to the following query: "{user_query}" 
+    As an AI assistant tasked with providing in-depth dialogical summaries, your role is to provide comprehensive information from the transcripts of New Orleans City Council meetings. Your response should mimic the structure of a real conversation, often involving more than two exchanges between the parties. The dialogue should recreate the actual exchanges that occurred between city council members and external stakeholders in response to the question "{question}". For specific queries related to any votes that took place, your response should include detailed information. This should cover the ordinance number, who moved and seconded the motion, how each council member voted, and the final outcome of the vote. For each statement, response, and voting action, provide a summary, followed by a direct quote from the meeting transcript to ensure the context and substance of the discussion is preserved. If a question is about the voting results on a particular initiative, include in your response how each council member voted, if they were present, and if there were any abstentions or recusals. Always refer back to the original transcript to ensure accuracy. If the available information from the transcripts is insufficient to accurately answer the question or recreate the dialogue, please respond with 'Insufficient information available.' If the question extends beyond the scope of information contained in the transcripts, state 'I don't know.'
     Answer:"""
 
     general_prompt = PromptTemplate(
-        input_variables=["user_query"], template=general_prompt_template
+        input_variables=["question"], template=general_prompt_template
     )
     in_depth_prompt = PromptTemplate(
-        input_variables=["user_query"], template=in_depth_prompt_template
+        input_variables=["question"], template=in_depth_prompt_template
     )
 
     llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
     llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
+    base_embeddings = OpenAIEmbeddings()
+
     general_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_general,
-        base_embeddings=base_embeddings,
+        llm_chain=llm_chain_general, base_embeddings=base_embeddings
     )
     in_depth_embeddings = HypotheticalDocumentEmbedder(
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings

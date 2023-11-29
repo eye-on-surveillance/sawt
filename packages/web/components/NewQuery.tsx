@@ -1,19 +1,30 @@
 import { ECardStatus, ECardType, ICard } from "@/lib/api";
 import { APP_NAME } from "@/lib/copy";
-import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
+import { API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
+import { ABOUT_BETA_PATH } from "@/lib/paths";
+import Link from "next/link";
 
+function YouTubeEmbed({ url }: { url: string }) {
+  const videoId = url.split("v=")[1]?.split("&")[0];
+  if (!videoId) return null;
 
-type SupabaseRealtimePayload<T = any> = {
-  old: T;
-  new: T;
-};
+  return (
+    <iframe 
+      width="560" 
+      height="315" 
+      src={`https://www.youtube.com/embed/${videoId}`} 
+      frameBorder="0" 
+      title="YouTube Video"
+      allowFullScreen
+    ></iframe>
+  );
+}
 
 function YouTubeThumbnail({ url }: { url: string }) {
   const videoId = url.split("v=")[1]?.split("&")[0];
@@ -21,10 +32,10 @@ function YouTubeThumbnail({ url }: { url: string }) {
 
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
-      <img
-        width="560"
-        height="315"
-        src={`https://img.youtube.com/vi/${videoId}/0.jpg`}
+      <img 
+        width="560" 
+        height="315" 
+        src={`https://img.youtube.com/vi/${videoId}/0.jpg`} 
         alt="YouTube Thumbnail"
       />
     </a>
@@ -37,25 +48,8 @@ export default function NewQuery() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardType, setCardType] = useState(ECardType.QUERY_VARIED);
   const { addMyCard } = useCardResults();
-  const [card, setCard] = useState<ICard | null>(null);
-  const [submissionStarted, setSubmissionStarted] = useState(false);
-  const [processingComplete, setProcessingComplete] = useState(false);
-  const [currentCardId, setCurrentCardId] = useState<string | null>(null);
-  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(null);
+  const [card, setCard] = useState<ICard | null>(null);  
 
-
-    const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
-      e?.preventDefault();
-  
-      if (query.length <= 10) return;
-
-    setIsProcessing(true);
-    const newCard = await insertSupabaseCard();
-    if (newCard) {
-      await sendQueryToFunction(newCard);
-      setCurrentCardId(newCard.id ?? null);
-    }
-  };
 
   const insertSupabaseCard = async (): Promise<ICard> => {
     const newCard: ICard = {
@@ -77,72 +71,73 @@ export default function NewQuery() {
       createdCard.status = ECardStatus.PUBLIC;
 
       addMyCard(createdCard);
-      setCurrentCardId(createdCard.id ?? null);
       return createdCard;
     }
   };
 
   const sendQueryToFunction = async (newCard: ICard) => {
-    setIsProcessing(true);
+    // Start processing question
+    const answerResp = await fetch(apiEndpoint, {
+      method: "POST",
+      // Pass responseMode to your API endpoint
+      body: JSON.stringify({ query, response_type: cardType }),
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    let card: any = await answerResp.json();
 
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        body: JSON.stringify({
-          query,
-          response_type: cardType,
-          card_id: newCard.id,
-        }),
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    card = Object.assign({}, newCard, card);
+    card.citations = card.citations!.map((citation: any) => {
+      return {
+        source_title: citation.Title,
+        source_name: citation.Name,
+        source_publish_date: citation.Published,
+        source_url: citation.URL, 
+      };
+    });
+    card = card as ICard;
+    setQuery("");
+    setIsProcessing(false);
+    return card;
+  };
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+  const updateQueryResponded = async (
+    card: ICard,
+    startedProcessingAt: number
+  ) => {
+    const genResponseMs = Math.ceil(Date.now() - startedProcessingAt);
+    const queryUpdate = {
+      responses: card.responses,
+      citations: card.citations,
+      processing_time_ms: genResponseMs,
+    };
+    const { error } = await supabase
+      .from(TABLES.CARDS)
+      .update(queryUpdate)
+      .eq("id", card.id);
 
-      // Start polling Supabase for updates
-      const interval = setInterval(async () => {
-        const { data, error } = await supabase
-          .from(TABLES.CARDS)
-          .select("*")
-          .eq("id", newCard.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching updated card:", error);
-          clearInterval(interval);
-          setIsProcessing(false);
-          return;
-        }
-
-        if (data && data.responses && data.citations) {
-          setCard(data);
-          addMyCard(data);
-          clearInterval(interval);
-          setIsProcessing(false);
-        }
-      }, 5000);
-
-      setPollingIntervalId(interval as unknown as number);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation: ", error);
-      if (pollingIntervalId !== null) {
-        clearInterval(pollingIntervalId);
-      }
-      setIsProcessing(false);
+    if (error) {
+      console.warn("Could not record query");
+      console.warn(error);
+      return;
+    } else {
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalId) {
-        clearInterval(pollingIntervalId);
-      }
-    };
-  }, [pollingIntervalId]);
+  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+
+    if (query.length <= 10) return;
+
+    const startedProcessingAt = Date.now();
+    setIsProcessing(true);
+    const newCard = await insertSupabaseCard();
+    const cardWResp = await sendQueryToFunction(newCard);
+    addMyCard(cardWResp);
+    await updateQueryResponded(cardWResp, startedProcessingAt);  
+  };
 
   return (
     <div className="my-12">
@@ -162,31 +157,31 @@ export default function NewQuery() {
             disabled={isProcessing}
             onChange={(e) => setQuery(e.currentTarget.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
+              if (e.key === 'Enter') {
+                e.preventDefault(); 
                 submitQuery();
               }
             }}
           />
         </div>
-        <button
-          className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "bg-primary cursor-wait" : "bg-primary"
-          } p-2 text-2xl text-blue`}
-          type="submit"
-          disabled={isProcessing}
-        >
-          Get answer from Sawt
-        </button>
-
       </form>
 
-      <p className="text-left font-light">
-        This tool is under active development. Responses may be inaccurate.{" "}
-        <Link href={ABOUT_BETA_PATH} className="underline">
-          Learn more
-        </Link>
-      </p>
+        <p>
+          This tool is under active development. Responses may be inaccurate.{" "}
+          <Link href={ABOUT_BETA_PATH} className="underline">
+            Learn more
+          </Link>
+        </p>
+
+      <div className="mt-10">
+        {card?.citations?.map((citation, index) => (
+          <div key={index}>
+            <p>{citation.source_title}</p>
+            {citation.source_url && citation.source_url.includes("youtube.com") && 
+              <YouTubeThumbnail url={citation.source_url} />}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

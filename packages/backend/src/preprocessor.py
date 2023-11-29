@@ -1,6 +1,7 @@
 import logging
 import os
 from langchain.document_loaders import (
+    Docx2txtLoader,
     JSONLoader,
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -8,9 +9,10 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain import OpenAI
+from langchain.llms import OpenAI
 from pathlib import Path
 import shutil
+
 
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
@@ -80,6 +82,15 @@ def create_db_from_minutes_and_agendas(doc_directory):
     return all_docs
 
 
+def metadata_func(record: dict, metadata: dict) -> dict:
+    metadata["timestamp"] = record.get("timestamp")
+    metadata["url"] = record.get("url")
+    metadata["title"] = record.get("title")
+    metadata["publish_date"] = record.get("publish_date")
+
+    return metadata
+
+
 def metadata_news(record: dict, metadata: dict) -> dict:
     metadata["url"] = record.get("url")
     metadata["title"] = record.get("title")
@@ -102,21 +113,12 @@ def create_db_from_news_transcripts(news_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=500, chunk_overlap=250
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
     logger.info("Finished database from news transcripts...")
     return all_docs
-
-
-def metadata_func(record: dict, metadata: dict) -> dict:
-    metadata["timestamp"] = record.get("timestamp")
-    metadata["url"] = record.get("url")
-    metadata["title"] = record.get("title")
-    metadata["publish_date"] = record.get("publish_date")
-
-    return metadata
 
 
 def create_db_from_cj_transcripts(cj_json_directory):
@@ -135,19 +137,10 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=15000, chunk_overlap=7500
+            chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
-
-        for doc in docs:
-            publish_date = doc.metadata.get("publish_date")
-            if publish_date:
-                doc.page_content += f" -- publish_date: {publish_date}"
-            else:
-                logger.warning(f"No publish date found for document: {doc}")
-
         all_docs.extend(docs)
-
     logger.info("Finished database from CJ transcripts...")
     return all_docs
 
@@ -168,17 +161,11 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=15000, chunk_overlap=7500
+            chunk_size=20000, chunk_overlap=10000
         )
         docs = text_splitter.split_documents(data)
-        # Append the publish date to the end of page_content
-        for doc in docs:
-            publish_date = doc.metadata.get("publish_date")
-            if publish_date:
-                doc.page_content += f" -- publish_date: {publish_date}"
-
         all_docs.extend(docs)
-    logger.info("Finished database from news transcripts...")
+    logger.info("Finished database from FC transcripts...")
     return all_docs
 
 
@@ -198,7 +185,7 @@ def create_db_from_public_comments(pc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=1000, chunk_overlap=500
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -221,7 +208,7 @@ def create_db_from_youtube_urls_and_pdfs(
     pc_docs = create_db_from_public_comments(pc_directory)
     news_docs = create_db_from_news_transcripts(news_directory)
 
-    all_docs = fc_video_docs + cj_video_docs + news_docs + pc_docs
+    all_docs = fc_video_docs + cj_video_docs + pc_docs + news_docs
 
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)

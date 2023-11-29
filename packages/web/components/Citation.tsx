@@ -1,9 +1,3 @@
-import {
-  getYouTubeEmbedUrl,
-  getYouTubeThumbnail,
-  isYouTubeURL,
-} from "@/lib/utils";
-import moment from "moment";
 import "./Citation.css";
 
 interface CitationProps {
@@ -18,58 +12,47 @@ const citationKeyMap: { [key: string]: string } = {
   source_url: "Source URL",
 };
 
-const Citation = ({ citation: originalCitation, index }: CitationProps) => {
-  const hasMetadata = Object.values(originalCitation).some(
+function isYouTubeURL(url: string): boolean {
+  return url.includes('youtube.com');
+}
+
+function getYouTubeThumbnail(url: string): string | undefined {
+  const videoId = url.split("v=")[1]?.split("&")[0];
+  if (!videoId) return undefined;
+  return `https://img.youtube.com/vi/${videoId}/0.jpg`;
+}
+
+const Citation = ({ citation, index }: CitationProps) => {
+  const hasMetadata = Object.values(citation).some(
     (value) => value !== null && value !== ""
   );
-  if (!hasMetadata) return null;
 
-  const {
-    source_title: title,
-    source_url,
-    source_name: name,
-    score: ignore,
-    source_publish_date: publishedAt,
-    ...citation
-  } = originalCitation;
-
-  const isYoutube = isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
-  return (
-    <div className="mb-6 w-full space-y-1 rounded-2xl p-2 text-primary lg:w-1/2">
-      <div>
-        <p className="font-bold lg:text-lg">
-          #{index + 1}: {title}
-        </p>
-        <p className="text-secondary">{moment(publishedAt).fromNow()}</p>
-      </div>
-
-      <div>
-        {isYoutube ? (
-          <iframe
-            id="ytplayer"
-            src={getYouTubeEmbedUrl(source_url)}
-            frameBorder="0"
-            className="h-64 w-full lg:h-96"
-          ></iframe>
-        ) : (
-          <a href={source_url} target="_blank" rel="noopener noreferrer">
-            {source_url}
-          </a>
-        )}
-      </div>
-
-      <div>
-        {Object.keys(citation).map((key, i) => (
-          <div key={i}>
-            <strong>
-              {"\u2022"} {citationKeyMap[key] || key}
-            </strong>
-            : {citation[key]}
-          </div>
-        ))}
-      </div>
+  return hasMetadata ? (
+    <div className="citation">
+      <strong>Citation {index + 1}</strong>
+      {Object.keys(citation).map((key, i) => (
+        <div key={i}>
+          <strong>
+            {"\u2022"} {citationKeyMap[key] || key} 
+          </strong>
+          :{" "}
+          {key === "source_url" && citation[key] ? (
+            isYouTubeURL(citation[key]) && getYouTubeThumbnail(citation[key]) ? (
+              <a href={citation[key]} target="_blank" rel="noopener noreferrer">
+                <img src={getYouTubeThumbnail(citation[key])!} alt="YouTube Thumbnail" width="200"/>
+              </a>
+            ) : (
+              <a href={citation[key]} target="_blank" rel="noopener noreferrer">
+                {citation[key]}
+              </a>
+            )
+          ) : (
+            citation[key]
+          )}
+        </div>
+      ))}
     </div>
-  );
+  ) : null;
 };
 
 export default Citation;
