@@ -143,7 +143,7 @@ def get_indepth_response_from_query(df, db, query, k, query_type):
         
         Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
         Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
-        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
+        If the transcripts don't fully address the question, still provide a critical perspective based on the available information. Do not use double quotes anywhere in your response.
         """
 
         prompt = PromptTemplate(
@@ -177,7 +177,8 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
         Question: {question}
         
         Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-        Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
+        Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information. 
+        Do not use double quotes anywhere in your response, and when quoting something from the prompt.
         """
 
         prompt = PromptTemplate(
