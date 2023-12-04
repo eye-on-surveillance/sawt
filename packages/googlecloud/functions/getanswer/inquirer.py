@@ -207,7 +207,6 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
         single_response["k"] = k_list[i]
         response_list[i] = single_response
         master_response["responses"] = response_list
-    print(master_response)
     return master_response
 
 
@@ -278,7 +277,6 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
         single_response["k"] = k_list[i]
         response_list[i] = single_response
         master_response["responses"] = response_list
-    print(master_response)
     return master_response
 
 
@@ -290,7 +288,7 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
     master_response = {}
     master_response["card_type"] = "varied"
     response_list = {}
-    k_list = [3,5,7]
+    k_list = [6,12,25]
     for i in range(n):
 
         llm = ChatOpenAI(model_name="gpt-4")
@@ -320,7 +318,6 @@ def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"
         single_response["k"] = k_list[i]
         response_list[i] = single_response
         master_response["responses"] = response_list
-    print(master_response)
     return master_response
 
 
