@@ -8,7 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain import OpenAI
+from langchain.llms import OpenAI
 from pathlib import Path
 import shutil
 
@@ -17,7 +17,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    llm = OpenAI()
+    llm = OpenAI(n=4, best_of=4)
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -43,11 +43,13 @@ def create_embeddings():
         llm_chain=llm_chain_general,
         base_embeddings=base_embeddings,
     )
+
     in_depth_embeddings = HypotheticalDocumentEmbedder(
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
+    print(in_depth_embeddings)
 
-    return base_embeddings, base_embeddings
+    return in_depth_embeddings, general_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -72,7 +74,7 @@ def create_db_from_minutes_and_agendas(doc_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=15000, chunk_overlap=10000
+            chunk_size=4000, chunk_overlap=1000
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -221,7 +223,7 @@ def create_db_from_youtube_urls_and_pdfs(
     pc_docs = create_db_from_public_comments(pc_directory)
     news_docs = create_db_from_news_transcripts(news_directory)
 
-    all_docs = fc_video_docs + cj_video_docs + news_docs + pc_docs
+    all_docs = fc_video_docs + cj_video_docs + news_docs + pc_docs + pdf_docs
 
     db_general = FAISS.from_documents(all_docs, general_embeddings)
     db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)
