@@ -171,7 +171,9 @@ def get_indepth_response_from_query(df, db, query, k):
         query = transform_query_for_date(query)
 
     doc_list = db.similarity_search_with_score(query, k=k)
+
     docs = sort_retrived_documents(doc_list)
+
     docs_page_content = append_metadata_to_content(doc_list)
 
     template = """
@@ -245,3 +247,4 @@ def answer_query(
     final_response = route_question(df, db_general, db_in_depth, query, response_type)
 
     return final_response
+
