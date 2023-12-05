@@ -17,7 +17,7 @@ dir = Path(__file__).parent.absolute()
 
 
 def create_embeddings():
-    llm = OpenAI(n=4, best_of=4)
+    llm = OpenAI()
 
     base_embeddings = OpenAIEmbeddings()
 
@@ -49,7 +49,7 @@ def create_embeddings():
     )
     print(in_depth_embeddings)
 
-    return in_depth_embeddings, general_embeddings
+    return base_embeddings, base_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
