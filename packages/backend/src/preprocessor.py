@@ -47,7 +47,6 @@ def create_embeddings():
     in_depth_embeddings = HypotheticalDocumentEmbedder(
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
-    print(in_depth_embeddings)
 
     return base_embeddings, base_embeddings
 
