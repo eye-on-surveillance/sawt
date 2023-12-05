@@ -19,7 +19,7 @@ dir = Path(__file__).parent.absolute()
 def create_embeddings():
     llm = OpenAI(n=4, best_of=4)
 
-    base_embeddings = OpenAIEmbeddings(api_key="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")
+    base_embeddings = OpenAIEmbeddings()
 
     general_prompt_template = """
     As an AI assistant, your role is to provide concise, balanced summaries from the transcripts of New Orleans City Council meetings in response to the user's query "{user_query}". Your response should not exceed one paragraph in length. If the available information from the transcripts is insufficient to accurately summarize the issue, respond with 'Insufficient information available.' If the user's query extends beyond the scope of information contained in the transcripts, state 'I don't know.'
