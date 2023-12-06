@@ -4,7 +4,6 @@ import os
 
 from dotenv import find_dotenv, load_dotenv
 from inquirer import answer_query
-from langchain.embeddings.openai import OpenAIEmbeddings
 from helper import get_dbs
 from api import RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_DEPTH
 

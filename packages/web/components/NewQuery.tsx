@@ -168,6 +168,16 @@ export default function NewQuery() {
             }}
           />
         </div>
+        <button
+          className={`w-full rounded-lg md:w-1/2 ${
+            isProcessing ? "bg-primary cursor-wait" : "bg-primary"
+          } p-2 text-2xl text-blue`}
+          type="submit"
+          disabled={isProcessing}
+        >
+          Get answer from Sawt
+        </button>
+
       </form>
 
       <p className="text-left font-light">

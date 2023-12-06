@@ -171,13 +171,10 @@ def get_indepth_response_from_query(df, db, query, k):
         query = transform_query_for_date(query)
 
     doc_list = db.similarity_search_with_score(query, k=k)
-    print(doc_list)
     docs = sort_retrived_documents(doc_list)
     docs_page_content = append_metadata_to_content(doc_list)
 
     template = """
-    Documents: {docs}
-    
     Question: {question}
 
 
@@ -188,9 +185,10 @@ def get_indepth_response_from_query(df, db, query, k):
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
     
-    Summarize your answer from the analysis regarding {question} into one cohesive paragraph. 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
+
+    Documents: {docs}
     """
 
     prompt = PromptTemplate(
@@ -200,6 +198,7 @@ def get_indepth_response_from_query(df, db, query, k):
 
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=1)
+    print(responses_llm)
 
     return process_responses_llm(responses_llm, docs)
 
