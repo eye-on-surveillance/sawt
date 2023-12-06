@@ -60,6 +60,14 @@ export default function ThreeCardLayout({ cards, userName }: { cards: Array<ICar
         .eq("id", card.id)
         .single();
 
+      
+      // order by random
+      // select all ids load them to an array
+      // then independent supabase fetch the card with that random id
+        // --on button click
+      
+      
+    
       if (fetchError) {
         throw fetchError;
       }

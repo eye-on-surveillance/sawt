@@ -14,6 +14,8 @@ export default function UserFeedback() {
   // const [currentIndex, setCurrentIndex] = useState<number>(randint(0,177));
   const [userName, setUserName] = useState("");
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [fullData, setFullData] = useState<Array<Array<ICard>> | null>(null);
+
   const [cardArray, setCardArray] = useState<Array<Array<ICard>> | null>(null);
   
 
@@ -23,13 +25,24 @@ export default function UserFeedback() {
 
 
   const handlePrevClick = () => {
-    //wraps around
-    setCurrentIndex((currentIndex - 1 + question_idArray.length) % question_idArray.length);
+    if (fullData) {
+      setCardArray(fullData);
+      //wraps around
+      setCurrentIndex((currentIndex - 1 + question_idArray.length) % question_idArray.length);
+    } else {
+      alert("Please wait for the rest of the cards to finish loading...");
+    }
   };
 
   const handleNextClick = () => {
-    //wraps around
-    setCurrentIndex((currentIndex + 1) % question_idArray.length);
+    if (fullData) {
+      setCardArray(fullData);
+      //wraps around
+      setCurrentIndex((currentIndex + 1) % question_idArray.length);
+    } else {
+      alert("Please wait for the rest of the cards to finish loading...");
+    }
+
   };
   
   //const handleNameChange = (e) => {
@@ -38,38 +51,58 @@ export default function UserFeedback() {
   }
 
   useEffect(() => {
-    const getCards = async () => {
+    const getCard = async () => {
       try {
-        
         const cardsArray: Array<Array<ICard>> = [];
-        for (let i = 1; i <= question_idArray.length; i++) {
-          const { data: cards, error } = await supabase
-            .from('sawt_cards')
-            .select('*')
-            .eq("question_id", i);
-           
-          if (error) {
-            console.error("Error fetching cards: ", error);
-            // Handle the error appropriately in your UI
-          }
-
-          if (cards) {
-            cardsArray.push(cards);
-          }
+        const { data: cards, error } = await supabase
+          .from('sawt_cards')
+          .select('*')
+          .eq("question_id", 0);
+        if (cards) {
+          cardsArray.push(cards);
         }
-
         setCardArray(cardsArray);
-
-        setCurrentIndex(Math.floor(Math.random() * cardsArray.length));
-        
-      } catch (error) {
+        console.log(cards);
+      }catch (error) {
         console.error("Error fetching cards: ", error);
         // Handle the error appropriately in your UI
       }
-    };
-
-    getCards();
+      getCards();
+    } 
+      getCard();
   }, []); // Run this effect only once when the component mounts
+
+
+  const getCards = async () => {
+    const cardsArray: Array<Array<ICard>> = [];
+    try {
+      for (let i = 1; i <= question_idArray.length; i++) {
+        const { data: cards, error } = await supabase
+          .from('sawt_cards')
+          .select('*')
+          .eq("question_id", i);
+        
+        if (error) {
+          console.error("Error fetching cards: ", error);
+          // Handle the error appropriately in your UI
+        }
+        console.log(cards);
+
+        if (cards) {
+          cardsArray.push(cards);
+        }
+      }       
+      setFullData(cardsArray);
+      console.log(fullData);
+      //setCurrentIndex(Math.floor(Math.random() * cardsArray.length));
+
+
+    } catch (error) {
+      console.error("Error fetching cards: ", error);
+      // Handle the error appropriately in your UI
+    }
+  };
+
 
   if (!cardArray) {
     return <div>Loading...</div>;
