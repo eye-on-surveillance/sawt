@@ -2,17 +2,10 @@
 "use client";
 
 import { ICard } from "@/lib/api";
-import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
+// import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import {
-  faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import moment from "moment";
-import Link from "next/link";
+// import Link from "next/link";
 import { useState } from "react";
-import useClipboardApi from "use-clipboard-api";
-import { v4 as uuidv4 } from "uuid"; //will need
 import CommentBox from "./CommentBoxes";
 
 import Rubric from '@/components/Rubric';
@@ -25,59 +18,8 @@ const criteria = [
   // Add more criteria as needed
 ];
 
-
-const MAX_CHARACTERS_PREVIEW = 300;
-
-const LOADING_MESSAGES = [
-  "Processing your request...",
-  "About 30 seconds remaining...",
-  "Processing your request...",
-  "About 25 seconds remaining...",
-  "About 25 seconds remaining...",
-  "Processing your request...",
-  "About 20 seconds remaining...",
-  "About 20 seconds remaining...",
-  "Processing your request...",
-  "Processing your request...",
-  "About 15 seconds remaining...",
-  "About 15 seconds remaining...",
-  "Processing your request...",
-  "About 10 seconds remaining...",
-  "About 10 seconds remaining...",
-  "Hang tight...",
-  "Hang tight...",
-  "Hang tight...",
-  "About 5 seconds remaining...",
-  "About 5 seconds remaining...",
-  "Finishing up...",
-];
-
-const WAIT_MS = 2500;
-const POLL_INTERVAL = 10000;
-
-type SupabaseRealtimePayload<T = any> = {
-  old: T;
-  new: T;
-};
-
-export default function ThreeCardLayout({ cards, userName }: { cards: ICard, userName: string }) {
+export default function ThreeCardLayout({ cards, userName }: { cards: Array<ICard>, userName: string }) {
  
-  // ... other imports ...
-  
-
-     
-  const [msgIndex, setMsgIndex] = useState<number>(0);
-  const isLoading = !cards.responses || cards.responses.length <= 0;
-  const [value, copy] = useClipboardApi();
-  const currentUrl = getPageURL(`${CARD_SHOW_PATH}/${cards.id}`);
-  const [recentlyCopied, setRecentlyCopied] = useState(false);
-  const [prettyCreatedAt, setPrettyCreatedAt] = useState(
-    !!cards.created_at && new Date(cards.created_at) < new Date()
-      ? moment(cards.created_at).fromNow()
-      : moment().fromNow()
-  );
-
-
   const [scores, setScores] = useState<Record<string, number>>({});
 
   // Function to update scores
@@ -88,11 +30,18 @@ export default function ThreeCardLayout({ cards, userName }: { cards: ICard, use
   // Function to reset scores
   const resetScores = () => {
       // Reset logic - assuming each score should reset to 1
-      const resettedScores = Object.keys(scores).reduce((acc, criterionId) => {
-          acc[criterionId] = 1;
-          return acc;
-      }, {});
-      setScores(resettedScores);
+      // const resettedScores = Object.keys(scores).reduce((acc, criterionId) => {
+      //     acc[criterionId] = 1;
+      //     return acc;
+    // }, {});
+  
+    const resetScores = {
+      "Accuracy": 1,
+      "Helpfulness": 1,
+      "Balance": 1
+    };
+
+      setScores(resetScores);
   };
 
   //Function that sends comments to supabase under respective card.comment
@@ -108,8 +57,8 @@ export default function ThreeCardLayout({ cards, userName }: { cards: ICard, use
     try {
       const { data: existingCard, error: fetchError } = await supabase
         .from("sawt_cards")
-        .select("question_id, response_id")
-        .eq("response_id", card.response_id)
+        .select("question_id, id")
+        .eq("id", card.id)
         .single();
 
       if (fetchError) {
@@ -122,11 +71,10 @@ export default function ThreeCardLayout({ cards, userName }: { cards: ICard, use
       const { data, error } = await supabase
       .from("UserFeedback")
       .insert([
-        { question_id: existingCard.question_id, response_id: existingCard.response_id, user_id: user_id, comment: comment, accuracy: scores["Accuracy"], helpfulness: scores["Helpfulness"], balance: scores["Balance"] },
+        { question_id: existingCard.question_id, response_id: existingCard.id, user_id: user_id, comment: comment, accuracy: scores["Accuracy"], helpfulness: scores["Helpfulness"], balance: scores["Balance"] },
       ])
       .select()
-        
-
+    
       if (error) {
         throw error;
       }
@@ -139,7 +87,7 @@ export default function ThreeCardLayout({ cards, userName }: { cards: ICard, use
       <div className="flex justify-center space-x-4-x">
 
           <div key={index} className={`rounded-lg bg-blue p-6 text-primary`}>
-          <h4 className="text-xl font-bold">{card.query}</h4>
+          <h4 className="text-xl font-bold">{card.title}</h4>
   
             {/* <Link href={`${CARD_SHOW_PATH}/${card.id}`}> */}
           { /* LINK DOES the modal-- Need to change card.id to questionID to refer back to original card ID */}
@@ -151,7 +99,7 @@ export default function ThreeCardLayout({ cards, userName }: { cards: ICard, use
                 </h6>
 
                 <div>
-                {card.responses.map((element, index) => (
+                {card.responses && card.responses.map((element, index) => (
                     
                     <p key={index} className="my-5">
                       {element.response}

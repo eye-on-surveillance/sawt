@@ -35,18 +35,16 @@ const Rubric: React.FC<RubricProps> = ({ criteria, scores, onScoreChange }) => {
         marginTop: '20px', 
       };
     
-      const containerStyle = {
-        display: 'flex', 
-        justifyContent: 'center', // Center children horizontally
-        alignItems: 'center', // Center children vertically
-        flexDirection: 'column', // Stack children vertically
-        padding: '20px', // Add padding around the container
-  };
-  
+      const containerStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        padding: '20px',
+      };
 
-
-    return (
-        <div style= {containerStyle}>
+      return (
+        <div style={containerStyle}>
             <div>
                 {criteria.map(criterion => (
                     <div key={criterion.id} style={{ marginBottom: '10px' }}>

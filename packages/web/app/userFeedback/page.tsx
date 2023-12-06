@@ -10,64 +10,59 @@ import { ICard } from '@/lib/api';
 import Rubric from '@/components/Rubric';
 
 export const dynamic = "force-dynamic";
-// export const question_idArray = Array.from({ length: 99 }, (_, index) => index);
-export const question_idArray = [0,1,2];
 
 export default function UserFeedback() {
   // const [currentIndex, setCurrentIndex] = useState<number>(randint(0,177));
   const [userName, setUserName] = useState("");
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [cardArray, setCardArray] = useState<Array<ICard> | null>(null);
+  const [cardArray, setCardArray] = useState<Array<Array<ICard>> | null>(null);
   const [rubricScores, setRubricScores] = useState<Record<string, number>>({});
+  
+  //const question_idArray = Array.from({ length: 99 }, (_, index) => index);
+  const question_idArray = [0,1,2];
+
 
   const handlePrevClick = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-    // setRubricScores(createDefaultScores());
-  }
-
-  
+    //wraps around
+    setCurrentIndex((currentIndex - 1 + question_idArray.length) % question_idArray.length);
+  };
 
   const handleNextClick = () => {
-    if (currentIndex < question_idArray.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-    // setRubricScores(createDefaultScores());
-  }
-
-  //potentially could set rubric back to 1s
-  // const createDefaultScores = () => {
-  //   return criteria.reduce((acc, criterion) => {
-  //     acc[criterion.id] = 1;
-  //     return acc;
-  //   }, {});
-  // };
-
-  const handleNameChange = (e) => {
+    //wraps around
+    setCurrentIndex((currentIndex + 1) % question_idArray.length);
+  };
+  
+  //const handleNameChange = (e) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(e.target.value);
   }
 
   useEffect(() => {
     const getCards = async () => {
       try {
-        const cardsArray = [];
+        
+        const cardsArray: Array<Array<ICard>> = [];
         for (let i = 1; i <= question_idArray.length; i++) {
           const { data: cards, error } = await supabase
             .from('sawt_cards')
             .select('*')
             .eq("question_id", i);
             // .eq("questionID", currentIndex)
-
-
+           
           if (error) {
             console.error("Error fetching cards: ", error);
             // Handle the error appropriately in your UI
           }
-          cardsArray.push(cards);
+
+          if (cards) {
+            cardsArray.push(cards);
+          }
         }
+
         setCardArray(cardsArray);
 
+        setCurrentIndex(Math.floor(Math.random() * cardsArray.length));
+        
       } catch (error) {
         console.error("Error fetching cards: ", error);
         // Handle the error appropriately in your UI
