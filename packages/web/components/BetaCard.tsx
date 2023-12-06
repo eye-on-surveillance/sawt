@@ -77,6 +77,41 @@ const BetaCard = ({ card }: { card: ICard }) => {
     };
   }, [card.id]);
 
+  const handleCommentSubmit = async () => {
+    const newComment = {
+      card_id: card.id,
+      content: commentContent,
+      display_name: displayName,
+      created_at: new Date(),
+    };
+
+
+    setComments((prevComments) =>
+      prevComments
+        ? prevComments.filter((comment) => comment !== newComment)
+        : null
+    );
+
+    setDisplayName(""); // Resetting display name
+    setCommentContent(""); // Resetting comment content
+
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .insert([newComment]);
+      if (error) throw error;
+      setDisplayName(""); // Resetting display name after successful post
+      setCommentContent(""); // Resetting comment content after successful post
+    } catch (error) {
+      // If there's an error, revert the change to the comments
+      setComments((prevComments) =>
+        prevComments
+          ? prevComments.filter((comment) => comment !== newComment)
+          : null
+      );
+    }
+  };
+
   return (
     <div className="w-full text-primary">
       {/* Card Header */}
