@@ -82,10 +82,10 @@ export default function ThreeCardLayout({ cards, userName }: { cards: Array<ICar
 
   return (
     <div>
-    {cards && cards.map((card,index) => (
-      <div key={index} className="flex justify-center space-x-4-x">
+    {cards && cards.map((card) => (
+      <div key={card.id} className="flex justify-center space-x-4-x">
 
-          <div key={index} className={`rounded-lg bg-blue p-6 text-primary`}>
+          <div key={card.id} className={`rounded-lg bg-blue p-6 text-primary`}>
           <h4 className="text-xl font-bold">{card.title}</h4>
   
             {/* <Link href={`${CARD_SHOW_PATH}/${card.id}`}> */}

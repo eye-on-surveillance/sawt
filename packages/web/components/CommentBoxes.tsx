@@ -3,7 +3,6 @@ import { ICard } from "@/lib/api";
 import { faComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import Rubric from '@/components/Rubric';
 
 interface CommentBoxProps {
     scores: Record<string, number>
