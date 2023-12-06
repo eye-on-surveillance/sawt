@@ -7,7 +7,6 @@ import ThreeCardLayout from '../../components/ThreeCardLayout';
 // import NextButton from '@/components/NextButton';
 import { useState, useEffect } from "react";
 import { ICard } from '@/lib/api';
-import Rubric from '@/components/Rubric';
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +15,11 @@ export default function UserFeedback() {
   const [userName, setUserName] = useState("");
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [cardArray, setCardArray] = useState<Array<Array<ICard>> | null>(null);
-  const [rubricScores, setRubricScores] = useState<Record<string, number>>({});
   
-  //const question_idArray = Array.from({ length: 99 }, (_, index) => index);
-  const question_idArray = [0,1,2];
+
+  // Not the best way to do it-- we really should make each of these a new page and the next/prev buttons
+  // should be linked to the next/prev page. But this is a quick fix for now.
+  const question_idArray = Array.from({ length: 98 }, (_, index) => index);
 
 
   const handlePrevClick = () => {
@@ -47,7 +47,6 @@ export default function UserFeedback() {
             .from('sawt_cards')
             .select('*')
             .eq("question_id", i);
-            // .eq("questionID", currentIndex)
            
           if (error) {
             console.error("Error fetching cards: ", error);

@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase/supabaseClient";
 // import Link from "next/link";
 import { useState } from "react";
 import CommentBox from "./CommentBoxes";
-
 import Rubric from '@/components/Rubric';
 
 
@@ -83,14 +82,14 @@ export default function ThreeCardLayout({ cards, userName }: { cards: Array<ICar
 
   return (
     <div>
-    {cards && cards.map((card, index) => (
-      <div className="flex justify-center space-x-4-x">
+    {cards && cards.map((card,index) => (
+      <div key={index} className="flex justify-center space-x-4-x">
 
           <div key={index} className={`rounded-lg bg-blue p-6 text-primary`}>
           <h4 className="text-xl font-bold">{card.title}</h4>
   
             {/* <Link href={`${CARD_SHOW_PATH}/${card.id}`}> */}
-          { /* LINK DOES the modal-- Need to change card.id to questionID to refer back to original card ID */}
+            {/* LINK DOES the modal-- Need to change card.id to questionID to refer back to original card ID */}
               <div>
                 <h6 className="text-xs">
                   <span className="text-purple">
