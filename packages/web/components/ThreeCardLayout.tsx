@@ -22,6 +22,20 @@ const criteria = [
 ];
 
 const NUM_CARDS_PER_SET = 3;
+const RESET_SCORE = 1;
+
+function getRandomExcluding(set: Set<number>, n: number): number | null {
+  if (set.size >= n) {
+    return null; // No available number
+  }
+
+  let randomNum;
+  do {
+    randomNum = Math.floor(Math.random() * n);
+  } while (set.has(randomNum));
+
+  return randomNum;
+}
 
 export default function ThreeCardLayout({
   cards,
@@ -51,9 +65,9 @@ export default function ThreeCardLayout({
     // }, {});
 
     const resetScores = {
-      Accuracy: 1,
-      Helpfulness: 1,
-      Balance: 1,
+      Accuracy: RESET_SCORE,
+      Helpfulness: RESET_SCORE,
+      Balance: RESET_SCORE,
     };
 
     setScores(resetScores);
@@ -111,32 +125,37 @@ export default function ThreeCardLayout({
       const newAnswered = new Set(answered);
       newAnswered.add(index);
       setAnswered(newAnswered);
+
+      console.log("Submit feedback " + newAnswered.size);
+      if (newAnswered.size < NUM_CARDS_PER_SET) {
+        const randUnscored = getRandomExcluding(newAnswered, NUM_CARDS_PER_SET);
+        console.log("Unscored " + randUnscored);
+        if (!!randUnscored) setActiveTab(randUnscored);
+      }
     } catch (error) {}
   };
 
   const Tabs = () => {
     return Array.from({ length: NUM_CARDS_PER_SET }, (_, index) => {
       const isAnswered = answered.has(index);
+      const isSelected = activeTab === index;
       return (
         <div
           key={index}
-          className="flex-grow cursor-pointer rounded-md bg-primary p-2 text-center text-white"
+          className={`flex-grow cursor-pointer rounded-md p-2 text-center ${
+            isSelected ? "bg-primary" : "bg-secondary"
+          } `}
           onClick={() => {
             setActiveTab(index);
           }}
         >
-          Option {index + 1}{" "}
-          {isAnswered ? (
+          <span className={`${isAnswered ? "text-white" : "text-amber-600"}`}>
+            Option {index + 1}{" "}
             <FontAwesomeIcon
               className="left-2 top-1/2 ml-2 h-[20px] w-[28px] cursor-pointer object-contain"
-              icon={faCheckCircle}
+              icon={isAnswered ? faCheckCircle : faCircleXmark}
             />
-          ) : (
-            <FontAwesomeIcon
-              className="left-2 top-1/2 ml-2 h-[20px] w-[28px] cursor-pointer object-contain"
-              icon={faCircleXmark}
-            />
-          )}
+          </span>
         </div>
       );
     });
