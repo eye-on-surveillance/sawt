@@ -41,6 +41,7 @@ export default function UserFeedback() {
       //wraps around
       setCurrentIndex((currentIndex + 1) % question_idArray.length);
       setAnswered(new Set());
+      setCurrentIndex(0);
     } else {
       alert("Please wait for the rest of the cards to finish loading...");
     }
