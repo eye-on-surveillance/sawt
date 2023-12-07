@@ -57,6 +57,7 @@ export default function ThreeCardLayout({
     };
 
     setScores(resetScores);
+    setActiveTab(0);
   };
 
   //Function that sends comments to supabase under respective card.comment
