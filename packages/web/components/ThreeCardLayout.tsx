@@ -8,11 +8,13 @@ import Rubric from "@/components/Rubric";
 import { TABLES } from "@/lib/supabase/db";
 import {
   faCheckCircle,
+  faChevronDown,
   faCircleXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import CommentBox from "./CommentBoxes";
+import Citation from "./Citation";
 
 const criteria = [
   { id: "Accuracy", description: "Accuracy" },
@@ -50,6 +52,7 @@ export default function ThreeCardLayout({
 }) {
   const [scores, setScores] = useState<Record<string, number>>({});
   const [activeTab, setActiveTab] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Function to update scores
   const handleScoreChange = (criterionId: string, score: number) => {
@@ -192,6 +195,29 @@ export default function ThreeCardLayout({
                           {element.response}
                         </p>
                       ))}
+                      {card.citations && card.citations.length > 0 && (
+                        <div className="dropdown-container">
+                          <div
+                            className="dropdown-header"
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          >
+                            Citations
+                            <FontAwesomeIcon
+                              className={`ml-2 h-[16px] w-[16px] transition-transform transform ${
+                                isDropdownOpen ? 'rotate-180' : ''
+                              }`}
+                              icon={faChevronDown}
+                            />
+                          </div>
+                          {isDropdownOpen && (
+                            <div className="dropdown-content">
+                              {card.citations.map((citation, index) => (
+                                <Citation citation={citation} index={index} key={index} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
 
