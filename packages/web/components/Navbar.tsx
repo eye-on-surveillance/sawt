@@ -15,6 +15,10 @@ export const navLinks = [
     id: "tips",
     title: "How to use",
   },
+  {
+    id: "feedback",
+    title: "Feedback",
+  },
 ];
 
 const Navbar = () => {

@@ -5,7 +5,7 @@ import math
 import google.cloud.logging
 import functions_framework
 from supabase import create_client
-
+from dotenv import find_dotenv, load_dotenv
 from helper import parse_field, get_dbs
 from inquirer import answer_query
 import os
@@ -19,6 +19,9 @@ API_VERSION = "0.0.1"
 db_general, db_in_depth, voting_roll_df = get_dbs()
 
 # Setup Supabase client
+load_dotenv(find_dotenv())
+
+
 try:
     supabase_url = os.environ["SUPABASE_URL_PRODUCTION"]
     supabase_key = os.environ["SUPABASE_SERVICE_KEY_PRODUCTION"]
@@ -115,8 +118,12 @@ def getanswer(request):
 
     end = time.time()
     elapsed = int((end - start) * 1000)
+
     update_supabase(responses_data, citations_data, card_id, elapsed)
     logging.info(f"Completed getanswer in {elapsed} seconds")
     print(f"\n\t--------- Completed getanswer in {elapsed} seconds --------\n")
 
     return ("Answer successfully submitted to Supabase", 200, headers)
+
+
+

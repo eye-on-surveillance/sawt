@@ -9,6 +9,7 @@ import "./Citation.css";
 interface CitationProps {
   citation: any;
   index: number;
+  fullscreen?: boolean;
 }
 
 const citationKeyMap: { [key: string]: string } = {
@@ -18,7 +19,11 @@ const citationKeyMap: { [key: string]: string } = {
   source_url: "Source URL",
 };
 
-const Citation = ({ citation: originalCitation, index }: CitationProps) => {
+const Citation = ({
+  citation: originalCitation,
+  index,
+  fullscreen = false,
+}: CitationProps) => {
   const hasMetadata = Object.values(originalCitation).some(
     (value) => value !== null && value !== ""
   );
@@ -35,7 +40,11 @@ const Citation = ({ citation: originalCitation, index }: CitationProps) => {
 
   const isYoutube = isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
   return (
-    <div className="mb-6 w-full space-y-1 rounded-2xl p-2 text-primary lg:w-1/2">
+    <div
+      className={`mb-6 w-full space-y-1 rounded-2xl p-2 text-primary ${
+        fullscreen ? "" : "lg:w-1/2"
+      }`}
+    >
       <div>
         <p className="font-bold lg:text-lg">
           #{index + 1}: {title}
