@@ -21,7 +21,7 @@ export default function UserFeedback() {
 
   // Not the best way to do it-- we really should make each of these a new page and the next/prev buttons
   // should be linked to the next/prev page. But this is a quick fix for now.
-  const question_idArray = Array.from({ length: 98 }, (_, index) => index);
+  const question_idArray = Array.from({ length: 291 }, (_, index) => index);
 
   // const handlePrevClick = () => {
   //   if (fullData) {
@@ -34,6 +34,16 @@ export default function UserFeedback() {
   //     alert("Please wait for the rest of the cards to finish loading...");
   //   }
   // };
+
+  const shuffleArray = (array: Number[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+  
+  const shuffledQuestionIds = shuffleArray(question_idArray);
 
   const handleNextClick = () => {
     if (fullData) {
@@ -58,7 +68,7 @@ export default function UserFeedback() {
         const { data: cards, error } = await supabase
           .from(TABLES.FEEDBACK_CARDS)
           .select("*")
-          .eq("question_id", 0);
+          .eq("question_id", shuffledQuestionIds[0]);
         if (cards) {
           cardsArray.push(cards);
         }
@@ -76,11 +86,11 @@ export default function UserFeedback() {
   const getCards = async () => {
     const cardsArray: Array<Array<ICard>> = [];
     try {
-      for (let i = 1; i <= question_idArray.length; i++) {
+      for (let i = 1; i < question_idArray.length; i++) {
         const { data: cards, error } = await supabase
           .from(TABLES.FEEDBACK_CARDS)
           .select("*")
-          .eq("question_id", i);
+          .eq("question_id", shuffledQuestionIds[i]);
 
         if (error) {
           console.error("Error fetching cards: ", error);
