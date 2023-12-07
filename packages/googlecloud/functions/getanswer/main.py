@@ -2,8 +2,7 @@ import logging
 import time
 import math
 
-# blocking google cloud for local deploy
-#import google.cloud.logging
+import google.cloud.logging
 import functions_framework
 from supabase import create_client
 from dotenv import find_dotenv, load_dotenv
@@ -12,8 +11,8 @@ from inquirer import answer_query
 import os
 import json
 
-#logging_client = google.cloud.logging.Client()
-#logging_client.setup_logging()
+logging_client = google.cloud.logging.Client()
+logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 
@@ -22,8 +21,7 @@ db_general, db_in_depth, voting_roll_df = get_dbs()
 # Setup Supabase client
 load_dotenv(find_dotenv())
 
-# disabled for local deploy, reenable for web
-"""
+
 try:
     supabase_url = os.environ["SUPABASE_URL_PRODUCTION"]
     supabase_key = os.environ["SUPABASE_SERVICE_KEY_PRODUCTION"]
@@ -35,7 +33,6 @@ if not supabase_url or not supabase_key:
     raise ValueError("Supabase URL and key must be set in environment variables")
 
 supabase = create_client(supabase_url, supabase_key)
-"""
 
 def update_supabase(responses, citations, card_id, processing_time_ms):
     transformed_citations = []
@@ -122,14 +119,11 @@ def getanswer(request):
     end = time.time()
     elapsed = int((end - start) * 1000)
 
-    # 
-    return(answer)
-
-    # disabled for local deployment, reenable for web 
-    """
     update_supabase(responses_data, citations_data, card_id, elapsed)
     logging.info(f"Completed getanswer in {elapsed} seconds")
     print(f"\n\t--------- Completed getanswer in {elapsed} seconds --------\n")
 
     return ("Answer successfully submitted to Supabase", 200, headers)
-    """
+
+
+
