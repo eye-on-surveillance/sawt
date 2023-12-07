@@ -2,10 +2,10 @@
 
 // Import necessary modules and components
 import ThreeCardLayout from "../../components/ThreeCardLayout";
-import { supabase } from "../../lib/supabase/supabaseClient";
 // import NextButton from '@/components/NextButton';
 import { ICard } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { useEffect, useState } from "react";
 
 export const dynamic = "force-dynamic";
@@ -13,15 +13,15 @@ export const dynamic = "force-dynamic";
 export default function UserFeedback() {
   // const [currentIndex, setCurrentIndex] = useState<number>(randint(0,177));
   const [userName, setUserName] = useState("");
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [answered, setAnswered] = useState<Set<number>>(new Set());
   const [fullData, setFullData] = useState<Array<Array<ICard>> | null>(null);
+  const [cards, setCards] = useState<ICard[]>([]);
 
   const [cardArray, setCardArray] = useState<Array<Array<ICard>> | null>(null);
 
   // Not the best way to do it-- we really should make each of these a new page and the next/prev buttons
   // should be linked to the next/prev page. But this is a quick fix for now.
-  const question_idArray = Array.from({ length: 291 }, (_, index) => index);
+  // const question_idArray = Array.from({ length: 291 }, (_, index) => index);
 
   // const handlePrevClick = () => {
   //   if (fullData) {
@@ -35,6 +35,10 @@ export default function UserFeedback() {
   //   }
   // };
 
+  const randQuestionId = () => {
+    return Math.floor(Math.random() * 291);
+  };
+
   const shuffleArray = (array: Number[]) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -42,18 +46,19 @@ export default function UserFeedback() {
     }
     return array;
   };
-  
-  const shuffledQuestionIds = shuffleArray(question_idArray);
 
+  // const shuffledQuestionIds = shuffleArray(question_idArray);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  // console.log(`index ${currentIndex}, val ${shuffledQuestionIds[0]}`);
   const handleNextClick = () => {
-    if (fullData) {
-      setCardArray(fullData);
-      //wraps around
-      setCurrentIndex((currentIndex + 1) % question_idArray.length);
-      setAnswered(new Set());
-    } else {
-      alert("Please wait for the rest of the cards to finish loading...");
-    }
+    // if (fullData) {
+    setCardArray(fullData);
+    //wraps around
+    setCurrentIndex(currentIndex + 1);
+    setAnswered(new Set());
+    // } else {
+    //   alert("Please wait for the rest of the cards to finish loading...");
+    // }
   };
 
   //const handleNameChange = (e) => {
@@ -63,14 +68,16 @@ export default function UserFeedback() {
 
   useEffect(() => {
     const getCard = async () => {
+      const randId = randQuestionId();
+      console.log("Fetching cards " + randId);
       try {
         const cardsArray: Array<Array<ICard>> = [];
-        const { data: cards, error } = await supabase
+        const { data: newCards, error } = await supabase
           .from(TABLES.FEEDBACK_CARDS)
           .select("*")
-          .eq("question_id", shuffledQuestionIds[0]);
-        if (cards) {
-          cardsArray.push(cards);
+          .eq("question_id", randId);
+        if (newCards) {
+          setCards(newCards);
         }
         setCardArray(cardsArray);
         console.log(cards);
@@ -78,38 +85,38 @@ export default function UserFeedback() {
         console.error("Error fetching cards: ", error);
         // Handle the error appropriately in your UI
       }
-      getCards();
+      // getCards();
     };
     getCard();
-  }, []); // Run this effect only once when the component mounts
+  }, [currentIndex]); // Run this effect only once when the component mounts
 
-  const getCards = async () => {
-    const cardsArray: Array<Array<ICard>> = [];
-    try {
-      for (let i = 1; i < question_idArray.length; i++) {
-        const { data: cards, error } = await supabase
-          .from(TABLES.FEEDBACK_CARDS)
-          .select("*")
-          .eq("question_id", shuffledQuestionIds[i]);
+  // const getCards = async () => {
+  //   const cardsArray: Array<Array<ICard>> = [];
+  //   try {
+  //     for (let i = 1; i < question_idArray.length; i++) {
+  //       const { data: cards, error } = await supabase
+  //         .from(TABLES.FEEDBACK_CARDS)
+  //         .select("*")
+  //         .eq("question_id", shuffledQuestionIds[i]);
 
-        if (error) {
-          console.error("Error fetching cards: ", error);
-          // Handle the error appropriately in your UI
-        }
-        console.log(cards);
+  //       if (error) {
+  //         console.error("Error fetching cards: ", error);
+  //         // Handle the error appropriately in your UI
+  //       }
+  //       // console.log(cards);
 
-        if (cards) {
-          cardsArray.push(cards);
-        }
-      }
-      setFullData(cardsArray);
-      // console.log(fullData);
-      //setCurrentIndex(Math.floor(Math.random() * cardsArray.length));
-    } catch (error) {
-      console.error("Error fetching cards: ", error);
-      // Handle the error appropriately in your UI
-    }
-  };
+  //       if (cards) {
+  //         cardsArray.push(cards);
+  //       }
+  //     }
+  //     setFullData(cardsArray);
+  //     // console.log(fullData);
+  //     //setCurrentIndex(Math.floor(Math.random() * cardsArray.length));
+  //   } catch (error) {
+  //     console.error("Error fetching cards: ", error);
+  //     // Handle the error appropriately in your UI
+  //   }
+  // };
 
   if (!cardArray) {
     return <div>Loading...</div>;
@@ -134,7 +141,7 @@ export default function UserFeedback() {
           </div>
         </div>
         <ThreeCardLayout
-          cards={cardArray[currentIndex]}
+          cards={cards}
           userName={userName}
           answered={answered}
           setAnswered={setAnswered}

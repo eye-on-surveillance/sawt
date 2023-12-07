@@ -13,8 +13,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import CommentBox from "./CommentBoxes";
 import Citation from "./Citation";
+import CommentBox from "./CommentBoxes";
 
 const criteria = [
   { id: "Accuracy", description: "Accuracy" },
@@ -195,29 +195,48 @@ export default function ThreeCardLayout({
                           {element.response}
                         </p>
                       ))}
-                      {card.citations && card.citations.length > 0 && (
-                        <div className="dropdown-container">
-                          <div
-                            className="dropdown-header"
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                          >
-                            Citations
-                            <FontAwesomeIcon
-                              className={`ml-2 h-[16px] w-[16px] transition-transform transform ${
-                                isDropdownOpen ? 'rotate-180' : ''
-                              }`}
-                              icon={faChevronDown}
-                            />
-                          </div>
-                          {isDropdownOpen && (
-                            <div className="dropdown-content">
-                              {card.citations.map((citation, index) => (
-                                <Citation citation={citation} index={index} key={index} />
-                              ))}
-                            </div>
-                          )}
+                    {card.citations && card.citations.length > 0 && (
+                      <div className="dropdown-container">
+                        <div
+                          className="dropdown-header"
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        >
+                          Citations
+                          <FontAwesomeIcon
+                            className={`ml-2 h-[16px] w-[16px] transform transition-transform ${
+                              isDropdownOpen ? "rotate-180" : ""
+                            }`}
+                            icon={faChevronDown}
+                          />
                         </div>
-                      )}
+                        {isDropdownOpen && (
+                          <div className="dropdown-content">
+                            {card.citations.map((citation, index) => {
+                              const {
+                                URL: source_url,
+                                Name: source_name,
+                                Title: source_title,
+                                Published: source_publish_date,
+                              } = citation as any;
+                              const adaptedCitation = {
+                                source_name,
+                                source_publish_date,
+                                source_title,
+                                source_url,
+                              };
+                              return (
+                                <Citation
+                                  citation={adaptedCitation}
+                                  index={index}
+                                  key={index}
+                                  fullscreen={true}
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
