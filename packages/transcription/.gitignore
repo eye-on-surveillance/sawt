@@ -1,0 +1,8 @@
+.env
+.log
+__pycache__/
+transcripts-data/
+audio/
+cred/
+.vscode/
+
