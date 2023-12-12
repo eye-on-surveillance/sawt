@@ -21,8 +21,8 @@ def make_api_call(title, k_inp):
     response = requests.post(f"{api_endpoint}", json=payload)
     rdict = json.loads(response.text)
     card_type_out = rdict["card_type"]
-    citations_out = rdict["citations"]
-    responses_out = rdict["responses"]
+    citations_out = json.dumps(eval(str(rdict["citations"])))
+    responses_out = json.dumps(eval(str(rdict["responses"])))
     return card_type_out, citations_out, responses_out, k_inp
 
 # Open CSV file in append mode
