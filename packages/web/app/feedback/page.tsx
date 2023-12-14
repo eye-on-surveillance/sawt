@@ -36,16 +36,16 @@ export default function UserFeedback() {
   // };
 
   const randQuestionId = () => {
-    return Math.floor(Math.random() * 291);
+    return Math.floor(Math.random() * 237);
   };
 
-  const shuffleArray = (array: Number[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
+  // const shuffleArray = (array: Number[]) => {
+  //   for (let i = array.length - 1; i > 0; i--) {
+  //     const j = Math.floor(Math.random() * (i + 1));
+  //     [array[i], array[j]] = [array[j], array[i]];
+  //   }
+  //   return array;
+  // };
 
   // const shuffledQuestionIds = shuffleArray(question_idArray);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -69,13 +69,14 @@ export default function UserFeedback() {
   useEffect(() => {
     const getCard = async () => {
       const randId = randQuestionId();
-      console.log("Fetching cards " + randId);
+      // console.log("Fetching cards " + randId);
       try {
         const cardsArray: Array<Array<ICard>> = [];
         const { data: newCards, error } = await supabase
           .from(TABLES.FEEDBACK_CARDS)
           .select("*")
-          .eq("question_id", randId);
+          .eq("question_id", randId)
+          .eq("model_version", process.env.NEXT_PUBLIC_FEEDBACK_VERSION);
         if (newCards) {
           setCards(newCards);
         }
@@ -154,6 +155,10 @@ export default function UserFeedback() {
             Next question
           </button>
         )}
+
+        <p className="mt-6 text-right text-xs">
+          {process.env.NEXT_PUBLIC_FEEDBACK_VERSION}
+        </p>
       </div>
       <div className="md:grow"></div>
     </div>

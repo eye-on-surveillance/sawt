@@ -176,12 +176,12 @@ def get_indepth_response_from_query(df, db, query, k):
 
     docs_page_content = append_metadata_to_content(doc_list)
 
+
     template = """
     Question: {question}
 
-
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
-    
+
     If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
@@ -190,8 +190,24 @@ def get_indepth_response_from_query(df, db, query, k):
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
 
+    Please provide direct and concise responses without unnecessary verbosity.
+
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response using the following format:
+
+    Definitions:
+
+    [Word]
+    [Definition]
+
+    [Word]
+    [Definition]
+
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
+    The final output should not include any reference to the model's active sorting by date.
+
     Documents: {docs}
     """
+
 
     prompt = PromptTemplate(
         input_variables=["question", "docs"],
