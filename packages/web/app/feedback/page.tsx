@@ -36,16 +36,16 @@ export default function UserFeedback() {
   // };
 
   const randQuestionId = () => {
-    return Math.floor(Math.random() * 291);
+    return Math.floor(Math.random() * 237);
   };
 
-  const shuffleArray = (array: Number[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
+  // const shuffleArray = (array: Number[]) => {
+  //   for (let i = array.length - 1; i > 0; i--) {
+  //     const j = Math.floor(Math.random() * (i + 1));
+  //     [array[i], array[j]] = [array[j], array[i]];
+  //   }
+  //   return array;
+  // };
 
   // const shuffledQuestionIds = shuffleArray(question_idArray);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
