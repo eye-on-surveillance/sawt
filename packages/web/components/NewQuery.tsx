@@ -53,6 +53,7 @@ export default function NewQuery() {
     if (newCard) {
       await sendQueryToFunction(newCard);
       setCurrentCardId(newCard.id ?? null);
+      setQuery(''); 
     }
   };
 
