@@ -155,6 +155,10 @@ export default function UserFeedback() {
             Next question
           </button>
         )}
+
+        <p className="mt-6 text-right text-xs">
+          {process.env.NEXT_PUBLIC_FEEDBACK_VERSION}
+        </p>
       </div>
       <div className="md:grow"></div>
     </div>
