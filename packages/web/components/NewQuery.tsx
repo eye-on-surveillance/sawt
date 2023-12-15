@@ -159,7 +159,7 @@ export default function NewQuery() {
             icon={faMagnifyingGlass}
           />
           <input
-            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-secondary shadow focus:shadow-lg focus:outline-none"
+            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-black shadow focus:shadow-lg focus:outline-none"
             id="new-query"
             type="text"
             value={query}
