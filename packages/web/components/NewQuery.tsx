@@ -8,6 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCardResults } from "./CardResultsProvider";
+import { faUndo } from "@fortawesome/free-solid-svg-icons";
+
 
 type SupabaseRealtimePayload<T = any> = {
   old: T;
@@ -55,6 +57,10 @@ export default function NewQuery() {
       setCurrentCardId(newCard.id ?? null);
       setQuery(''); 
     }
+  };
+
+  const clearQuery = () => {
+    setQuery('');
   };
 
   const insertSupabaseCard = async (): Promise<ICard> => {
@@ -168,6 +174,14 @@ export default function NewQuery() {
               }
             }}
           />
+          {query && (
+          <button
+            onClick={clearQuery}
+            className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+          >
+            <FontAwesomeIcon icon={faUndo} />
+          </button>
+        )}
         </div>
         <button
           className={`w-full rounded-lg md:w-1/2 ${
