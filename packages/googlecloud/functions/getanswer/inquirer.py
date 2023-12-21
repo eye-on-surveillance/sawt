@@ -180,10 +180,8 @@ def get_indepth_response_from_query(df, db, query, k):
     doc_list = db.similarity_search_with_score(query, k=k)
 
     docs = sort_retrived_documents(doc_list)
-    # print(docs)
 
     docs_page_content = append_metadata_to_content(docs)
-    print(docs_page_content)
 
     template = """
     Question: {question}
@@ -200,11 +198,15 @@ def get_indepth_response_from_query(df, db, query, k):
 
     Please provide direct and concise responses without unnecessary verbosity.
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response.
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response in the following format with the <br /> brackets instead of new lines:
 
-    Definitions: [Word]: [Definition], [Word]: [Definition]
+    Definitions: <br />
+    Word: Definition<br />
+    Word: Definition<br />
+    Word: Definition<br />
 
-    Please put each definition on a new line. 
+    Please break the definitions onto new lines with 
+
 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
