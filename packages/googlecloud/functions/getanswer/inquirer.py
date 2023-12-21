@@ -200,13 +200,11 @@ def get_indepth_response_from_query(df, db, query, k):
 
     Please provide direct and concise responses without unnecessary verbosity.
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response using the following format:
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response.
 
-    Definitions:
+    Definitions: [Word]: [Definition], [Word]: [Definition]
 
-    [Word]: [Definition]
-
-    [Word]: [Definition]
+    Please put each definition on a new line. 
 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
