@@ -123,20 +123,27 @@ def process_responses_llm(responses_llm, docs=None):
 
 
 def append_metadata_to_content(doc_list):
-    combined_docs = []
+    updated_docs = []
 
-    for doc in doc_list:
-        metadata = doc[0].metadata
+    for doc_tuple in doc_list:
+        doc, score = doc_tuple  
+        metadata = doc.metadata
         publish_date = metadata.get("publish_date")
 
-        if publish_date is None:
-            continue
+        if publish_date is not None:
+            updated_content = f"Document: {doc.page_content} (Published on: {publish_date})"
+        else:
+            updated_content = doc.page_content
 
-        doc_str = f"Document: {doc[0].page_content} (Published on: {publish_date})"
-        combined_docs.append(doc_str)
+        updated_doc_info = {
+            'content': updated_content,
+            'metadata': metadata,
+            'score': score
+        }
+        
+        updated_docs.append(updated_doc_info)
 
-    combined_docs_content = " ".join(combined_docs)
-    return combined_docs_content
+    return updated_docs
 
 
 def transform_query_for_date(query):
@@ -173,9 +180,10 @@ def get_indepth_response_from_query(df, db, query, k):
     doc_list = db.similarity_search_with_score(query, k=k)
 
     docs = sort_retrived_documents(doc_list)
+    # print(docs)
 
-    docs_page_content = append_metadata_to_content(doc_list)
-
+    docs_page_content = append_metadata_to_content(docs)
+    print(docs_page_content)
 
     template = """
     Question: {question}
@@ -196,11 +204,9 @@ def get_indepth_response_from_query(df, db, query, k):
 
     Definitions:
 
-    [Word]
-    [Definition]
+    [Word]: [Definition]
 
-    [Word]
-    [Definition]
+    [Word]: [Definition]
 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
