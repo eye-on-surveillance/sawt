@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
-import CardLoading from "./CardLoading";
-import { useCardResults } from "./CardResultsProvider";
+import CardLoading from "../Card/CardLoading";
+import { useCardResults } from "../CardResultsProvider";
 import QueryResult from "./QueryResult";
-
+import styles from "./homeresults.module.scss"
 export default function HomeBanner() {
   const { cards, fetchMoreCards, hasMoreCards } = useCardResults();
   const hasCards = cards.length > 0;
@@ -47,9 +47,10 @@ export default function HomeBanner() {
   }, [isInView, isLoading, fetchMoreCards, hasMoreCards]);
 
   return (
+    <div className={styles["sawt-feed"]}>
     <div
       ref={containerRef}
-      className="min-h-[40vh] w-screen bg-gradient-to-br from-primary to-secondary px-6 py-12 sm:px-16"
+      className="min-h-[40vh] w-screen bg-gradient-to-br px-6 py-12 sm:px-16"
     >
       <div className="md:flex">
         <div className="md:grow"></div>
@@ -73,6 +74,7 @@ export default function HomeBanner() {
         </div>
         <div className="md:grow"></div>
       </div>
+    </div>
     </div>
   );
 }

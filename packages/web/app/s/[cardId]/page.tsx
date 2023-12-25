@@ -1,4 +1,4 @@
-import BetaCard from "@/components/BetaCard";
+import BetaCard from "@/components/Card/BetaCard";
 import { getPageMetadata } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";

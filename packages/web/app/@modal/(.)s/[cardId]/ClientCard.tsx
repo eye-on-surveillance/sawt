@@ -1,6 +1,6 @@
 "use client";
 
-import BetaCard from "@/components/BetaCard";
+import BetaCard from "@/components/Card/BetaCard";
 import { useCardResults } from "@/components/CardResultsProvider";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

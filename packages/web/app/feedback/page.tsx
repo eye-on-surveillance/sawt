@@ -124,10 +124,10 @@ export default function UserFeedback() {
   }
 
   return (
-    <div className="h-full bg-blue px-6 text-primary md:flex">
+    <div className="h-full px-6 text-primary md:flex">
       <div className="md:grow"></div>
       <div className="pb-24 md:w-3/4 md:max-w-2xl">
-        <div className="rounded-lg bg-blue p-6 text-primary">
+        <div className="rounded-lg  p-6 text-primary">
           <label className="mb-2 block text-lg font-bold text-gray-700">
             Please Enter Your Name:
           </label>

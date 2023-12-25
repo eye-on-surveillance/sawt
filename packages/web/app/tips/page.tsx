@@ -1,5 +1,6 @@
 import { getPageMetadata } from "@/lib/paths";
 import React from "react";
+import styles from './step.module.scss'
 
 const Step = ({ title, text }: { title: string; text: string }) => {
   return (
@@ -14,7 +15,8 @@ export const metadata = getPageMetadata("Tips");
 
 const TipsPage: React.FC = () => {
   return (
-    <div className="min-h-[85vh] bg-blue px-6 text-primary md:flex">
+    <div className={styles["step-content"]}>
+    <div className="min-h-[85vh] px-6 text-primary md:flex">
       <div className="md:grow"></div>
       <div className="pb-24 md:w-3/4 md:max-w-2xl">
         <section className="space-y-4">
@@ -67,6 +69,7 @@ const TipsPage: React.FC = () => {
         </section>
       </div>
       <div className="md:grow"></div>
+    </div>
     </div>
   );
 };

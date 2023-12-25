@@ -9,7 +9,7 @@ import moment from "moment";
 import Link from "next/link";
 import { useState } from "react";
 import { useInterval } from "usehooks-ts";
-import CardActions from "./CardActions";
+import CardActions from "../Card/CardActions";
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -105,6 +105,7 @@ export default function QueryResult({ card }: { card: ICard }) {
   };
 
   return (
+    <div className="">
     <div
       className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
         isLoading ? "border-4 border-dashed border-yellow-500" : ""
@@ -112,6 +113,7 @@ export default function QueryResult({ card }: { card: ICard }) {
     >
       <CardBody />
       <CardActions card={card} />
+    </div>
     </div>
   );
 }

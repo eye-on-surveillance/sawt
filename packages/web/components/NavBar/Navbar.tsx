@@ -6,6 +6,10 @@ import { faBars, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useState } from "react";
+import Image from 'next/image';
+import SAWTLogo from '../../public/photos/Sawt.png';
+import styles from "./navbar.module.scss";
+
 export const navLinks = [
   {
     id: "about",
@@ -26,15 +30,15 @@ const Navbar = () => {
   const [toggle, setToggle] = useState(false);
 
   return (
+    <div className={styles["nav"]}>
     <div className="text-center md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
-        <nav className="navbar flex w-full items-center justify-between py-6">
-          {/* Logo */}
+        <nav className="navbar flex w-full items-center justify-between">
           <h1 className="text-3xl">
-            <Link href={HOME_PATH}>{APP_NAME.toUpperCase()}</Link>
+            <Link href={HOME_PATH}><Image src={SAWTLogo} alt="SAWT Logo" width={100} height={100} />
+</Link>
           </h1>
-
           {/* Desktop Navigation */}
           <ul className="hidden flex-1 list-none items-center justify-end sm:flex">
             {navLinks.map((nav, index) => (
@@ -83,6 +87,7 @@ const Navbar = () => {
         </nav>
       </div>
       <div className="md:grow"></div>
+    </div>
     </div>
   );
 };

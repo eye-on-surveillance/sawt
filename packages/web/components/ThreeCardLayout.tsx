@@ -13,7 +13,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import Citation from "./Citation";
+import Citation from "./Card/Citation";
 import CommentBox from "./CommentBoxes";
 
 const criteria = [

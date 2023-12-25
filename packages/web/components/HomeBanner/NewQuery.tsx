@@ -7,7 +7,7 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useCardResults } from "./CardResultsProvider";
+import { useCardResults } from "../CardResultsProvider";
 import { faUndo } from "@fortawesome/free-solid-svg-icons";
 
 

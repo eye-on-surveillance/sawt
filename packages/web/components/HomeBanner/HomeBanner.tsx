@@ -5,6 +5,7 @@ import { randItem } from "@/lib/utils";
 import { useState } from "react";
 import { useInterval } from "usehooks-ts";
 import NewQuery from "./NewQuery";
+import styles from './homebanner.module.scss'
 
 export default function HomeBanner() {
   const [word, setWord] = useState(HOMEPAGE_WORDS[0]);
@@ -17,7 +18,8 @@ export default function HomeBanner() {
   );
 
   return (
-    <div className="bg-blue px-6 py-5 text-center text-primary sm:px-16 md:flex">
+    <div className={styles['homebanner']}>
+    <div className="px-6 py-5 text-center text-primary sm:px-16 md:flex">
       <div className="md:grow"></div>
       <div className="md:w-3/4 md:max-w-2xl">
         <h1 className="text-lg">
@@ -26,9 +28,12 @@ export default function HomeBanner() {
         <h2 className="mt-3 text-4xl">
           <span className="bg-brighter-blue text-secondary">{word}?</span>
         </h2>
+        <div className={styles['query']}>
         <NewQuery />
+        </div>
       </div>
       <div className="md:grow"></div>
+    </div>
     </div>
   );
 }
