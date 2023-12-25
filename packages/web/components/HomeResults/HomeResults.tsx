@@ -50,7 +50,7 @@ export default function HomeBanner() {
     <div className={styles["sawt-feed"]}>
     <div
       ref={containerRef}
-      className="min-h-[40vh] w-screen bg-gradient-to-br px-6 py-12 sm:px-16"
+      className="min-h-[40vh] w-screen bg-gradient-to-br px-6 sm:px-16"
     >
       <div className="md:flex">
         <div className="md:grow"></div>

@@ -155,7 +155,7 @@ export default function NewQuery() {
       <form onSubmit={submitQuery}>
         <div className="relative block">
           <FontAwesomeIcon
-            className="absolute left-2 top-1/2 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
+            className="absolute left-2 top-9 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
             icon={faMagnifyingGlass}
           />
           <input
@@ -177,9 +177,9 @@ export default function NewQuery() {
           {query && (
           <button
             onClick={clearQuery}
-            className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+            className="absolute right-2 top-4 cursor-pointer p-2"
           >
-            <FontAwesomeIcon icon={faUndo} />
+           X
           </button>
         )}
         </div>

@@ -1,6 +1,6 @@
 import { getPageMetadata } from "@/lib/paths";
 import HomeBanner from "../components/HomeBanner/HomeBanner";
-import HomeLearnMore from "../components/HomeLearnMore";
+import HomeLearnMore from "../components/Footer/HomeLearnMore";
 import HomeResults from "../components/HomeResults/HomeResults";
 
 export const dynamic = "force-dynamic";

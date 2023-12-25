@@ -6,6 +6,7 @@ import { randItem } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
 import { useInterval } from "usehooks-ts";
+import styles from "./footer.module.scss"
 
 export default function HomeLearnMore() {
   const [word, setWord] = useState(HOMEPAGE_WORDS[0]);
@@ -18,6 +19,7 @@ export default function HomeLearnMore() {
   );
 
   return (
+    <div className={styles["button"]}>
     <div className="bg-primary px-6 py-24 text-center sm:px-16 md:flex">
       <div className="md:grow"></div>
       <div className="md:w-1/2 md:max-w-sm">
@@ -28,6 +30,7 @@ export default function HomeLearnMore() {
         </h1>
       </div>
       <div className="md:grow"></div>
+    </div>
     </div>
   );
 }

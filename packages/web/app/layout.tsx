@@ -1,7 +1,7 @@
 "use strict";
 
 import CardResultsProvider from "@/components/CardResultsProvider";
-import Footer from "@/components/Footer";
+import Footer from "@/components/Footer/Footer";
 import Navbar from "@/components/NavBar/Navbar";
 import { ECardStatus } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
