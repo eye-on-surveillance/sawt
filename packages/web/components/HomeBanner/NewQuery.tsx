@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCardResults } from "../CardResultsProvider";
 import { faUndo } from "@fortawesome/free-solid-svg-icons";
-
+import styles from "./homebanner.module.scss"
 
 type SupabaseRealtimePayload<T = any> = {
   old: T;
@@ -58,6 +58,15 @@ export default function NewQuery() {
       setQuery(''); 
     }
   };
+
+const scrollToQuery = () => {
+  setTimeout(() => {
+    const element = document.getElementById('loading');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 1500); // Adjust the delay duration (in milliseconds) as needed
+};
 
   const clearQuery = () => {
     setQuery('');
@@ -183,15 +192,20 @@ export default function NewQuery() {
           </button>
         )}
         </div>
-        <button
+{isProcessing ? 
+<div className={styles["lds-facebook"]}><div></div><div></div><div></div></div>:
+    <button
           className={`w-full rounded-lg md:w-1/2 ${
             isProcessing ? "bg-primary cursor-wait" : "bg-primary"
           } p-2 text-2xl text-blue`}
+          onClick={() => scrollToQuery()}
           type="submit"
           disabled={isProcessing}
         >
           Get answer from Sawt
         </button>
+
+}
 
       </form>
 

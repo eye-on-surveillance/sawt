@@ -8,3 +8,11 @@ background-color: var.$primary;
 .sawt-card {
     background-color: var.$altPrimary;
 }
+
+.card {
+    h6,span {
+        color: black;
+        font-size: medium;
+        padding: 5px 0;
+    }
+}

@@ -45,7 +45,7 @@ export default function HomeBanner() {
       });
     }
   }, [isInView, isLoading, fetchMoreCards, hasMoreCards]);
-
+  console.log(cards)
   return (
     <div className={styles["sawt-feed"]}>
     <div
@@ -57,7 +57,6 @@ export default function HomeBanner() {
         <div className="md:w-3/4 md:max-w-2xl">
           {hasCards &&
             cards.map((card) => <QueryResult key={card.id} card={card} />)}
-
           {isLoading && (
             <div className="my-4 flex items-center justify-center">
               <BeatLoader color="#FFFFFF" />
