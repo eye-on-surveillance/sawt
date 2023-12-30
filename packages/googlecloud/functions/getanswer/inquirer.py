@@ -200,10 +200,10 @@ def get_indepth_response_from_query(df, db, query, k):
 
     If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response in the following format with the <br /> brackets instead of new lines:
 
-    Definitions: <br />
-    Word: Definition<br />
-    Word: Definition<br />
-    Word: Definition<br />
+    Definitions:
+    Word: Definition
+    Word: Definition
+    Word: Definition
 
     Please break the definitions onto new lines with 
 
