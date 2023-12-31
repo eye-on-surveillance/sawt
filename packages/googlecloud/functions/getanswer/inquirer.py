@@ -71,6 +71,7 @@ def process_responses_llm(responses_llm, docs=None):
             section["source_page_number"] = (
                 page_numbers[i] if i < len(page_numbers) else None
             )
+
             section["source_publish_date"] = (
                 publish_dates[i] if i < len(publish_dates) else None
             )
@@ -96,6 +97,8 @@ def process_responses_llm(responses_llm, docs=None):
                 citation["Video timestamp"] = section["source_timestamp"]
             if section["source_name"] is not None:
                 citation["Name"] = section["source_name"]
+            if section["source_page_number"] is not None:
+                citation["Page Number"] = section["source_page_number"]
 
             return section["response"], citation
 
@@ -182,6 +185,7 @@ def get_indepth_response_from_query(df, db, query, k):
     docs = sort_retrived_documents(doc_list)
 
     docs_page_content = append_metadata_to_content(docs)
+    print(docs_page_content)
 
     template = """
     Question: {question}
