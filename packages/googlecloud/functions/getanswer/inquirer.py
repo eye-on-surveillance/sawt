@@ -16,10 +16,13 @@ logger = logging.getLogger(__name__)
 
 def convert_date_format(date_str):
     """Convert date from 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
+    if date_str is None or not isinstance(date_str, str):
+        return "date not available"
+    
     try:
         return datetime.strptime(date_str, "%m-%d-%Y").strftime("%m/%d/%Y")
     except ValueError:
-        return date_str  # Return original string if format does not match
+        return "date not available"  
 
 
 def timestamp_to_seconds(timestamp):
