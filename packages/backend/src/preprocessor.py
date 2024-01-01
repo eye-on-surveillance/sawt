@@ -54,6 +54,7 @@ def create_embeddings():
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
     metadata["title"] = record.get("title")
     metadata["page_number"] = record.get("page_number")
+    metadata["publish_date"] = record.get("publish_date")
     return metadata
 
 

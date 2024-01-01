@@ -6,11 +6,20 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
+from datetime import datetime
 
 from helper import sort_retrived_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
+
+
+def convert_date_format(date_str):
+    """Convert date from 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
+    try:
+        return datetime.strptime(date_str, "%m-%d-%Y").strftime("%m/%d/%Y")
+    except ValueError:
+        return date_str  # Return original string if format does not match
 
 
 def timestamp_to_seconds(timestamp):
@@ -48,7 +57,7 @@ def process_responses_llm(responses_llm, docs=None):
             doc[0].metadata.get("source", "source not available") for doc in docs
         ]
         publish_dates = [
-            doc[0].metadata.get("publish_date", "date not available") for doc in docs
+            convert_date_format(doc[0].metadata.get("publish_date", "date not available")) for doc in docs     
         ]
         timestamps = [
             doc[0].metadata.get("timestamp", "timestamp not available") for doc in docs
