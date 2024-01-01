@@ -15,14 +15,25 @@ logger = logging.getLogger(__name__)
 
 
 def convert_date_format(date_str):
-    """Convert date from 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
-    if date_str is None or not isinstance(date_str, str):
-        return "date not available"
-    
+    """Convert date from 'M-D-YYYY' or 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
+    if not isinstance(date_str, str):
+        return "Invalid input: not a string"
+
+    if '/' in date_str:
+        return date_str
+
+    input_format = "%m-%d-%Y"  
+
     try:
-        return datetime.strptime(date_str, "%m-%d-%Y").strftime("%m/%d/%Y")
+        date_obj = datetime.strptime(date_str, input_format)
     except ValueError:
-        return "date not available"  
+        try:
+            input_format = "%-m-%-d-%Y"  
+            date_obj = datetime.strptime(date_str, input_format)
+        except ValueError:
+            return "Invalid date format"
+        
+    return date_obj.strftime("%m/%d/%Y")
 
 
 def timestamp_to_seconds(timestamp):
