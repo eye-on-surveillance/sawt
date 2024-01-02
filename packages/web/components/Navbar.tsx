@@ -31,16 +31,17 @@ const Navbar = () => {
       <div className="md:w-3/4 md:max-w-2xl">
         <nav className="navbar flex w-full items-center justify-between py-6">
           {/* Logo */}
-          <h1 className="text-3xl">
-            <Link href={HOME_PATH}>{APP_NAME.toUpperCase()}</Link>
+          <h1 className="text-3xl font-bold">
+            <Link href={HOME_PATH}>SAWT<span className="text-xs align-top font-normal inline-block align-middle" style={{ verticalAlign: 'super' }}>beta</span></Link>
           </h1>
+
 
           {/* Desktop Navigation */}
           <ul className="hidden flex-1 list-none items-center justify-end sm:flex">
             {navLinks.map((nav, index) => (
               <li
                 key={nav.id}
-                className={`font-poppins cursor-pointer text-[16px] font-normal ${
+                className={`font-poppins cursor-pointer text-[16px] font-regular ${
                   active === nav.title ? "text-white" : "text-dimWhite"
                 } ${index === navLinks.length - 1 ? "mr-0" : "mr-10"}`}
                 onClick={() => setActive(nav.title)}
