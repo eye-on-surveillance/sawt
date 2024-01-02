@@ -11,6 +11,7 @@ module.exports = {
         secondary: "#e1e1da", // Sky blue
         blue: "#e1e1da", // Light blue
         purple: "#1c1919",
+        orange: "#f35610",
       },
       fontFamily: {
         body: ["Roboto", "sans-serif"],

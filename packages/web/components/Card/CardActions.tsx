@@ -109,7 +109,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         </div>
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
+          className="bg-purple-500 rounded bg-secondary px-4 py-2 text-black"
         >
           Submit
         </button>

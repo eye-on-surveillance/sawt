@@ -1,5 +1,4 @@
 "use client";
-import { APP_NAME } from "@/lib/copy";
 import { HOME_PATH } from "@/lib/paths";
 // Copied from: https://medium.com/@ryaddev/creating-a-responsive-navbar-with-react-and-tailwind-css-502cceaf9f53
 import { faBars, faClose } from "@fortawesome/free-solid-svg-icons";
