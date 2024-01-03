@@ -213,7 +213,7 @@ def get_indepth_response_from_query(df, db, query, k):
     Question: {question}
 
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
-    Your answer must not exceed 4,000 tokens. 
+    Your answer must not exceed 5,000 tokens. 
 
     If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
