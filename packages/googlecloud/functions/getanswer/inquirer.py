@@ -208,12 +208,12 @@ def get_indepth_response_from_query(df, db, query, k):
     docs = sort_retrived_documents(doc_list)
 
     docs_page_content = append_metadata_to_content(docs)
-    print(docs_page_content)
 
     template = """
     Question: {question}
 
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
+    Your answer must not exceed 5,000 tokens. 
 
     If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
@@ -235,10 +235,7 @@ def get_indepth_response_from_query(df, db, query, k):
     
     Word: Definition
 
-    Please break the definitions onto new lines with 
-
-
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "1.", "2.", "3.",
     The final output should not include any reference to the model's active sorting by date.
 
     Documents: {docs}
