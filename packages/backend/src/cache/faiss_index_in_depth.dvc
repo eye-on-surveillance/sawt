@@ -3,4 +3,4 @@ outs:
   size: 137244321
   nfiles: 2
   hash: md5
-  path: faiss_index_in_Depth
+  path: faiss_index_in_depth
