@@ -1,5 +1,4 @@
 "use client";
-import { APP_NAME } from "@/lib/copy";
 import { HOME_PATH } from "@/lib/paths";
 // Copied from: https://medium.com/@ryaddev/creating-a-responsive-navbar-with-react-and-tailwind-css-502cceaf9f53
 import { faBars, faClose } from "@fortawesome/free-solid-svg-icons";
@@ -31,8 +30,22 @@ const Navbar = () => {
       <div className="md:w-3/4 md:max-w-2xl">
         <nav className="navbar flex w-full items-center justify-between py-6">
           {/* Logo */}
-          <h1 className="text-3xl">
-            <Link href={HOME_PATH}>{APP_NAME.toUpperCase()}</Link>
+          <h1 className="text-3xl font-bold">
+            <Link href={HOME_PATH}>
+              SAWT{" "}
+              <span
+                style={{
+                  position: "relative",
+                  top: "-0.6em",
+                  left: "-0.1em",
+                  fontSize: "0.6em",
+                  lineHeight: "1",
+                  fontWeight: "normal",
+                }}
+              >
+                beta
+              </span>
+            </Link>
           </h1>
 
           {/* Desktop Navigation */}
@@ -40,7 +53,7 @@ const Navbar = () => {
             {navLinks.map((nav, index) => (
               <li
                 key={nav.id}
-                className={`font-poppins cursor-pointer text-[16px] font-normal ${
+                className={`font-poppins font-regular cursor-pointer text-[16px] ${
                   active === nav.title ? "text-white" : "text-dimWhite"
                 } ${index === navLinks.length - 1 ? "mr-0" : "mr-10"}`}
                 onClick={() => setActive(nav.title)}

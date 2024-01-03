@@ -85,7 +85,6 @@ const BetaCard = ({ card }: { card: ICard }) => {
       created_at: new Date(),
     };
 
-
     setComments((prevComments) =>
       prevComments
         ? prevComments.filter((comment) => comment !== newComment)

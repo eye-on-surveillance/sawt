@@ -3,7 +3,7 @@ import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faUndo } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -40,21 +40,26 @@ export default function NewQuery() {
   const [submissionStarted, setSubmissionStarted] = useState(false);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [currentCardId, setCurrentCardId] = useState<string | null>(null);
-  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(null);
+  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(
+    null
+  );
 
+  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
 
-    const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
-      e?.preventDefault();
-  
-      if (query.length <= 10) return;
+    if (query.length <= 10) return;
 
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
     if (newCard) {
       await sendQueryToFunction(newCard);
       setCurrentCardId(newCard.id ?? null);
-      setQuery(''); 
+      setQuery("");
     }
+  };
+
+  const clearQuery = () => {
+    setQuery("");
   };
 
   const insertSupabaseCard = async (): Promise<ICard> => {
@@ -153,7 +158,7 @@ export default function NewQuery() {
             icon={faMagnifyingGlass}
           />
           <input
-            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-secondary shadow focus:shadow-lg focus:outline-none"
+            className="mb-3 block w-full appearance-none rounded-lg px-16 py-2 leading-tight text-black shadow focus:shadow-lg focus:outline-none"
             id="new-query"
             type="text"
             value={query}
@@ -168,17 +173,24 @@ export default function NewQuery() {
               }
             }}
           />
+          {query && (
+            <button
+              onClick={clearQuery}
+              className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              <FontAwesomeIcon icon={faUndo} />
+            </button>
+          )}
         </div>
         <button
           className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "bg-primary cursor-wait" : "bg-primary"
+            isProcessing ? "cursor-wait bg-primary" : "bg-primary"
           } p-2 text-2xl text-blue`}
           type="submit"
           disabled={isProcessing}
         >
           Get answer from Sawt
         </button>
-
       </form>
 
       <p className="text-left font-light">
