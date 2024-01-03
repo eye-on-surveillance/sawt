@@ -212,6 +212,14 @@ def get_indepth_response_from_query(df, db, query, k):
     template = """
     Question: {question}
 
+    ### Bias Guidelines:
+    
+    Please be aware of inherent biases within the document corpus, especially an overrepresentation of certain types of documents, such as those about surveillance. These biases may result in the retrieval of documents that are irrelevant to the question. When analyzing documents to answer the question, it is crucial to critically evaluate their relevance to the question at hand.
+
+    To ensure accuracy and relevance in your analysis you must identify and disregard irrelevant documents by actively identifying documents that, despite being returned by the database, do not substantively address the query. Such documents should be disregarded in the analysis.
+
+    ### Response Guidelines:
+
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
     Your answer must not exceed 5,000 tokens. 
 
