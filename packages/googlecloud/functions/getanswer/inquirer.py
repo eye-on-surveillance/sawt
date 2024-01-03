@@ -182,7 +182,7 @@ def transform_query_for_date(query):
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4")
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
 
     template_date_detection = """
         Analyze the following query: "{query}".
@@ -214,24 +214,22 @@ def get_indepth_response_from_query(df, db, query, k):
 
     ### Bias Guidelines:
     
-    Please be aware of inherent biases within the document corpus, especially an overrepresentation of certain types of documents, such as those about surveillance. These biases may result in the retrieval of documents that are irrelevant to the question. When analyzing documents to answer the question, it is crucial to critically evaluate their relevance to the question at hand.
-
-    To ensure accuracy and relevance in your analysis you must identify and disregard irrelevant documents by actively identifying documents that, despite being returned by the database, do not substantively address the query. Such documents should be disregarded in the analysis.
+    Please be aware of inherent biases within the document corpus, especially an overrepresentation of certain types of documents.
+    These biases may result in the retrieval of documents that are irrelevant to the question. 
+    When analyzing documents to answer the question, it is crucial to critically evaluate their relevance to the question at hand.
+    To ensure accuracy and relevance in your analysis you must identify and disregard irrelevant documents by actively identifying documents that, despite being returned by the database, do not substantively address the question.
+    Such documents should be disregarded in the analysis.
 
     ### Response Guidelines:
 
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
-    Your answer must not exceed 5,000 tokens. 
+    Your answer must not exceed 5,000 tokens.
+    Please provide direct and concise responses without unnecessary verbosity.
 
     If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
-    
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
-    The final output should not include any reference to the model's active sorting by date.
-
-    Please provide direct and concise responses without unnecessary verbosity.
 
     If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response in the following format with the <br /> brackets instead of new lines:
 
@@ -243,7 +241,7 @@ def get_indepth_response_from_query(df, db, query, k):
     
     Word: Definition
 
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "1.", "2.", "3.",
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
 
     Documents: {docs}
