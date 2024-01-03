@@ -243,6 +243,7 @@ def get_indepth_response_from_query(df, db, query, k):
 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
+    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
 
     Documents: {docs}
     """
