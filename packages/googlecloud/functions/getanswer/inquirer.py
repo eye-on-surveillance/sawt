@@ -231,7 +231,7 @@ def get_indepth_response_from_query(df, db, query, k):
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response in the following format with the <br /> brackets instead of new lines:
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response in the following format where each definition is on a new line:
 
     Definitions:
     
