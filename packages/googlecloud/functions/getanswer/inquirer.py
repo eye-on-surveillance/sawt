@@ -175,7 +175,7 @@ def append_metadata_to_content(doc_list):
 def transform_query_for_date(query):
     return (
         query
-        + "Note for the model: this query related to a specific time period, therefore, you should sort the documents by the relevant publish date"
+        + "(SYSTEM NOTE: this query related to a specific time period, therefore, you should sort the documents by the publish dates to best answer the query)"
     )
 
 
