@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useInterval } from "usehooks-ts";
 import CardActions from "../Card/CardActions";
-import styles from "./homeresults.module.scss"
+import styles from "./homeresults.module.scss";
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -51,7 +51,7 @@ export default function QueryResult({ card }: { card: ICard }) {
       : moment().fromNow()
   );
   const thumbnail = getThumbnail(citations || []);
-    
+
   useInterval(
     () => {
       setMsgIndex((prevIndex) => (prevIndex + 1) % LOADING_MESSAGES.length);
@@ -62,7 +62,7 @@ export default function QueryResult({ card }: { card: ICard }) {
   useInterval(() => {
     setPrettyCreatedAt(moment(card.created_at).fromNow());
   }, 5_000);
-  
+
   const CardBody = () => {
     return (
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
@@ -107,14 +107,14 @@ export default function QueryResult({ card }: { card: ICard }) {
 
   return (
     <div id={isLoading ? "loading" : "loaded"} className={styles["card"]}>
-    <div
-      className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
-        isLoading ? "border-4 border-dashed border-yellow-500" : ""
-      }`}
-    >
-      <CardBody />
-      <CardActions card={card} />
-    </div>
+      <div
+        className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
+          isLoading ? "border-4 border-dashed border-yellow-500" : ""
+        }`}
+      >
+        <CardBody />
+        <CardActions card={card} />
+      </div>
     </div>
   );
 }

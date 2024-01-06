@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
-import styles from "./card.module.scss"
+import styles from "./card.module.scss";
 
 function hasLikedCardBefore(cardId?: string): boolean {
   if (!cardId || typeof window === "undefined") {

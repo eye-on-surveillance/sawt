@@ -2,17 +2,18 @@
 @use "../../app/custom-css/1-helpers/mixins" as mix;
 
 .sawt-feed {
-background-color: var.$primary;
+  background-color: var.$primary;
 }
 
 .sawt-card {
-    background-color: var.$altPrimary;
+  background-color: var.$altPrimary;
 }
 
 .card {
-    h6,span {
-        color: black;
-        font-size: medium;
-        padding: 5px 0;
-    }
+  h6,
+  span {
+    color: black;
+    font-size: medium;
+    padding: 5px 0;
+  }
 }

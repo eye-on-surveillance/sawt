@@ -43,19 +43,19 @@ export default async function RootLayout({
         queries created by the current user. */}
         <CardResultsProvider serverCards={cards || []}>
           <div className="min-h-screen w-full overflow-hidden">
-<div className={styles["nav-header"]}>
-            <header className="items-center justify-center px-6 text-primary">
-              <Navbar />
-            </header>
+            <div className={styles["nav-header"]}>
+              <header className="items-center justify-center px-6 text-primary">
+                <Navbar />
+              </header>
             </div>
             <div className={styles["content"]}>
-            <main className="min-h-[80vh] items-center justify-center">
-              {children}
-            </main>
-            <footer className="items-center justify-center bg-purple px-6">
-              <Footer />
-            </footer>
-          </div>
+              <main className="min-h-[80vh] items-center justify-center">
+                {children}
+              </main>
+              <footer className="items-center justify-center bg-purple px-6">
+                <Footer />
+              </footer>
+            </div>
           </div>
           {modal}
         </CardResultsProvider>
