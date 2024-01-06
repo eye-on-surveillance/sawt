@@ -3,7 +3,7 @@ import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faUndo } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -41,20 +41,21 @@ export default function NewQuery() {
   const [submissionStarted, setSubmissionStarted] = useState(false);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [currentCardId, setCurrentCardId] = useState<string | null>(null);
-  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(null);
+  const [pollingIntervalId, setPollingIntervalId] = useState<number | null>(
+    null
+  );
 
+  const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
 
-    const submitQuery = async (e?: React.FormEvent<HTMLFormElement>) => {
-      e?.preventDefault();
-  
-      if (query.length <= 10) return;
+    if (query.length <= 10) return;
 
     setIsProcessing(true);
     const newCard = await insertSupabaseCard();
     if (newCard) {
       await sendQueryToFunction(newCard);
       setCurrentCardId(newCard.id ?? null);
-      setQuery(''); 
+      setQuery("");
     }
   };
 
@@ -68,7 +69,7 @@ const scrollToQuery = () => {
 };
 
   const clearQuery = () => {
-    setQuery('');
+    setQuery("");
   };
 
   const insertSupabaseCard = async (): Promise<ICard> => {
@@ -195,7 +196,7 @@ const scrollToQuery = () => {
 <div className={styles["lds-facebook"]}><div></div><div></div><div></div></div>:
     <button
           className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "bg-primary cursor-wait" : "bg-primary"
+            isProcessing ? "cursor-wait bg-primary" : "bg-primary"
           } p-2 text-2xl text-blue`}
           onClick={() => scrollToQuery()}
           type="submit"

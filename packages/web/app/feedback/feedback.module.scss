@@ -1,0 +1,17 @@
+@use "../../app/custom-css/1-helpers/variables" as var;
+@use "../../app/custom-css/1-helpers/mixins" as mix;
+
+.feedback-content {
+    label, span {
+        color: var.$secondary
+    }
+}
+
+.feedback-submit-button {
+    button {
+       background-color: var.$secondary;
+        color: var.$altPrimary;
+        border-radius: 5rem;
+        margin: 0 auto;
+    }
+}

@@ -145,7 +145,7 @@ export default function ThreeCardLayout({
       return (
         <div
           key={index}
-          className={`flex-grow cursor-pointer rounded-md p-2 text-center ${
+          className={`grow cursor-pointer rounded-md p-2 text-center ${
             isSelected ? "bg-primary" : "bg-secondary"
           } `}
           onClick={() => {
@@ -203,7 +203,7 @@ export default function ThreeCardLayout({
                         >
                           Citations
                           <FontAwesomeIcon
-                            className={`ml-2 h-[16px] w-[16px] transform transition-transform ${
+                            className={`ml-2 h-[16px] w-[16px] transition-transform${
                               isDropdownOpen ? "rotate-180" : ""
                             }`}
                             icon={faChevronDown}
