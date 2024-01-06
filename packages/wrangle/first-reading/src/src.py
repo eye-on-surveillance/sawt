@@ -60,7 +60,7 @@ def summarize_text(chunks, publish_date, title):
     """Summarizes the chunks of text"""
     chat = ChatOpenAI(
         model="gpt-3.5-turbo-1106",
-        api_key="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",
+        api_key="",
     )
 
     combined_text_content = " ".join(chunk.page_content for chunk in chunks[:10])
