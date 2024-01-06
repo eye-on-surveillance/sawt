@@ -7,9 +7,7 @@ import json
 import os
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-import uuid
 import re
-import PyPDF2
 
 
 def pdf_to_images(pdf_path):
@@ -62,42 +60,62 @@ def summarize_text(chunks, publish_date, title):
     """Summarizes the chunks of text"""
     chat = ChatOpenAI(
         model="gpt-3.5-turbo-1106",
-        api_key="",
+        api_key="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",
     )
+
+    combined_text_content = " ".join(chunk.page_content for chunk in chunks[:10])
+
+    ord_num_prompt = PromptTemplate(
+        input_variables=["text_content"],
+        template="""
+        ### System Instructions for Identifying Initial Ordinance Number:
+        - Carefully inspect the provided council meeting text to locate the 'ORDINANCES ON FIRST READING' section.
+        - This section will always begin with a two-digit number, followed by a period (e.g., '35.', '40.', '50.', etc.). Immediately following this two-digit number, you will find the heading 'ORDINANCES ON FIRST READING'.
+        - Your primary task is to identify and extract this initial two-digit ordinance number, which precedes the 'ORDINANCES ON FIRST READING' heading.
+        - Once identified, report this number clearly. It is essential for guiding the extraction of subsequent ordinances in the first readings section.
+        - Do not consider any numbers that are not two digits as the initial ordinance number.
+
+        ### Example of What to Look For:
+        - If the section begins with an ordinance labeled '35.' and is immediately followed by the heading 'ORDINANCES ON FIRST READING', your response should be: "Initial Ordinance Number: 35."
+        - Ignore any numbers that are not in the two-digit format or not immediately followed by the 'ORDINANCES ON FIRST READING' heading.
+
+        ### Documents for the system to inspect:
+        {text_content}
+    """,
+    )
+
+    ord_num_chain = LLMChain(llm=chat, prompt=ord_num_prompt)
+    ord_num = ord_num_chain.run(text_content=combined_text_content, temperature=1)
+
     summaries = []
     for chunk in chunks:
         text_content = chunk.page_content
-        metadata = chunk.metadata
 
         prompt = PromptTemplate(
-            input_variables=["text_content"],
+            input_variables=["text_content", "ord_num"],
             template="""
-        ## Council Meeting Ordinance Summary on First Reading
+        ### System Instructions:
+        - The 'ORDINANCES ON FIRST READING' section in this document starts with ordinance number '{ord_num}'. Focus on extracting all subsequent ordinances that are marked with this number followed by a letter (e.g., if '{ord_num}' is extracted, then look for '{ord_num}a.', '{ord_num}b.', '{ord_num}c.', etc.).
+        - For each ordinance that matches this pattern, create a JSON object with keys for the ordinance number, a summary, names of council members who introduced it, and relevant topics/tags/keywords.
+        - Disregard any ordinances that do not follow the pattern of '{ord_num}' followed by a letter, as these are not part of the 'ORDINANCES ON FIRST READING' section.
 
-        ### Text Content:
-        {text_content}
-
-        ### Instructions:
-        - Begin by identifying the section titled 'ORDINANCES ON FIRST READING'. This section will start with a number (e.g., '35. ORDINANCES ON FIRST READING').
-        - Once the starting point is found, extract all subsequent ordinances. These will be marked with the same prefix number followed by a letter (e.g., '35a.', '35b.', etc.).
-        - For each ordinance, create a JSON object with keys for the ordinance number, a summary of the ordinance, the names of council members who introduced it, and relevant topics/tags/keywords.
-        - Stop extracting once a different section heading is encountered.
-
-        ### Example Format:
+        ### Example Format: 
         Create a JSON object for each ordinance summary:
-            "Ordinance Number": "35a.",
+            "Ordinance Number": "[{ord_num} + letter]",
             "Summary": "A brief summary of the ordinance's content and purpose.",
-            "Introduced By": "Names of council members who introduced the ordinance"
-            "Topic/Tag/Keywords": "The general topic of the ordinance (e.g., budget, criminal justice, environmental, housing, etc.)",
-
+            "Introduced By": "Names of council members who introduced the ordinance",
+            "Topic/Tag/Keywords": "General topic of the ordinance (e.g., budget, criminal justice, environmental, housing, etc.)",
 
         ### Role Emphasis:
-        As an AI assistant, your task is to meticulously identify ordinances on first reading by their unique prefix syntax and provide clear, concise, and well-structured JSON summaries, enabling quick understanding and retrieval of essential details from the council meeting minutes.
+        Focus on accurately identifying and summarizing the ordinances that follow the unique prefix syntax ('{ord_num}' + letter). Provide clear, concise, and well-structured JSON summaries for these ordinances only. Disregard non-first-reading ordinances.
+
+        ### Documents for the system to inspect:
+        {text_content}
         """,
         )
 
         chain = LLMChain(llm=chat, prompt=prompt)
-        summary = chain.run(text_content=text_content, temperature=1)
+        summary = chain.run(text_content=text_content, ord_num=ord_num, temperature=1)
         summaries.append(
             {"page_content": summary, "publish_date": publish_date, "title": title}
         )
@@ -125,7 +143,6 @@ def concatenate_jsons(input_dir, output_file):
                 messages = data.get("messages", [])
 
                 all_messages.extend(messages)
-
     with open(output_file, "w") as file:
         json.dump({"messages": all_messages}, file, indent=4)
 
@@ -146,7 +163,6 @@ def split_ordinance_summaries(messages):
         for json_match in json_matches:
             try:
                 ordinance_dict = json.loads(json_match)
-                ordinance_dict["uid"] = message["uid"]
                 ordinance_dict["publish_date"] = message["publish_date"]
                 ordinance_dicts.append(ordinance_dict)
             except json.JSONDecodeError:
@@ -159,7 +175,7 @@ if __name__ == "__main__":
     documents_directory = "../data"
     output_json_dir = "../output"
 
-    os.makedirs(output_json_dir, exist_ok=True)  
+    os.makedirs(output_json_dir, exist_ok=True)  #
 
     for pdf_filename in os.listdir(documents_directory):
         if pdf_filename.endswith(".pdf"):
@@ -179,10 +195,10 @@ if __name__ == "__main__":
             save_ocr_to_json(pdf_path, ocr_json_path, publish_date)
             chunks = load_and_split(ocr_json_path)
             summaries = summarize_text(chunks, publish_date, title)
+            print("Summaries before split_ordinance_summaries:", summaries)
             individual_ordinances = split_ordinance_summaries(summaries)
 
             save_summaries_to_json(individual_ordinances, output_json_dir, pdf_filename)
-
             os.remove(ocr_json_path)
 
     input_directory = "../output"
