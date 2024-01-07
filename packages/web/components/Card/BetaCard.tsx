@@ -116,7 +116,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm text-secondary">
+        <h1 className="text-sm">
           {moment.utc(card.created_at!).local().fromNow()}
         </h1>
       </div>
