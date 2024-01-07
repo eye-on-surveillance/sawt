@@ -56,7 +56,7 @@ export default function CommentBox({
           onClick={handleSubmit}
           className="w-full rounded-lg p-2 text-2xl text-blue md:w-1/2"
         >
-          Submit
+          Submit #{index + 1}
         </button>
       </div>
     </div>
