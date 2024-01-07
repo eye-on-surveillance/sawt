@@ -4,7 +4,7 @@ import { ICard } from "@/lib/api";
 // import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 // import Link from "next/link";
-import Rubric from "@/components/Rubric";
+import Rubric from "@/app/feedback/Rubric";
 import { TABLES } from "@/lib/supabase/db";
 import {
   faCheckCircle,
@@ -13,7 +13,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import Citation from "./Card/Citation";
+import Citation from "../../components/Card/Citation";
 import CommentBox from "./CommentBoxes";
 
 const criteria = [

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
+import { useCardResults } from "../../app/feedback/CardResultsProvider";
 import CardLoading from "../Card/CardLoading";
-import { useCardResults } from "../CardResultsProvider";
 import QueryResult from "./QueryResult";
 import styles from "./homeresults.module.scss";
 export default function HomeBanner() {

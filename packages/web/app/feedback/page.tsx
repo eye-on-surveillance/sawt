@@ -1,7 +1,7 @@
 "use client";
 
 // Import necessary modules and components
-import ThreeCardLayout from "../../components/ThreeCardLayout";
+import ThreeCardLayout from "./ThreeCardLayout";
 // import NextButton from '@/components/NextButton';
 import { ICard } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";

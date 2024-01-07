@@ -7,7 +7,7 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useCardResults } from "../CardResultsProvider";
+import { useCardResults } from "../../app/feedback/CardResultsProvider";
 import styles from "./homebanner.module.scss";
 
 type SupabaseRealtimePayload<T = any> = {
