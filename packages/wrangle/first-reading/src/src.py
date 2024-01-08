@@ -95,21 +95,23 @@ def summarize_text(chunks, publish_date, title):
             input_variables=["text_content", "ord_num"],
             template="""
         ### System Instructions:
-        - The 'ORDINANCES ON FIRST READING' section in this document starts with ordinance number '{ord_num}'. Focus on extracting all subsequent ordinances that are marked with this number followed by a letter (e.g., if '{ord_num}' is extracted, then look for '{ord_num}a.', '{ord_num}b.', '{ord_num}c.', etc.).
-        - For each ordinance that matches this pattern, create a JSON object with keys for the ordinance number, a summary, names of council members who introduced it, and relevant topics/tags/keywords.
-        - Disregard any ordinances that do not follow the pattern of '{ord_num}' followed by a letter, as these are not part of the 'ORDINANCES ON FIRST READING' section.
+        - Extract ordinances from the 'ORDINANCES ON FIRST READING' section, beginning with the ordinance prefix '{ord_num}'. Focus on ordinances with '{ord_num}' followed by a sequential letter (e.g., '{ord_num}a.', '{ord_num}b.', '{ord_num}c.', etc.).
+        - For each ordinance, identify two key pieces of information:
+        - The ordinance prefix (e.g., '{ord_num}a').
+        - The full ordinance number string, which includes identifiers like 'CAL. NO.', 'RESOLUTION – NO.', or 'MOTION – NO.', followed by a sequence of numbers and letters. Ensure to capture the entire string (e.g., 'CAL. NO. 34,462', 'RESOLUTION – NO. R-23-518', 'MOTION – NO. M-23-514').
+        - The "First Reading Ordinance Number", which is {ord_num}.
+        - Exclude ordinances that do not conform to the '{ord_num}' followed by a letter format or lack a clearly defined ordinance number.
 
-        ### Example Format: 
-        Create a JSON object for each ordinance summary:
-            "Ordinance Number": "[{ord_num} + letter]",
-            "Summary": "A brief summary of the ordinance's content and purpose.",
-            "Introduced By": "Names of council members who introduced the ordinance",
-            "Topic/Tag/Keywords": "General topic of the ordinance (e.g., budget, criminal justice, environmental, housing, etc.)",
+        Create a JSON object for each ordinance, including:
+        - "Ordinance Prefix": The prefix of the ordinance.
+        - "Full Ordinance Number": The complete string of the ordinance number, including its identifier.
+        - "First Reading Ordinance Number": {ord_num}.
+        - "Summary": A brief summary of the ordinance's content and purpose.
+        - "Introduced By": List the council members who introduced the ordinance.
+        - "Topics/Tags/Keywords": Up to three key topics or keywords relevant to the ordinance.
+        - "First Reading Ordinance Number": {ord_num}
 
-        ### Role Emphasis:
-        Focus on accurately identifying and summarizing the ordinances that follow the unique prefix syntax ('{ord_num}' + letter). Provide clear, concise, and well-structured JSON summaries for these ordinances only. Disregard non-first-reading ordinances.
-
-        ### Documents for the system to inspect:
+        ### System Documents:
         {text_content}
         """,
         )
