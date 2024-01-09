@@ -1,5 +1,3 @@
-import pytesseract
-from pdf2image import convert_from_path
 from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import JSONLoader
@@ -8,34 +6,41 @@ import os
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 import re
+from pdfminer.high_level import extract_text
 
 
-def pdf_to_images(pdf_path):
-    """Converts PDF file to images"""
-    return convert_from_path(pdf_path)
+def save_ocr_to_json(
+    pdf_path, ocr_json_path, publish_date, text_output_path="test.txt"
+):
+    """Extracts text from the last 10 pages of a PDF and saves the result in a JSON format with page numbers, and also saves these pages as a text file."""
+    full_text = extract_text_from_pdf(pdf_path)
 
+    pages = full_text.split("\f")[:-1]
 
-def extract_text_from_image(image):
-    """Extracts text from a single image using OCR"""
-    return pytesseract.image_to_string(image)
+    last_10_pages = pages[-10:] if len(pages) >= 10 else pages
 
-
-def save_ocr_to_json(pdf_path, ocr_json_path, publish_date):
-    """Performs OCR on the last 10 pages of a PDF and saves the result in a JSON format with page numbers"""
-    images = pdf_to_images(pdf_path)
     messages = []
-
-    start_page = max(0, len(images) - 10)
-    for page_num, image in enumerate(images[start_page:], start=start_page):
-        text = extract_text_from_image(image)
-        record = {"page_content": text, "metadata": {"page_number": page_num + 1}}
+    combined_text = ""
+    for page_num, page_text in enumerate(
+        last_10_pages, start=len(pages) - len(last_10_pages) + 1
+    ):
+        record = {"page_content": page_text, "metadata": {"page_number": page_num}}
         messages.append(record)
+        combined_text += page_text + "\n\n"
 
     with open(ocr_json_path, "w") as file:
         json.dump({"messages": messages, "publish_date": publish_date}, file, indent=4)
 
+    with open(text_output_path, "w", encoding="utf-8") as text_file:
+        text_file.write(combined_text)
 
-def load_and_split(json_path, chunk_size=4000, chunk_overlap=1000):
+
+def extract_text_from_pdf(pdf_path):
+    """Extracts text from a PDF file"""
+    return extract_text(pdf_path)
+
+
+def load_and_split(json_path, chunk_size=2000, chunk_overlap=1000):
     """Loads OCR text from JSON and splits it into chunks that approximately span 2 pages"""
     loader = JSONLoader(
         file_path=json_path,
@@ -47,7 +52,8 @@ def load_and_split(json_path, chunk_size=4000, chunk_overlap=1000):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
-    return text_splitter.split_documents(data)
+    texts = text_splitter.split_documents(data)
+    return texts
 
 
 def extract_date_from_filename(filename):
@@ -68,16 +74,11 @@ def summarize_text(chunks, publish_date, title):
     ord_num_prompt = PromptTemplate(
         input_variables=["text_content"],
         template="""
-        ### System Instructions for Identifying Initial Ordinance Number:
-        - Carefully inspect the provided council meeting text to locate the 'ORDINANCES ON FIRST READING' section.
-        - This section will always begin with a two-digit number, followed by a period (e.g., '35.', '40.', '50.', etc.). Immediately following this two-digit number, you will find the heading 'ORDINANCES ON FIRST READING'.
-        - Your primary task is to identify and extract this initial two-digit ordinance number, which precedes the 'ORDINANCES ON FIRST READING' heading.
-        - Once identified, report this number clearly. It is essential for guiding the extraction of subsequent ordinances in the first readings section.
-        - Do not consider any numbers that are not two digits as the initial ordinance number.
-
-        ### Example of What to Look For:
-        - If the section begins with an ordinance labeled '35.' and is immediately followed by the heading 'ORDINANCES ON FIRST READING', your response should be: "Initial Ordinance Number: 35."
-        - Ignore any numbers that are not in the two-digit format or not immediately followed by the 'ORDINANCES ON FIRST READING' heading.
+        ### System Instructions:
+        - Find this section: 'ORDINANCES ON FIRST READING'. Immediately preceding this heading will be a two-digit number, followed by a period (e.g., '35.', '40.', '50.', etc.). 
+        - Your primary task is to identify and extract the two-digit ordinance number, which precedes the 'ORDINANCES ON FIRST READING' heading.
+        
+        Ordinances on First Reading Identifier: 
 
         ### Documents for the system to inspect:
         {text_content}
@@ -86,6 +87,7 @@ def summarize_text(chunks, publish_date, title):
 
     ord_num_chain = LLMChain(llm=chat, prompt=ord_num_prompt)
     ord_num = ord_num_chain.run(text_content=combined_text_content, temperature=1)
+    print(ord_num)
 
     summaries = []
     for chunk in chunks:
@@ -94,34 +96,32 @@ def summarize_text(chunks, publish_date, title):
         prompt = PromptTemplate(
             input_variables=["text_content", "ord_num"],
             template="""
-        ### System Instructions:
-        - Extract ordinances from the 'ORDINANCES ON FIRST READING' section, beginning with the ordinance prefix '{ord_num}'. Focus on ordinances with '{ord_num}' followed by a sequential letter (e.g., '{ord_num}a.', '{ord_num}b.', '{ord_num}c.', etc.).
-        - For each ordinance, identify two key pieces of information:
-        - The ordinance prefix (e.g., '{ord_num}a').
-        - The full ordinance number string, which includes identifiers like 'CAL. NO.', 'RESOLUTION – NO.', or 'MOTION – NO.', followed by a sequence of numbers and letters. Ensure to capture the entire string (e.g., 'CAL. NO. 34,462', 'RESOLUTION – NO. R-23-518', 'MOTION – NO. M-23-514').
-        - The "First Reading Ordinance Number", which is {ord_num}.
-        - Exclude ordinances that do not conform to the '{ord_num}' followed by a letter format or lack a clearly defined ordinance number.
+            System Instructions:
 
-        Create a JSON object for each ordinance, including:
-        - "Ordinance Prefix": The prefix of the ordinance.
-        - "Full Ordinance Number": The complete string of the ordinance number, including its identifier.
-        - "First Reading Ordinance Number": {ord_num}.
-        - "Summary": A brief summary of the ordinance's content and purpose.
-        - "Introduced By": List the council members who introduced the ordinance.
-        - "Topics/Tags/Keywords": Up to three key topics or keywords relevant to the ordinance.
-        - "First Reading Ordinance Number": {ord_num}
+            Analyze the document text provided to locate ordinances specifically from the 'ORDINANCES ON FIRST READING' section, which begins with the number found here '{ord_num}'. Disregard the string of text before the number. Focus on ordinances prefixed with '{ord_num}' followed by a letter (e.g., '{ord_num}a', '{ord_num}b', '{ord_num}c', etc.).
 
-        ### System Documents:
-        {text_content}
+            For each identified ordinance, extract and compile the following details:
+
+            - The ordinance prefix (e.g., '{ord_num}a').
+            - The full ordinance number and identifier, such as '51a. CAL. NO. 34,462 BY COUNCILMEMBER HARRIS'.
+            - A comprehensive summary of the ordinance's content and purpose.
+            - The names of council members who introduced the ordinance.
+            - The general topic or keywords of the ordinance (limit to 3 topics).
+            - The original ordinance on first reading number from here {ord_num}
+
+            Format each ordinance's information as a JSON object, including the keys: "Full Ordinance Number", "First Reading Ordinance Number", "Summary", "Introduced By", "Topic/Tag/Keywords", "Original Ordinance on First Reading Number".
+
+            Begin the analysis with the following document text:
+            {text_content}
         """,
         )
 
         chain = LLMChain(llm=chat, prompt=prompt)
         summary = chain.run(text_content=text_content, ord_num=ord_num, temperature=1)
+        print(summary)
         summaries.append(
             {"page_content": summary, "publish_date": publish_date, "title": title}
         )
-        print(summaries)
 
     return summaries
 
@@ -158,7 +158,7 @@ def split_ordinance_summaries(messages):
 
     for message in messages:
         page_content = message["page_content"]
-        json_regex = r"\{\n\s+\"Ordinance Number\":.*?\n\}"
+        json_regex = r"\{\n\s+\"Full Ordinance Number\":.*?\n\}"
 
         json_matches = re.findall(json_regex, page_content, re.DOTALL)
 
@@ -173,9 +173,30 @@ def split_ordinance_summaries(messages):
     return ordinance_dicts
 
 
+def deduplicate_ordinances(ordinances):
+    """
+    Deduplicates the list of ordinances based on the full ordinance number.
+    Keeps the ordinance with the longest summary if duplicates are found.
+    """
+    deduped_ordinances = {}
+    for ordinance in ordinances:
+        full_ordinance_number = ordinance.get("Full Ordinance Number", "")
+
+        existing_ordinance = deduped_ordinances.get(full_ordinance_number)
+        if existing_ordinance:
+            if len(ordinance.get("Summary", "")) > len(
+                existing_ordinance.get("Summary", "")
+            ):
+                deduped_ordinances[full_ordinance_number] = ordinance
+        else:
+            deduped_ordinances[full_ordinance_number] = ordinance
+
+    return list(deduped_ordinances.values())
+
+
 if __name__ == "__main__":
-    documents_directory = "../data"
-    output_json_dir = "../output"
+    documents_directory = "../data/input"
+    output_json_dir = "../data/output"
 
     os.makedirs(output_json_dir, exist_ok=True)  #
 
@@ -192,18 +213,20 @@ if __name__ == "__main__":
 
             pdf_path = os.path.join(documents_directory, pdf_filename)
             publish_date = extract_date_from_filename(pdf_filename)
-            ocr_json_path = "../output/ocr_text.json"
+            ocr_json_path = "../data/output/ocr_text.json"
 
             save_ocr_to_json(pdf_path, ocr_json_path, publish_date)
             chunks = load_and_split(ocr_json_path)
             summaries = summarize_text(chunks, publish_date, title)
-            print("Summaries before split_ordinance_summaries:", summaries)
             individual_ordinances = split_ordinance_summaries(summaries)
+            deduplicated_ordinances = deduplicate_ordinances(individual_ordinances)
 
-            save_summaries_to_json(individual_ordinances, output_json_dir, pdf_filename)
+            save_summaries_to_json(
+                deduplicated_ordinances, output_json_dir, pdf_filename
+            )
             os.remove(ocr_json_path)
 
-    input_directory = "../output"
-    output_json_path = "../output/First Reading.json"
+    input_directory = "../data/output"
+    output_json_path = "../data/output/First Reading.json"
     concatenate_jsons(input_directory, output_json_path)
     print(f"Summaries saved in directory: {output_json_dir}")
