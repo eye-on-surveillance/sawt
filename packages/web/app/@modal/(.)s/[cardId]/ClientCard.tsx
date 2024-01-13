@@ -12,7 +12,7 @@ export default async function ClientCard({ cardId }: { cardId: string }) {
   const router = useRouter();
 
   return (
-    <div className="w-full bg-slate-200">
+    <div className="w-full bg-blue">
       <div
         className="w-full cursor-pointer px-6 py-4"
         onClick={() => router.back()}

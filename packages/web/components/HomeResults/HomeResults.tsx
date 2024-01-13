@@ -45,7 +45,6 @@ export default function HomeBanner() {
       });
     }
   }, [isInView, isLoading, fetchMoreCards, hasMoreCards]);
-  console.log(cards);
   return (
     <div className={styles["sawt-feed"]}>
       <div

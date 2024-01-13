@@ -72,7 +72,7 @@ export default function QueryResult({ card }: { card: ICard }) {
             <span className="text-purple">
               {card.is_mine ? "You | " : null}
             </span>
-            <span className="text-secondary">{prettyCreatedAt}</span>
+            <span className="text-black">{prettyCreatedAt}</span>
           </h6>
 
           {!isLoading && !!responses ? (

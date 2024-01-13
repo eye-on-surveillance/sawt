@@ -36,6 +36,9 @@ const Navbar = () => {
           <nav className="navbar flex w-full items-center justify-between">
             <Link href={HOME_PATH}>
               <Image src={SAWTLogo} alt="SAWT Logo" width={100} height={100} />
+              <div className={styles["beta"]}>
+                <p>beta</p>
+              </div>
             </Link>
             {/* Desktop Navigation */}
             <ul className="hidden flex-1 list-none items-center justify-end sm:flex">

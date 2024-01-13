@@ -15,7 +15,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import Citation from "../../components/Card/Citation";
 import CommentBox from "./CommentBoxes";
-
 const criteria = [
   { id: "Accuracy", description: "Accuracy" },
   { id: "Helpfulness", description: "Helpfulness" },
@@ -145,7 +144,7 @@ export default function ThreeCardLayout({
       return (
         <div
           key={index}
-          className={`grow cursor-pointer rounded-md p-2 text-center ${
+          className={`grow cursor-pointer rounded-t-md p-2 text-center ${
             isSelected ? "bg-primary" : "bg-secondary"
           } `}
           onClick={() => {

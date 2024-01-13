@@ -14,3 +14,13 @@
   padding: 0.625rem;
   border-radius: 3rem;
 }
+
+.beta {
+  position: relative;
+  bottom: 6rem;
+  left: 3rem;
+  font-weight: 600;
+  &:hover {
+    color: none;
+  }
+}
