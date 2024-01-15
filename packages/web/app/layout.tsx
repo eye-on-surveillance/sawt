@@ -1,8 +1,8 @@
 "use strict";
 
-import CardResultsProvider from "@/components/CardResultsProvider";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
+import CardResultsProvider from "@/app/feedback/CardResultsProvider";
+import Footer from "@/components/Footer/Footer";
+import Navbar from "@/components/NavBar/Navbar";
 import { ECardStatus } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { config } from "@fortawesome/fontawesome-svg-core";
@@ -11,6 +11,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Analytics } from "@vercel/analytics/react";
 import { cookies } from "next/headers";
 import "./globals.css";
+import styles from "./layout.module.scss";
 
 config.autoAddCss = false;
 
@@ -42,15 +43,19 @@ export default async function RootLayout({
         queries created by the current user. */}
         <CardResultsProvider serverCards={cards || []}>
           <div className="min-h-screen w-full overflow-hidden">
-            <header className="items-center justify-center bg-blue px-6 text-primary">
-              <Navbar />
-            </header>
-            <main className="min-h-[80vh] items-center justify-center">
-              {children}
-            </main>
-            <footer className="items-center justify-center bg-purple px-6">
-              <Footer />
-            </footer>
+            <div className={styles["nav-header"]}>
+              <header className="items-center justify-center px-6 text-primary">
+                <Navbar />
+              </header>
+            </div>
+            <div className={styles["content"]}>
+              <main className="min-h-[80vh] items-center justify-center">
+                {children}
+              </main>
+              <footer className="items-center justify-center bg-purple px-6">
+                <Footer />
+              </footer>
+            </div>
           </div>
           {modal}
         </CardResultsProvider>

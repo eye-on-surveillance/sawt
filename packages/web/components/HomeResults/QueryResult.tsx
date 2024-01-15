@@ -9,7 +9,8 @@ import moment from "moment";
 import Link from "next/link";
 import { useState } from "react";
 import { useInterval } from "usehooks-ts";
-import CardActions from "./CardActions";
+import CardActions from "../Card/CardActions";
+import styles from "./homeresults.module.scss";
 
 const MAX_CHARACTERS_PREVIEW = 300;
 
@@ -71,7 +72,7 @@ export default function QueryResult({ card }: { card: ICard }) {
             <span className="text-purple">
               {card.is_mine ? "You | " : null}
             </span>
-            <span className="text-secondary">{prettyCreatedAt}</span>
+            <span className="text-black">{prettyCreatedAt}</span>
           </h6>
 
           {!isLoading && !!responses ? (
@@ -105,13 +106,15 @@ export default function QueryResult({ card }: { card: ICard }) {
   };
 
   return (
-    <div
-      className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
-        isLoading ? "border-4 border-dashed border-yellow-500" : ""
-      }`}
-    >
-      <CardBody />
-      <CardActions card={card} />
+    <div id={isLoading ? "loading" : "loaded"} className={styles["card"]}>
+      <div
+        className={`my-6 space-y-4 rounded-lg bg-blue p-6 text-primary ${
+          isLoading ? "border-4 border-dashed border-yellow-500" : ""
+        }`}
+      >
+        <CardBody />
+        <CardActions card={card} />
+      </div>
     </div>
   );
 }

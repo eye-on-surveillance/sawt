@@ -116,7 +116,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       {/* Card Header */}
       <div className="mb-4 space-y-2">
         <h1 className="text-2xl">{card.title}</h1>
-        <h1 className="text-sm text-secondary">
+        <h1 className="text-sm">
           {moment.utc(card.created_at!).local().fromNow()}
         </h1>
       </div>
@@ -142,7 +142,7 @@ const BetaCard = ({ card }: { card: ICard }) => {
       {/* Citations Section */}
       <div className="mb-6 mt-4">
         <button
-          className="bg-brighter-blue hover:bg-even-brighter-blue focus:shadow-outline w-full cursor-pointer rounded-md bg-secondary px-4 py-2 font-bold text-primary focus:outline-none"
+          className="bg-brighter-orange hover:bg-even-brighter-orange focus:shadow-outline w-full cursor-pointer rounded-md bg-orange px-4 py-2 font-bold text-primary focus:outline-none"
           aria-label={showCitations ? "Hide Citations" : `Show all citations`}
           onClick={() => setShowCitations((prev) => !prev)}
         >

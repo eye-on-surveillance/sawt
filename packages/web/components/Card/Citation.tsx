@@ -40,7 +40,7 @@ const Citation = ({
         <p className="font-bold lg:text-lg">
           #{index + 1}: {title}
         </p>
-        <p className="text-secondary">{moment(publishedAt).fromNow()}</p>
+        <p className="text-black">{moment(publishedAt).fromNow()}</p>
       </div>
 
       {isUrlAvailable && (

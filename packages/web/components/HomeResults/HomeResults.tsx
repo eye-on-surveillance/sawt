@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BeatLoader } from "react-spinners";
-import CardLoading from "./CardLoading";
-import { useCardResults } from "./CardResultsProvider";
+import { useCardResults } from "../../app/feedback/CardResultsProvider";
+import CardLoading from "../Card/CardLoading";
 import QueryResult from "./QueryResult";
-
+import styles from "./homeresults.module.scss";
 export default function HomeBanner() {
   const { cards, fetchMoreCards, hasMoreCards } = useCardResults();
   const hasCards = cards.length > 0;
@@ -45,33 +45,33 @@ export default function HomeBanner() {
       });
     }
   }, [isInView, isLoading, fetchMoreCards, hasMoreCards]);
-
   return (
-    <div
-      ref={containerRef}
-      className="min-h-[40vh] w-screen bg-gradient-to-br from-primary to-secondary px-6 py-12 sm:px-16"
-    >
-      <div className="md:flex">
-        <div className="md:grow"></div>
-        <div className="md:w-3/4 md:max-w-2xl">
-          {hasCards &&
-            cards.map((card) => <QueryResult key={card.id} card={card} />)}
+    <div className={styles["sawt-feed"]}>
+      <div
+        ref={containerRef}
+        className="min-h-[40vh] w-screen bg-gradient-to-br px-6 sm:px-16"
+      >
+        <div className="md:flex">
+          <div className="md:grow"></div>
+          <div className="md:w-3/4 md:max-w-2xl">
+            {hasCards &&
+              cards.map((card) => <QueryResult key={card.id} card={card} />)}
+            {isLoading && (
+              <div className="my-4 flex items-center justify-center">
+                <BeatLoader color="#FFFFFF" />
+              </div>
+            )}
 
-          {isLoading && (
-            <div className="my-4 flex items-center justify-center">
-              <BeatLoader color="#FFFFFF" />
-            </div>
-          )}
-
-          {!hasCards && !isLoading && (
-            <div className="space-y-7">
-              <CardLoading />
-              <CardLoading />
-              <CardLoading />
-            </div>
-          )}
+            {!hasCards && !isLoading && (
+              <div className="space-y-7">
+                <CardLoading />
+                <CardLoading />
+                <CardLoading />
+              </div>
+            )}
+          </div>
+          <div className="md:grow"></div>
         </div>
-        <div className="md:grow"></div>
       </div>
     </div>
   );

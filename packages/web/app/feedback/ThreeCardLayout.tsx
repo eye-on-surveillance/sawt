@@ -4,7 +4,7 @@ import { ICard } from "@/lib/api";
 // import { CARD_SHOW_PATH, getPageURL } from "@/lib/paths";
 import { supabase } from "@/lib/supabase/supabaseClient";
 // import Link from "next/link";
-import Rubric from "@/components/Rubric";
+import Rubric from "@/app/feedback/Rubric";
 import { TABLES } from "@/lib/supabase/db";
 import {
   faCheckCircle,
@@ -13,9 +13,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import Citation from "./Citation";
+import Citation from "../../components/Card/Citation";
 import CommentBox from "./CommentBoxes";
-
 const criteria = [
   { id: "Accuracy", description: "Accuracy" },
   { id: "Helpfulness", description: "Helpfulness" },
@@ -145,7 +144,7 @@ export default function ThreeCardLayout({
       return (
         <div
           key={index}
-          className={`grow cursor-pointer rounded-md p-2 text-center ${
+          className={`grow cursor-pointer rounded-t-md p-2 text-center ${
             isSelected ? "bg-primary" : "bg-secondary"
           } `}
           onClick={() => {

@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import { useInterval } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
+import styles from "./card.module.scss";
 
 function hasLikedCardBefore(cardId?: string): boolean {
   if (!cardId || typeof window === "undefined") {
@@ -108,7 +109,7 @@ function BiasModal({ isOpen, onClose, onSubmit }: BiasModalProps) {
         </div>
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 rounded bg-secondary px-4 py-2 text-white"
+          className="bg-purple-500 rounded bg-secondary px-4 py-2 text-black"
         >
           Submit
         </button>
@@ -235,7 +236,7 @@ const CardActions = ({ card }: { card: ICard }) => {
   );
 
   return (
-    <>
+    <div className={styles["icons"]}>
       <div className="flex flex-wrap items-center justify-start space-x-1 text-sm text-secondary md:space-x-3">
         <div className="my-2">
           <span
@@ -303,7 +304,7 @@ const CardActions = ({ card }: { card: ICard }) => {
         onClose={() => setBiasModalOpen(false)}
         onSubmit={submitBiasFeedback}
       />
-    </>
+    </div>
   );
 };
 

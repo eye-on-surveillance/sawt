@@ -17,7 +17,8 @@ const Rubric: React.FC<RubricProps> = ({ criteria, scores, onScoreChange }) => {
     margin: "5px",
     fontWeight: scores[criterionId] === score ? "bold" : "normal",
     outline: "none",
-    border: scores[criterionId] === score ? "2px solid blue" : "1px solid grey",
+    border:
+      scores[criterionId] === score ? "2px solid #6b93c3" : "1px solid grey",
   });
   const submitButtonStyle = {
     padding: "10px 20px",

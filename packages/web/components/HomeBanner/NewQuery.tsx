@@ -3,11 +3,12 @@ import { APP_NAME } from "@/lib/copy";
 import { ABOUT_BETA_PATH, API_NEW_CARD_PATH } from "@/lib/paths";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import { faMagnifyingGlass, faUndo } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useCardResults } from "./CardResultsProvider";
+import { useCardResults } from "../../app/feedback/CardResultsProvider";
+import styles from "./homebanner.module.scss";
 
 type SupabaseRealtimePayload<T = any> = {
   old: T;
@@ -56,6 +57,15 @@ export default function NewQuery() {
       setCurrentCardId(newCard.id ?? null);
       setQuery("");
     }
+  };
+
+  const scrollToQuery = () => {
+    setTimeout(() => {
+      const element = document.getElementById("loading");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 1500); // Adjust the delay duration (in milliseconds) as needed
   };
 
   const clearQuery = () => {
@@ -154,7 +164,7 @@ export default function NewQuery() {
       <form onSubmit={submitQuery}>
         <div className="relative block">
           <FontAwesomeIcon
-            className="absolute left-2 top-1/2 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
+            className="absolute left-2 top-9 ml-2 h-[24px] w-[24px] -translate-y-1/2 cursor-pointer object-contain"
             icon={faMagnifyingGlass}
           />
           <input
@@ -176,21 +186,30 @@ export default function NewQuery() {
           {query && (
             <button
               onClick={clearQuery}
-              className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+              className="absolute right-2 top-4 cursor-pointer p-2"
             >
-              <FontAwesomeIcon icon={faUndo} />
+              X
             </button>
           )}
         </div>
-        <button
-          className={`w-full rounded-lg md:w-1/2 ${
-            isProcessing ? "cursor-wait bg-primary" : "bg-primary"
-          } p-2 text-2xl text-blue`}
-          type="submit"
-          disabled={isProcessing}
-        >
-          Get answer from Sawt
-        </button>
+        {isProcessing ? (
+          <div className={styles["lds-facebook"]}>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        ) : (
+          <button
+            className={`w-full rounded-lg md:w-1/2 ${
+              isProcessing ? "cursor-wait bg-primary" : "bg-primary"
+            } p-2 text-2xl text-blue`}
+            onClick={() => scrollToQuery()}
+            type="submit"
+            disabled={isProcessing}
+          >
+            Get answer from Sawt
+          </button>
+        )}
       </form>
 
       <p className="text-left font-light">

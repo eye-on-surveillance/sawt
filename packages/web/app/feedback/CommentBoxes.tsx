@@ -2,6 +2,7 @@ import { ICard } from "@/lib/api";
 import { faComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import styles from "./feedback.module.scss";
 
 interface CommentBoxProps {
   scores: Record<string, number>;
@@ -50,10 +51,10 @@ export default function CommentBox({
           placeholder="Add feedback here"
         ></textarea>
       </div>
-      <div className="mt-4 flex justify-center">
+      <div className={styles["feedback-submit-button"]}>
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 w-full rounded bg-secondary px-4 py-2 text-lg text-white"
+          className="w-full rounded-lg p-2 text-2xl text-blue md:w-1/2"
         >
           Submit #{index + 1}
         </button>

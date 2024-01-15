@@ -1,0 +1,17 @@
+@use "../../app/custom-css/1-helpers/variables" as var;
+@use "../../app/custom-css/1-helpers/mixins" as mix;
+
+.about-content {
+    p, li{
+    color:var.$altPrimary;
+    }
+     h2{
+        color:var.$secondary
+     }
+     h3 {
+  color:var.$altSecondary
+     }
+    div{
+    border-color: var.$altPrimary;
+    }
+}
