@@ -10,7 +10,7 @@ export default async function CardModal({
 
   return (
     <Modal>
-      <div className="bg-slate-500">
+      <div className="bg-blue">
         <ClientCard cardId={cardId} />
       </div>
     </Modal>

@@ -1,0 +1,35 @@
+// Fonts
+$montserrat: "Montserrat Variable", sans-serif;
+$openSans: "Open Sans Variable", sans-serif;
+
+// Mix
+$box-shadow: 0 0px 24px rgba(0, 0, 0, 0.04);
+$tilebox-shadow: 0 0px 24px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+$inner-shadow: 0 3px 24px rgba(0, 0, 0, 0.16);
+
+$overlay: rgba(65, 65, 65, 0.7);
+
+$menuTransition: opacity z-index background-color height 0.6s
+  cubic-bezier(0.85, 0, 0.15, 1);
+
+// Breakpoints
+$mobile-l: 34.375rem;
+$tablet: 48rem;
+$tablet-l: 64rem;
+$laptop: 85.375rem;
+$desktop: 120rem;
+$uhd: 160rem;
+
+//Max Widths
+$sm: 20rem;
+$md: 38rem;
+$lg: 71rem;
+$xl: 82.5rem;
+
+// Colors
+$primary: #2c2c2c;
+$altPrimary: #e1e1da;
+$secondary: #f35610;
+$altSecondary: #6b93c3;
+
+// Gradients
