@@ -258,7 +258,7 @@ def main():
 
         segments = split_audio(audio_path, start_time_ms, end_time_ms, segment_length_ms, 'output_audio')
 
-        access_token = "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"
+        access_token = ""
 
         full_diarized_transcript = []
         combined_diarization_data = []  
