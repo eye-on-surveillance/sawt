@@ -41,7 +41,8 @@ def update_supabase(responses, citations, card_id, processing_time_ms):
             "source_title": citation.get("Title"),
             "source_name": citation.get("Name"),
             "source_publish_date": citation.get("Published"),
-            "source_url": citation.get("URL")
+            "source_url": citation.get("URL"),
+            "source_page_number": citation.get("Page Number")
         })
 
     try:

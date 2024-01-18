@@ -6,11 +6,34 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
+from datetime import datetime
 
 from helper import sort_retrived_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
+
+
+def convert_date_format(date_str):
+    """Convert date from 'M-D-YYYY' or 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
+    if not isinstance(date_str, str):
+        return "Invalid input: not a string"
+
+    if '/' in date_str:
+        return date_str
+
+    input_format = "%m-%d-%Y"  
+
+    try:
+        date_obj = datetime.strptime(date_str, input_format)
+    except ValueError:
+        try:
+            input_format = "%-m-%-d-%Y"  
+            date_obj = datetime.strptime(date_str, input_format)
+        except ValueError:
+            return "Invalid date format"
+        
+    return date_obj.strftime("%m/%d/%Y")
 
 
 def timestamp_to_seconds(timestamp):
@@ -48,7 +71,7 @@ def process_responses_llm(responses_llm, docs=None):
             doc[0].metadata.get("source", "source not available") for doc in docs
         ]
         publish_dates = [
-            doc[0].metadata.get("publish_date", "date not available") for doc in docs
+            convert_date_format(doc[0].metadata.get("publish_date", "date not available")) for doc in docs     
         ]
         timestamps = [
             doc[0].metadata.get("timestamp", "timestamp not available") for doc in docs
@@ -71,6 +94,7 @@ def process_responses_llm(responses_llm, docs=None):
             section["source_page_number"] = (
                 page_numbers[i] if i < len(page_numbers) else None
             )
+
             section["source_publish_date"] = (
                 publish_dates[i] if i < len(publish_dates) else None
             )
@@ -96,6 +120,8 @@ def process_responses_llm(responses_llm, docs=None):
                 citation["Video timestamp"] = section["source_timestamp"]
             if section["source_name"] is not None:
                 citation["Name"] = section["source_name"]
+            if section["source_page_number"] is not None:
+                citation["Page Number"] = section["source_page_number"]
 
             return section["response"], citation
 
@@ -123,33 +149,40 @@ def process_responses_llm(responses_llm, docs=None):
 
 
 def append_metadata_to_content(doc_list):
-    combined_docs = []
+    updated_docs = []
 
-    for doc in doc_list:
-        metadata = doc[0].metadata
+    for doc_tuple in doc_list:
+        doc, score = doc_tuple  
+        metadata = doc.metadata
         publish_date = metadata.get("publish_date")
 
-        if publish_date is None:
-            continue
+        if publish_date is not None:
+            updated_content = f"Document: {doc.page_content} (Published on: {publish_date})"
+        else:
+            updated_content = doc.page_content
 
-        doc_str = f"Document: {doc[0].page_content} (Published on: {publish_date})"
-        combined_docs.append(doc_str)
+        updated_doc_info = {
+            'content': updated_content,
+            'metadata': metadata,
+            'score': score
+        }
+        
+        updated_docs.append(updated_doc_info)
 
-    combined_docs_content = " ".join(combined_docs)
-    return combined_docs_content
+    return updated_docs
 
 
 def transform_query_for_date(query):
     return (
         query
-        + "Note for the model: this query related to a specific time period, therefore, you should sort the documents by the relevant publish date"
+        + "(SYSTEM NOTE: this query related to a specific time period, therefore, you should sort the documents by the publish dates to best answer the query)"
     )
 
 
 def get_indepth_response_from_query(df, db, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4")
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
 
     template_date_detection = """
         Analyze the following query: "{query}".
@@ -174,36 +207,43 @@ def get_indepth_response_from_query(df, db, query, k):
 
     docs = sort_retrived_documents(doc_list)
 
-    docs_page_content = append_metadata_to_content(doc_list)
-
+    docs_page_content = append_metadata_to_content(docs)
 
     template = """
     Question: {question}
 
+    ### Bias Guidelines:
+    
+    Please be aware of inherent biases within the document corpus, especially an overrepresentation of certain types of documents.
+    These biases may result in the retrieval of documents that are irrelevant to the question. 
+    When analyzing documents to answer the question, it is crucial to critically evaluate their relevance to the question at hand.
+    To ensure accuracy and relevance in your analysis you must identify and disregard irrelevant documents by actively identifying documents that, despite being returned by the database, do not substantively address the question.
+    Such documents should be disregarded in the analysis.
+
+    ### Response Guidelines:
+
     Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
+    Your answer must not exceed 5,000 tokens.
+    Please provide direct and concise responses without unnecessary verbosity.
 
     If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
-    
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
-    The final output should not include any reference to the model's active sorting by date.
 
-    Please provide direct and concise responses without unnecessary verbosity.
-
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, kindly provide a brief definition for those terms at the end of your response using the following format:
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response in the following format where each definition is on a new line:
 
     Definitions:
-
-    [Word]
-    [Definition]
-
-    [Word]
-    [Definition]
+    
+    Word: Definition
+    
+    Word: Definition
+    
+    Word: Definition
 
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
     The final output should not include any reference to the model's active sorting by date.
+    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
 
     Documents: {docs}
     """

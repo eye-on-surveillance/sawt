@@ -1,0 +1,26 @@
+@use "../../app/custom-css/1-helpers/variables" as var;
+@use "../../app/custom-css/1-helpers/mixins" as mix;
+
+.nav {
+  nav {
+    height: 8rem;
+  }
+  svg {
+    color: var.$altPrimary;
+  }
+}
+
+.search-bar {
+  padding: 0.625rem;
+  border-radius: 3rem;
+}
+
+.beta {
+  position: relative;
+  bottom: 6rem;
+  left: 3rem;
+  font-weight: 600;
+  &:hover {
+    color: none;
+  }
+}

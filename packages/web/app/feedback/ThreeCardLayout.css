@@ -1,0 +1,56 @@
+/* ThreeCardLayout.css */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-header {
+  cursor: pointer;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  padding: 8px;
+  z-index: 1;
+  overflow: scroll;
+}
+
+/* Rotate chevron down icon when dropdown is open */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  padding: 8px;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Adjust styles for screens smaller than 600px */
+@media (max-width: 600px) {
+  .dropdown-header {
+    font-size: 14px;
+  }
+
+  .dropdown-content {
+    padding: 10px;
+  }
+}
