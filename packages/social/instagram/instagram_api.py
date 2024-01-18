@@ -1,5 +1,7 @@
 # Import the 'requests' library, which is used for making HTTP requests
 import requests
+from dotenv import find_dotenv, load_dotenv
+import os
 
 # Define a class named 'InstagramAPI'
 class InstagramAPI:
@@ -30,6 +32,7 @@ class InstagramAPI:
         response.raise_for_status()
         # Parse the response as JSON and return the result
         return response.json()
+    
 
     # Define a method 'publish_photo' to upload and publish a photo to Instagram
     def publish_photo(self, caption, image_path):
@@ -66,8 +69,13 @@ class InstagramAPI:
 
 # Example usage:
 if __name__ == "__main__":
-    # Replace this with your actual Instagram Graph API access token
-    access_token = "YOUR_ACCESS_TOKEN"
+    # Load env file
+    load_dotenv(find_dotenv())
+
+    try:
+        access_token = os.environ["INSTAGRAM_ACCESS_TOKEN"]
+    except KeyError:
+        access_token = os.environ.get("INSTAGRAM_ACCESS_TOKEN")
     
     # Create an instance of the InstagramAPI class with the access token
     instagram_api = InstagramAPI(access_token)
