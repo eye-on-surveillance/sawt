@@ -9,3 +9,7 @@ txt/
 package-lock.json
 package.json
 *.DS_Store
+*.mp4
+*.mp3
+*.wav
+*.jpg

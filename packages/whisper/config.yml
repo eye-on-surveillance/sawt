@@ -1,0 +1,12 @@
+model:
+  size: "tiny"
+  device: "mps"  # or your specific GPU device
+  chunk_length: "30"
+  batch_size: 12
+audio:
+  path: "output_audio/City Council Meeting 142024.mp3"
+  offset_ms: 0  # Adjust the offset based on your requirements
+transcript:
+  save_loc: "output_transcript/test_transcript.txt"
+diarization:
+  path: "diarization"  # Adjust the path to your diarization data
