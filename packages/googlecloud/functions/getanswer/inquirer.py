@@ -179,7 +179,7 @@ def transform_query_for_date(query):
     )
 
 
-def get_indepth_response_from_query(df, db, query, k):
+def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
     llm = ChatOpenAI(model_name="gpt-4-1106-preview")
@@ -203,12 +203,33 @@ def get_indepth_response_from_query(df, db, query, k):
         print("Date related")
         query = transform_query_for_date(query)
 
-    doc_list = db.similarity_search_with_score(query, k=k)
+    doc_list_fc = db_fc.similarity_search_with_score(query, k=k)
+    doc_list_cj = db_cj.similarity_search_with_score(query, k=k)
+    doc_list_pdf = db_pdf.similarity_search_with_score(query, k=k)
+    doc_list_pc = db_pc.similarity_search_with_score(query, k=k)
+    doc_list_news = db_news.similarity_search_with_score(query, k=k)
 
-    docs = sort_retrived_documents(doc_list)
 
-    docs_page_content = append_metadata_to_content(docs)
+    docs_list_fc = sort_retrived_documents(doc_list_fc)
+    docs_page_content_fc = append_metadata_to_content(docs_list_fc)
 
+    docs_list_cj = sort_retrived_documents(doc_list_cj)
+    docs_page_content_cj = append_metadata_to_content(docs_list_cj)
+
+    docs_list_pdf = sort_retrived_documents(doc_list_pdf)
+    docs_page_content_pdf = append_metadata_to_content(docs_list_pdf)
+
+    docs_list_pc = sort_retrived_documents(doc_list_pc)
+    docs_page_content_pc = append_metadata_to_content(docs_list_pc)
+    print(docs_page_content_pc)
+
+    docs_list_news = sort_retrived_documents(doc_list_news)
+    docs_page_content_news = append_metadata_to_content(docs_list_news)
+
+    docs = docs_list_fc + docs_list_cj + docs_list_pdf + doc_list_pc + doc_list_news    
+    docs_page_content = docs_page_content_fc + docs_page_content_cj + docs_page_content_pc + docs_page_content_news + docs_page_content_pdf
+
+    
     template = """
     Question: {question}
 
@@ -286,21 +307,23 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=20):
+def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(df, db_in_depth, query, k)
-    elif query_type == RESPONSE_TYPE_GENERAL:
-        return get_general_summary_response_from_query(db_general, query, k)
+        return get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k)
     else:
         raise ValueError(
-            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL}, got: {query_type}"
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
         )
 
-
 def answer_query(
-    query: str, response_type: str, df: any, db_general: any, db_in_depth: any
+    query: str, 
+    response_type: str, 
+    df: any, 
+    db_fc: any, 
+    db_cj: any, 
+    db_pdf: any, 
+    db_pc: any, 
+    db_news: any
 ) -> str:
-    final_response = route_question(df, db_general, db_in_depth, query, response_type)
-
+    final_response = route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type)
     return final_response
-
