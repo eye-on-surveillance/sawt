@@ -2,13 +2,18 @@ import json
 import os
 import logging
 
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from datetime import datetime
 
-from helper import sort_retrived_documents
+from langchain_community.vectorstores import FAISS
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda, RunnableParallel
+
+
+from helper import sort_retrieved_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
@@ -19,37 +24,37 @@ def convert_date_format(date_str):
     if not isinstance(date_str, str):
         return "Invalid input: not a string"
 
-    if '/' in date_str:
+    if "/" in date_str:
         return date_str
 
-    input_format = "%m-%d-%Y"  
+    input_format = "%m-%d-%Y"
 
     try:
         date_obj = datetime.strptime(date_str, input_format)
     except ValueError:
         try:
-            input_format = "%-m-%-d-%Y"  
+            input_format = "%-m-%-d-%Y"
             date_obj = datetime.strptime(date_str, input_format)
         except ValueError:
             return "Invalid date format"
-        
+
     return date_obj.strftime("%m/%d/%Y")
 
 
 def timestamp_to_seconds(timestamp):
     if "timestamp not available" in timestamp:
         return None  # or another default value like -1 or 0
-    
+
     start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
     print(start_time)
-    
+
     time_parts = [int(i) for i in start_time.split(":")]
-    
+
     if len(time_parts) == 3:
         h, m, s = time_parts
     elif len(time_parts) == 2:
         h, m = time_parts
-        s = 0 
+        s = 0
     else:
         raise ValueError("Invalid timestamp format: " + timestamp)
 
@@ -63,20 +68,20 @@ def process_responses_llm(responses_llm, docs=None):
 
     if docs:
         generated_titles = [
-            doc[0].metadata.get("title", doc[0].metadata.get("source", ""))
-            for doc in docs
+            doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
         ]
-        page_numbers = [doc[0].metadata.get("page_number") for doc in docs]
+        page_numbers = [doc.metadata.get("page_number") for doc in docs]
         generated_sources = [
-            doc[0].metadata.get("source", "source not available") for doc in docs
+            doc.metadata.get("source", "source not available") for doc in docs
         ]
         publish_dates = [
-            convert_date_format(doc[0].metadata.get("publish_date", "date not available")) for doc in docs     
+            convert_date_format(doc.metadata.get("publish_date", "date not available"))
+            for doc in docs
         ]
         timestamps = [
-            doc[0].metadata.get("timestamp", "timestamp not available") for doc in docs
+            doc.metadata.get("timestamp", "timestamp not available") for doc in docs
         ]
-        urls = [doc[0].metadata.get("url", "url not available") for doc in docs]
+        urls = [doc.metadata.get("url", "url not available") for doc in docs]
 
         def gen_responses(i):
             section = {}
@@ -152,21 +157,23 @@ def append_metadata_to_content(doc_list):
     updated_docs = []
 
     for doc_tuple in doc_list:
-        doc, score = doc_tuple  
+        doc, score = doc_tuple
         metadata = doc.metadata
         publish_date = metadata.get("publish_date")
 
         if publish_date is not None:
-            updated_content = f"Document: {doc.page_content} (Published on: {publish_date})"
+            updated_content = (
+                f"Document: {doc.page_content} (Published on: {publish_date})"
+            )
         else:
             updated_content = doc.page_content
 
         updated_doc_info = {
-            'content': updated_content,
-            'metadata': metadata,
-            'score': score
+            "content": updated_content,
+            "metadata": metadata,
+            "score": score,
         }
-        
+
         updated_docs.append(updated_doc_info)
 
     return updated_docs
@@ -179,107 +186,92 @@ def transform_query_for_date(query):
     )
 
 
+def process_and_concat_documents(retrieved_docs):
+    """
+    Process and combine documents from multiple sources.
+
+    :param retrieved_docs: Dictionary with keys as source names and values as lists of (Document, score) tuples.
+    :return: Tuple of combined string of all processed documents and list of original Document objects.
+    """
+    combined_docs_content = []
+    original_documents = []
+
+    for source, docs in retrieved_docs.items():
+        sorted_docs = sort_retrieved_documents(docs)
+        for doc, score in sorted_docs:
+            combined_docs_content.append(doc.page_content)
+            original_documents.append(doc)
+
+    combined_content = "\n\n".join(combined_docs_content)
+    return combined_content, original_documents
+
+
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
     llm = ChatOpenAI(model_name="gpt-4-1106-preview")
 
-    template_date_detection = """
-        Analyze the following query: "{query}".
-        Does this query pertain to a specific date or time period, or require sorting the city council documents by date? 
-        Respond with 'yes' or 'no'.
-    """
+    retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
+    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
 
-    prompt_date = PromptTemplate(
-        input_variables=["query"],
-        template=template_date_detection,
+    retrieval_chains = {
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=5))
+        for name, db in zip(retriever_names, retrievers)
+    }
+    retrievals = RunnableParallel(retrieval_chains)
+    retrieved_docs = retrievals.invoke(query)
+
+    combined_docs_content, original_documents = process_and_concat_documents(
+        retrieved_docs
     )
-    is_date_related_chain = LLMChain(llm=llm, prompt=prompt_date)
 
-    is_date_related = is_date_related_chain.run(query=query)
+    print(original_documents)
 
-    # Modify the query if it is date-related
-    if is_date_related.strip().lower() == "yes":
-        print("Date related")
-        query = transform_query_for_date(query)
-
-    doc_list_fc = db_fc.similarity_search_with_score(query, k=k)
-    doc_list_cj = db_cj.similarity_search_with_score(query, k=k)
-    doc_list_pdf = db_pdf.similarity_search_with_score(query, k=k)
-    doc_list_pc = db_pc.similarity_search_with_score(query, k=k)
-    doc_list_news = db_news.similarity_search_with_score(query, k=k)
-
-
-    docs_list_fc = sort_retrived_documents(doc_list_fc)
-    docs_page_content_fc = append_metadata_to_content(docs_list_fc)
-
-    docs_list_cj = sort_retrived_documents(doc_list_cj)
-    docs_page_content_cj = append_metadata_to_content(docs_list_cj)
-
-    docs_list_pdf = sort_retrived_documents(doc_list_pdf)
-    docs_page_content_pdf = append_metadata_to_content(docs_list_pdf)
-
-    docs_list_pc = sort_retrived_documents(doc_list_pc)
-    docs_page_content_pc = append_metadata_to_content(docs_list_pc)
-    print(docs_page_content_pc)
-
-    docs_list_news = sort_retrived_documents(doc_list_news)
-    docs_page_content_news = append_metadata_to_content(docs_list_news)
-
-    docs = docs_list_fc + docs_list_cj + docs_list_pdf + doc_list_pc + doc_list_news    
-    docs_page_content = docs_page_content_fc + docs_page_content_cj + docs_page_content_pc + docs_page_content_news + docs_page_content_pdf
-
-    
     template = """
-    Question: {question}
+    ### Response Guidelines
+    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
 
-    ### Bias Guidelines:
-    
-    Please be aware of inherent biases within the document corpus, especially an overrepresentation of certain types of documents.
-    These biases may result in the retrieval of documents that are irrelevant to the question. 
-    When analyzing documents to answer the question, it is crucial to critically evaluate their relevance to the question at hand.
-    To ensure accuracy and relevance in your analysis you must identify and disregard irrelevant documents by actively identifying documents that, despite being returned by the database, do not substantively address the question.
-    Such documents should be disregarded in the analysis.
-
-    ### Response Guidelines:
-
-    Based on the information from the New Orleans city council documents provided, answer the following question: {question}. 
-    Your answer must not exceed 5,000 tokens.
-    Please provide direct and concise responses without unnecessary verbosity.
-
-    If possible, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    ### Additional Guidelines 
+    Follow the guidelines below if they assist in providing a more clear answer to {question}
+    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
     elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    If not relevant to the question, answer the question without expanding on these points.
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response in the following format where each definition is on a new line:
+    ### Relevance Evaluation:
+    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
+
+    ### Bias Guidelines:
+    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
+
+    ### Additional Instructions
+
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
 
     Definitions:
-    
+
     Word: Definition
-    
     Word: Definition
-    
     Word: Definition
 
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c."
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
     The final output should not include any reference to the model's active sorting by date.
     The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
 
-    Documents: {docs}
+    ### Documents to Analyze
+    {docs}
     """
 
+    prompt_response = ChatPromptTemplate.from_template(template)
+    response_chain = prompt_response | llm | StrOutputParser()
 
-    prompt = PromptTemplate(
-        input_variables=["question", "docs"],
-        template=template,
+    responses_llm = response_chain.invoke(
+        {"question": query, "docs": combined_docs_content}
     )
-
-    chain_llm = LLMChain(llm=llm, prompt=prompt)
-    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=1)
     print(responses_llm)
 
-    return process_responses_llm(responses_llm, docs)
+    return process_responses_llm(responses_llm, original_documents)
 
 
 def get_general_summary_response_from_query(db, query, k):
@@ -309,21 +301,26 @@ def get_general_summary_response_from_query(db, query, k):
 
 def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k)
+        return get_indepth_response_from_query(
+            df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k
+        )
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
         )
 
+
 def answer_query(
-    query: str, 
-    response_type: str, 
-    df: any, 
-    db_fc: any, 
-    db_cj: any, 
-    db_pdf: any, 
-    db_pc: any, 
-    db_news: any
+    query: str,
+    response_type: str,
+    df: any,
+    db_fc: any,
+    db_cj: any,
+    db_pdf: any,
+    db_pc: any,
+    db_news: any,
 ) -> str:
-    final_response = route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type)
+    final_response = route_question(
+        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
+    )
     return final_response

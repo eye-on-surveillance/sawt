@@ -81,7 +81,7 @@ def create_embeddings():
     return general_embeddings, in_depth_embeddings
 
 
-def sort_retrived_documents(doc_list):
+def sort_retrieved_documents(doc_list):
     docs = sorted(doc_list, key=lambda x: x[1], reverse=True)
 
     third = len(docs) // 3
