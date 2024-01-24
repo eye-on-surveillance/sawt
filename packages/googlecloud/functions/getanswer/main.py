@@ -16,7 +16,7 @@ logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 
-db_general, db_in_depth, voting_roll_df = get_dbs()
+db_fc, db_cj, db_pdf, db_pc, db_news, voting_roll_df = get_dbs()
 
 # Setup Supabase client
 load_dotenv(find_dotenv())
@@ -101,7 +101,7 @@ def getanswer(request):
 
     logging.info("Request parsed")
 
-    answer = answer_query(query, response_type, voting_roll_df, db_general, db_in_depth)
+    answer = answer_query(query, response_type, voting_roll_df, db_fc, db_cj, db_pdf, db_pc, db_news)
 
     try:
         answer = json.loads(answer)

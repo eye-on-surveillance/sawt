@@ -26,15 +26,25 @@ def get_dbs():
     dir = Path(__file__).parent.absolute()
     general_embeddings, in_depth_embeddings = create_embeddings()
 
-    general_faiss_index_path = dir.joinpath("cache/faiss_index_general")
-    in_depth_faiss_index_path = dir.joinpath("cache/faiss_index_in_depth")
-    voting_roll_df_path = dir.joinpath("cache/parsed_voting_rolls.csv")
+   # New FAISS indices paths for each document type
+    faiss_fc_index_path = dir.joinpath("cache/faiss_index_in_depth_fc")
+    faiss_cj_index_path = dir.joinpath("cache/faiss_index_in_depth_cj")
+    faiss_pdf_index_path = dir.joinpath("cache/faiss_index_in_depth_pdf")
+    faiss_pc_index_path = dir.joinpath("cache/faiss_index_in_depth_pc")
+    faiss_news_index_path = dir.joinpath("cache/faiss_index_in_depth_news")
 
-    db_general = FAISS.load_local(general_faiss_index_path, general_embeddings)
-    db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
-    logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
+    # Loading new FAISS indices for each document type
+    db_fc = FAISS.load_local(faiss_fc_index_path, in_depth_embeddings)
+    db_cj = FAISS.load_local(faiss_cj_index_path, in_depth_embeddings)
+    db_pdf = FAISS.load_local(faiss_pdf_index_path, in_depth_embeddings)
+    db_pc = FAISS.load_local(faiss_pc_index_path, in_depth_embeddings)
+    db_news = FAISS.load_local(faiss_news_index_path, in_depth_embeddings)
+
+    voting_roll_df_path = dir.joinpath("cache/parsed_voting_rolls.csv")
     voting_roll_df = pd.read_csv(voting_roll_df_path)
-    return db_general, db_in_depth, voting_roll_df
+
+    logger.info("Loaded databases from specific FAISS indices")
+    return db_fc, db_cj, db_pdf, db_pc, db_news, voting_roll_df
 
 
 def create_embeddings():
