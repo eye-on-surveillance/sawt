@@ -4,6 +4,7 @@ flask
 google-cloud-error-reporting
 python-dotenv
 langchain
+langchain-openai
 openai
 google-api-python-client # Google API
 google-search-results # SerpAPI
