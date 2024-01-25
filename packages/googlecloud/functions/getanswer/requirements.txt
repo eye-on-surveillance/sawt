@@ -16,3 +16,4 @@ wikipedia
 pandas 
 tabulate
 supabase
+simsimd

@@ -7,10 +7,23 @@ from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 from datetime import datetime
 
-from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnableParallel
+
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+from langchain.retrievers.document_compressors import LLMChainFilter
+
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import (
+    DocumentCompressorPipeline,
+    EmbeddingsFilter,
+    LLMChainFilter,
+)
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_transformers import EmbeddingsRedundantFilter
+from langchain_openai import OpenAIEmbeddings
 
 
 from helper import sort_retrieved_documents
@@ -187,18 +200,11 @@ def transform_query_for_date(query):
 
 
 def process_and_concat_documents(retrieved_docs):
-    """
-    Process and combine documents from multiple sources.
-
-    :param retrieved_docs: Dictionary with keys as source names and values as lists of (Document, score) tuples.
-    :return: Tuple of combined string of all processed documents and list of original Document objects.
-    """
     combined_docs_content = []
     original_documents = []
 
     for source, docs in retrieved_docs.items():
-        sorted_docs = sort_retrieved_documents(docs)
-        for doc, score in sorted_docs:
+        for doc in docs:
             combined_docs_content.append(doc.page_content)
             original_documents.append(doc)
 
@@ -210,22 +216,40 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     logger.info("Performing in-depth summary query...")
 
     llm = ChatOpenAI(model_name="gpt-4-1106-preview")
+    embeddings = OpenAIEmbeddings()
 
-    retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
-    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
+    # Initialize compressors and transformers
+    splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
+    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
+    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
 
-    retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=5))
-        for name, db in zip(retriever_names, retrievers)
-    }
-    retrievals = RunnableParallel(retrieval_chains)
-    retrieved_docs = retrievals.invoke(query)
-
-    combined_docs_content, original_documents = process_and_concat_documents(
-        retrieved_docs
+    # Create a compressor pipeline
+    pipeline_compressor = DocumentCompressorPipeline(
+        transformers=[splitter, redundant_filter, relevant_filter]
     )
 
-    print(original_documents)
+    # Wrap base retrievers with the compressor pipeline
+    compressed_retrievers = [
+        ContextualCompressionRetriever(
+            base_compressor=pipeline_compressor, base_retriever=db.as_retriever()
+        )
+        for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
+    ]
+    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
+
+    # Initialize parallel retrieval with compressed retrievers
+    retrieval_chains = {
+        name: RunnableLambda(lambda q, db=db: db.get_relevant_documents(q, k=25))
+        for name, db in zip(retriever_names, compressed_retrievers)
+    }
+    retrievals = RunnableParallel(retrieval_chains)
+
+    compressed_docs = retrievals.invoke(query)
+
+    combined_docs_content, original_documents = process_and_concat_documents(
+        compressed_docs
+    )
+    print(combined_docs_content)
 
     template = """
     ### Response Guidelines
@@ -269,7 +293,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     responses_llm = response_chain.invoke(
         {"question": query, "docs": combined_docs_content}
     )
-    print(responses_llm)
+    # print(responses_llm)
 
     return process_responses_llm(responses_llm, original_documents)
 
