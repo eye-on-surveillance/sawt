@@ -12,13 +12,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnableParallel
 
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import LLMChainExtractor
-from langchain.retrievers.document_compressors import LLMChainFilter
+
 
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import (
     DocumentCompressorPipeline,
     EmbeddingsFilter,
+    LLMChainExtractor,
     LLMChainFilter,
 )
 from langchain.text_splitter import CharacterTextSplitter
@@ -74,96 +74,112 @@ def timestamp_to_seconds(timestamp):
     return h * 3600 + m * 60 + s
 
 
-def process_responses_llm(responses_llm, docs=None):
-    generated_responses = responses_llm.split("\n\n")
-    responses = []
+def process_streamed_responses_llm(response_chunks, docs):
+    full_response = "".join(response_chunks).strip()
+
+    unique_citations = set()
     citations = []
+    for doc in docs:
+        citation_signature = (
+            doc.metadata.get("title", doc.metadata.get("source", "")),
+            doc.metadata.get("url", "url not available"),
+            doc.metadata.get("timestamp", "timestamp not available"),
+            os.path.basename(doc.metadata.get("source", "source not available")),
+            doc.metadata.get("page_number"),
+        )
 
-    if docs:
-        generated_titles = [
-            doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
-        ]
-        page_numbers = [doc.metadata.get("page_number") for doc in docs]
-        generated_sources = [
-            doc.metadata.get("source", "source not available") for doc in docs
-        ]
-        publish_dates = [
-            convert_date_format(doc.metadata.get("publish_date", "date not available"))
-            for doc in docs
-        ]
-        timestamps = [
-            doc.metadata.get("timestamp", "timestamp not available") for doc in docs
-        ]
-        urls = [doc.metadata.get("url", "url not available") for doc in docs]
+        if citation_signature not in unique_citations:
+            unique_citations.add(citation_signature)
+            citation = {
+                "Title": citation_signature[0],
+                "Published": convert_date_format(
+                    doc.metadata.get("publish_date", "date not available")
+                ),
+                "URL": citation_signature[1],
+                "Video timestamp": citation_signature[2],
+                "Name": citation_signature[3],
+                "Page Number": citation_signature[4],
+            }
+            citations.append(citation)
 
-        def gen_responses(i):
-            section = {}
-            section["response"] = (
-                generated_responses[i] if i < len(generated_responses) else None
+    return full_response, citations
+
+
+def extract_document_metadata(docs):
+    generated_titles = [
+        doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+    ]
+    page_numbers = [doc.metadata.get("page_number") for doc in docs]
+    generated_sources = [
+        doc.metadata.get("source", "source not available") for doc in docs
+    ]
+    publish_dates = [
+        convert_date_format(doc.metadata.get("publish_date", "date not available"))
+        for doc in docs
+    ]
+    timestamps = [
+        doc.metadata.get("timestamp", "timestamp not available") for doc in docs
+    ]
+    urls = [doc.metadata.get("url", "url not available") for doc in docs]
+
+    return (
+        generated_titles,
+        page_numbers,
+        generated_sources,
+        publish_dates,
+        timestamps,
+        urls,
+    )
+
+
+def timestamp_to_seconds(timestamp):
+    if "timestamp not available" in timestamp:
+        return None
+
+    time_parts = timestamp.split(":")
+    seconds = sum(
+        int(part) * 60**index for index, part in enumerate(reversed(time_parts))
+    )
+    return seconds
+
+
+def generate_response_section(
+    i,
+    response,
+    generated_titles,
+    page_numbers,
+    generated_sources,
+    publish_dates,
+    timestamps,
+    urls,
+):
+    section = {"response": response}
+    section["source_title"] = generated_titles[i] if i < len(generated_titles) else None
+    section["source_name"] = (
+        os.path.basename(generated_sources[i]) if i < len(generated_sources) else None
+    )
+    section["source_page_number"] = page_numbers[i] if i < len(page_numbers) else None
+    section["source_publish_date"] = (
+        publish_dates[i] if i < len(publish_dates) else None
+    )
+    section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
+    section["source_url"] = urls[i] if i < len(urls) else None
+
+    if section["source_url"] and section["source_timestamp"]:
+        time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
+        if time_in_seconds is not None:
+            section["source_url"] += (
+                f"&t={time_in_seconds}s"
+                if "?" in section["source_url"]
+                else f"?t={time_in_seconds}s"
             )
-            section["source_title"] = (
-                generated_titles[i] if i < len(generated_titles) else None
-            )
-            section["source_name"] = (
-                os.path.basename(generated_sources[i])
-                if i < len(generated_sources)
-                else None
-            )
-            section["source_page_number"] = (
-                page_numbers[i] if i < len(page_numbers) else None
-            )
 
-            section["source_publish_date"] = (
-                publish_dates[i] if i < len(publish_dates) else None
-            )
-            section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
-            section["source_url"] = urls[i] if i < len(urls) else None
-
-            if section["source_url"] and section["source_timestamp"]:
-                time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
-                if time_in_seconds is not None:  # Make sure the timestamp was available
-                    if "?" in section["source_url"]:
-                        section["source_url"] += f"&t={time_in_seconds}s"
-                    else:
-                        section["source_url"] += f"?t={time_in_seconds}s"
-
-            citation = {}
-            if section["source_title"] is not None:
-                citation["Title"] = section["source_title"]
-            if section["source_publish_date"] is not None:
-                citation["Published"] = section["source_publish_date"]
-            if section["source_url"] is not None:
-                citation["URL"] = section["source_url"]  # Add this line
-            if section["source_timestamp"] is not None:
-                citation["Video timestamp"] = section["source_timestamp"]
-            if section["source_name"] is not None:
-                citation["Name"] = section["source_name"]
-            if section["source_page_number"] is not None:
-                citation["Page Number"] = section["source_page_number"]
-
-            return section["response"], citation
-
-        num_responses = len(generated_responses)
-        for i in range(num_responses):
-            response, citation = gen_responses(i)
-
-            if response:
-                responses.append({"response": response})
-
-            if citation:
-                citations.append(citation)
-
-    else:
-        if generated_responses:
-            responses.append({"response": generated_responses[0]})
-
-    card = {
-        "card_type": RESPONSE_TYPE_DEPTH,
-        "responses": responses,
-        "citations": citations,
+    citation = {
+        key: value
+        for key, value in section.items()
+        if value is not None and key.startswith("source_")
     }
-    card_json = json.dumps(card)
-    return card_json
+    return section, citation
 
 
 def append_metadata_to_content(doc_list):
@@ -215,7 +231,7 @@ def process_and_concat_documents(retrieved_docs):
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
     embeddings = OpenAIEmbeddings()
 
     # Initialize compressors and transformers
@@ -290,12 +306,25 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     prompt_response = ChatPromptTemplate.from_template(template)
     response_chain = prompt_response | llm | StrOutputParser()
 
-    responses_llm = response_chain.invoke(
-        {"question": query, "docs": combined_docs_content}
-    )
-    # print(responses_llm)
+    response_chunks = []
 
-    return process_responses_llm(responses_llm, original_documents)
+    for response_chunk in response_chain.stream(
+        {"question": query, "docs": combined_docs_content}
+    ):
+        print(response_chunk)
+        response_chunks.append(response_chunk)
+
+    full_response, citations = process_streamed_responses_llm(
+        response_chunks, original_documents
+    )
+
+    final_result = {
+        "card_type": "in_depth",
+        "responses": [{"response": full_response}],
+        "citations": citations,
+    }
+
+    return final_result
 
 
 def get_general_summary_response_from_query(db, query, k):
