@@ -103,17 +103,11 @@ def getanswer(request):
 
     answer = answer_query(query, response_type, voting_roll_df, db_fc, db_cj, db_pdf, db_pc, db_news)
 
-    try:
-        answer = json.loads(answer)
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse answer string to JSON: {e}")
-        return ("Failed to process answer", 500, headers)
-
     print(f"Answer: {answer}")
     responses_data = answer.get("responses")
-    
     print(f"Responses: {responses_data}")
     citations_data = answer.get("citations")
+    print(f"Citations: {citations_data}")
 
     print(f"Citations: {citations_data}")
 
