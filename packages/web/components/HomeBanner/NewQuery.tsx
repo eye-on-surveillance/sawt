@@ -139,7 +139,7 @@ export default function NewQuery() {
           clearInterval(interval);
           setIsProcessing(false);
         }
-      }, 5000);
+      }, 1000);
 
       setPollingIntervalId(interval as unknown as number);
     } catch (error) {
