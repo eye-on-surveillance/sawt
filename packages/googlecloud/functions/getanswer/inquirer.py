@@ -75,34 +75,40 @@ def timestamp_to_seconds(timestamp):
 
 
 def process_streamed_responses_llm(response_chunks, docs):
-    full_response = "".join(response_chunks).strip()
-
+    final_json_object = {"card_type": "in_depth", "responses": [], "citations": []}
     unique_citations = set()
-    citations = []
-    for doc in docs:
-        citation_signature = (
-            doc.metadata.get("title", doc.metadata.get("source", "")),
-            doc.metadata.get("url", "url not available"),
-            doc.metadata.get("timestamp", "timestamp not available"),
-            os.path.basename(doc.metadata.get("source", "source not available")),
-            doc.metadata.get("page_number"),
-        )
 
-        if citation_signature not in unique_citations:
-            unique_citations.add(citation_signature)
-            citation = {
-                "Title": citation_signature[0],
-                "Published": convert_date_format(
-                    doc.metadata.get("publish_date", "date not available")
-                ),
-                "URL": citation_signature[1],
-                "Video timestamp": citation_signature[2],
-                "Name": citation_signature[3],
-                "Page Number": citation_signature[4],
-            }
-            citations.append(citation)
+    for chunk in response_chunks:
+        # Update citations for each chunk
+        citations = []
+        for doc in docs:
+            citation_signature = (
+                doc.metadata.get("title", doc.metadata.get("source", "")),
+                doc.metadata.get("url", "url not available"),
+                doc.metadata.get("timestamp", "timestamp not available"),
+                os.path.basename(doc.metadata.get("source", "source not available")),
+                doc.metadata.get("page_number"),
+            )
 
-    return full_response, citations
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                citation = {
+                    "Title": citation_signature[0],
+                    "Published": convert_date_format(
+                        doc.metadata.get("publish_date", "date not available")
+                    ),
+                    "URL": citation_signature[1],
+                    "Video timestamp": citation_signature[2],
+                    "Name": citation_signature[3],
+                    "Page Number": citation_signature[4],
+                }
+                citations.append(citation)
+
+        # Append the current chunk and its citations to the final JSON object
+        final_json_object["responses"].append({"response": chunk.strip()})
+        final_json_object["citations"].extend(citations)
+
+    return final_json_object
 
 
 def extract_document_metadata(docs):
@@ -265,7 +271,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     combined_docs_content, original_documents = process_and_concat_documents(
         compressed_docs
     )
-    print(combined_docs_content)
+    # print(combined_docs_content)
 
     template = """
     ### Response Guidelines
@@ -306,23 +312,32 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     prompt_response = ChatPromptTemplate.from_template(template)
     response_chain = prompt_response | llm | StrOutputParser()
 
-    response_chunks = []
+    unique_citations = set()
+
+    final_result = {"card_type": "in_depth", "responses": [], "citations": []}
+    full_response = " "
 
     for response_chunk in response_chain.stream(
         {"question": query, "docs": combined_docs_content}
     ):
+        partial_result = process_streamed_responses_llm(
+            [response_chunk], original_documents
+        )
         print(response_chunk)
-        response_chunks.append(response_chunk)
 
-    full_response, citations = process_streamed_responses_llm(
-        response_chunks, original_documents
-    )
+        final_result["responses"].append(
+            {"response": partial_result["responses"][0]["response"].strip()}
+        )
 
-    final_result = {
-        "card_type": "in_depth",
-        "responses": [{"response": full_response}],
-        "citations": citations,
-    }
+        for citation in partial_result["citations"]:
+            citation_signature = (
+                citation["Title"],
+                citation["Published"],
+                citation["URL"],
+            )
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                final_result["citations"].append(citation)
 
     return final_result
 
