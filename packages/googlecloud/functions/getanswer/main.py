@@ -39,13 +39,13 @@ def update_responses(response_chunk, card_id):
     try:
         current_data = supabase.table("cards").select("responses").eq("id", card_id).execute()
 
-        if current_data.data and "response" in current_data.data[0]:
-            existing_response = current_data.data[0]["response"]
-            updated_response = existing_response + " " + response_chunk if existing_response else response_chunk
+        if current_data.data and "responses" in current_data.data[0]:
+            updated_responses = current_data.data[0]["responses"]
+            updated_responses.append({"response": response_chunk})
         else:
-            updated_response = response_chunk
+            updated_responses = [{"response": response_chunk}]
 
-        supabase.table("cards").update({"responses": [{"response": updated_response}]}).eq("id", card_id).execute()
+        supabase.table("cards").update({"responses": updated_responses}).eq("id", card_id).execute()
         logging.info("Response data successfully updated in Supabase")
     except Exception as e:
         logging.error(f"Failed to update Supabase responses: {e}")
