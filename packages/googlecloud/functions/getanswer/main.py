@@ -37,18 +37,15 @@ supabase = create_client(supabase_url, supabase_key)
 
 def update_responses(response_chunk, card_id):
     try:
-        current_data = (
-            supabase.table("cards").select("responses").eq("id", card_id).execute()
-        )
-        updated_responses = (
-            current_data.data[0]["responses"] + [response_chunk]
-            if current_data.data
-            else [response_chunk]
-        )
+        current_data = supabase.table("cards").select("responses").eq("id", card_id).execute()
 
-        supabase.table("cards").update({"responses": updated_responses}).eq(
-            "id", card_id
-        ).execute()
+        if current_data.data:
+            updated_response = current_data.data[0]["responses"] + response_chunk
+        else:
+            updated_response = response_chunk
+
+        supabase.table("cards").update({"responses": updated_response}).eq("id", card_id).execute()
+        logging.info("Response data successfully updated in Supabase")
     except Exception as e:
         logging.error(f"Failed to update Supabase responses: {e}")
 
