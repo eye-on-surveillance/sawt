@@ -45,7 +45,8 @@ export default function QueryResult({ card }: { card: ICard }) {
   const [msgIndex, setMsgIndex] = useState<number>(0);
   const initialLoadingState = !card.responses || card.responses.length === 0;
   const [isLoading, setIsLoading] = useState<boolean>(initialLoadingState);
-  const [responses, setResponses] = useState<string[]>([]);
+  
+  const [responses, setResponses] = useState<{ response: string }[]>([]);
 
   const [prettyCreatedAt, setPrettyCreatedAt] = useState(
     !!createdAt && new Date(createdAt) < new Date()
@@ -64,27 +65,27 @@ export default function QueryResult({ card }: { card: ICard }) {
     }
 
     const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public" },
-        (payload: { new: { id: string; responses: any[] } }) => {
-          console.log("Payload received:", payload);
-          if (payload.new.id === card.id) {
-            const newResponses = payload.new.responses || [];
-            console.log("New Responses:", newResponses);
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public" },
+      (payload: { new: { id: string; responses: { response: string }[] } }) => {
+        console.log("Payload received:", payload);
+        if (payload.new.id === card.id) {
+          const newResponses = payload.new.responses || [];
+          console.log("New Responses:", newResponses);
 
-            setResponses(newResponses);
+          setResponses(newResponses);
 
-            if (newResponses.length > 0) {
-              setIsLoading(false);
-              if (intervalId) {
-                clearInterval(intervalId);
-              }
+          if (newResponses.length > 0) {
+            setIsLoading(false);
+            if (intervalId) {
+              clearInterval(intervalId);
             }
           }
         }
-      )
-      .subscribe();
+      }
+    )
+    .subscribe();
 
     return () => {
       channel.unsubscribe();
