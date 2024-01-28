@@ -33,8 +33,8 @@ export function getYouTubeEmbedUrl(
   const tParts = url.split("t=");
   let t = "";
   if (tParts.length > 1) {
-      t = tParts[1].split("s")[0];
+    t = tParts[1].split("s")[0];
   }
   if (!videoId) return undefined;
-  return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${t}`;  
+  return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${t}`;
 }
