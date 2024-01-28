@@ -315,39 +315,27 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     unique_citations = set()
 
     final_result = {"card_type": "in_depth", "responses": [], "citations": []}
-    accumulated_word = ""
-    accumulated_sentence = ""
-    last_added_index = 0
+    accumulated_text = ""
+    word_count = 0
 
     for chunk in response_chain.stream({"question": query, "docs": combined_docs_content}):
-        accumulated_word += chunk
+        accumulated_text += chunk
+        words = accumulated_text.split()
+        
+        if len(words) - word_count >= 3:  
+            new_content = " ".join(words[word_count:])
+            print(new_content)
+            final_result["responses"].append({"response": new_content})
+            word_count = len(words)
 
-        if accumulated_word.endswith(' ') or accumulated_word.endswith(('.', '?', '!')):
-            accumulated_sentence += accumulated_word
-            accumulated_word = ""
-            print(accumulated_sentence)
-
-            if accumulated_sentence.endswith(('.', '?', '!')):
-                new_content = accumulated_sentence[last_added_index:].strip()
-                if new_content:
-                    final_result["responses"].append({"response": new_content})
-                    last_added_index = len(accumulated_sentence)
-
-        partial_result = process_streamed_responses_llm(
-            [chunk], original_documents
-        )
-
+        partial_result = process_streamed_responses_llm([chunk], original_documents)
         for citation in partial_result["citations"]:
-            citation_signature = (
-                citation["Title"],
-                citation["Published"],
-                citation["URL"],
-            )
+            citation_signature = (citation["Title"], citation["Published"], citation["URL"])
             if citation_signature not in unique_citations:
                 unique_citations.add(citation_signature)
                 final_result["citations"].append(citation)
 
-    remaining_text = accumulated_sentence[last_added_index:].strip()
+    remaining_text = " ".join(words[word_count:])
     if remaining_text:
         final_result["responses"].append({"response": remaining_text})
 
