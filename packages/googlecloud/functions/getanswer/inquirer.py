@@ -315,18 +315,26 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     unique_citations = set()
 
     final_result = {"card_type": "in_depth", "responses": [], "citations": []}
-    full_response = " "
+    accumulated_word = ""
+    accumulated_sentence = ""
+    last_added_index = 0
 
-    for response_chunk in response_chain.stream(
-        {"question": query, "docs": combined_docs_content}
-    ):
+    for chunk in response_chain.stream({"question": query, "docs": combined_docs_content}):
+        accumulated_word += chunk
+
+        if accumulated_word.endswith(' ') or accumulated_word.endswith(('.', '?', '!')):
+            accumulated_sentence += accumulated_word
+            accumulated_word = ""
+            print(accumulated_sentence)
+
+            if accumulated_sentence.endswith(('.', '?', '!')):
+                new_content = accumulated_sentence[last_added_index:].strip()
+                if new_content:
+                    final_result["responses"].append({"response": new_content})
+                    last_added_index = len(accumulated_sentence)
+
         partial_result = process_streamed_responses_llm(
-            [response_chunk], original_documents
-        )
-        print(response_chunk)
-
-        final_result["responses"].append(
-            {"response": partial_result["responses"][0]["response"].strip()}
+            [chunk], original_documents
         )
 
         for citation in partial_result["citations"]:
@@ -338,6 +346,10 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
             if citation_signature not in unique_citations:
                 unique_citations.add(citation_signature)
                 final_result["citations"].append(citation)
+
+    remaining_text = accumulated_sentence[last_added_index:].strip()
+    if remaining_text:
+        final_result["responses"].append({"response": remaining_text})
 
     return final_result
 

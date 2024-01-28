@@ -133,7 +133,7 @@ export default function NewQuery() {
           return;
         }
 
-        if (data && data.responses && data.citations) {
+        if (data && data.responses) {
           setCard(data);
           addMyCard(data);
           clearInterval(interval);
