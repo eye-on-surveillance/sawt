@@ -291,16 +291,6 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     ### Bias Guidelines:
     Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
 
-    ### Additional Instructions
-
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
-
-    Definitions:
-
-    Word: Definition
-    Word: Definition
-    Word: Definition
-
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
     The final output should not include any reference to the model's active sorting by date.
     The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
@@ -314,7 +304,6 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
 
     unique_citations = set()
 
-    streaming_result = {"card_type": "in_depth", "responses": [], "citations": []}
     final_result = {"card_type": "in_depth", "responses": [], "citations": []}
     accumulated_text = ""
     word_count = 0
@@ -323,10 +312,10 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
         accumulated_text += chunk
         words = accumulated_text.split()
         
-        if len(words) - word_count >= 3:
-            streaming_content = " ".join(words[word_count:])
-            print(streaming_content)
-            streaming_result["responses"].append({"response": streaming_content})
+        if len(words) - word_count >= 3:  
+            new_content = " ".join(words[word_count:])
+            print(new_content)
+            final_result["responses"].append({"response": new_content})
             word_count = len(words)
 
         partial_result = process_streamed_responses_llm([chunk], original_documents)
@@ -334,28 +323,14 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
             citation_signature = (citation["Title"], citation["Published"], citation["URL"])
             if citation_signature not in unique_citations:
                 unique_citations.add(citation_signature)
-                streaming_result["citations"].append(citation)
-                final_result["citations"].append(citation)  
+                final_result["citations"].append(citation)
 
-    final_content = format_definitions(accumulated_text)
-    final_result["responses"].append({"response": final_content})
+    remaining_text = " ".join(words[word_count:])
+    if remaining_text:
+        final_result["responses"].append({"response": remaining_text})
 
-    return final_result  
+    return final_result
 
-
-def format_definitions(text):
-    formatted_text = text
-    if "Definitions:" in text:
-        parts = text.split("Definitions:")
-        prelude = parts[0].strip()
-        definitions = parts[1].strip()
-
-        definitions = definitions.replace(". ", ".\n").replace(" - ", "\n- ")
-        formatted_text = f"{prelude}\nDefinitions:\n{definitions}"
-    elif " - " in text:
-        formatted_text = text.replace(" - ", "\n- ")
-
-    return formatted_text
 
 
 def get_general_summary_response_from_query(db, query, k):
