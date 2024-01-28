@@ -55,7 +55,7 @@ export default function QueryResult({ card }: { card: ICard }) {
   const thumbnail = getThumbnail(citations || []);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout; 
+    let intervalId: NodeJS.Timeout | null = null;
 
     if (isLoading) {
       intervalId = setInterval(() => {
@@ -67,7 +67,7 @@ export default function QueryResult({ card }: { card: ICard }) {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public" },
-        (payload) => {
+        (payload: { new: { id: string; responses: any[] } }) => {
           console.log("Payload received:", payload);
           if (payload.new.id === card.id) {
             const newResponses = payload.new.responses || [];
@@ -75,10 +75,11 @@ export default function QueryResult({ card }: { card: ICard }) {
 
             setResponses(newResponses);
 
-            // Update isLoading only when new responses are received
             if (newResponses.length > 0) {
               setIsLoading(false);
-              clearInterval(intervalId);
+              if (intervalId) {
+                clearInterval(intervalId);
+              }
             }
           }
         }
