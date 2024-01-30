@@ -11,8 +11,8 @@ from inquirer import answer_query
 import os
 import json
 
-logging_client = google.cloud.logging.Client()
-logging_client.setup_logging()
+#logging_client = google.cloud.logging.Client()
+#logging_client.setup_logging()
 
 API_VERSION = "0.0.1"
 
@@ -29,10 +29,10 @@ except KeyError:
     supabase_url = os.environ.get("SUPABASE_URL_STAGING")
     supabase_key = os.environ.get("SUPABASE_SERVICE_KEY_STAGING")
 
-if not supabase_url or not supabase_key:
-    raise ValueError("Supabase URL and key must be set in environment variables")
+#if not supabase_url or not supabase_key:
+    #raise ValueError("Supabase URL and key must be set in environment variables")
 
-supabase = create_client(supabase_url, supabase_key)
+#supabase = create_client(supabase_url, supabase_key)
 
 
 def update_responses(response_chunk, card_id):
@@ -125,9 +125,11 @@ def getanswer(request):
     for response_chunk in final_response["responses"]:
         update_responses(response_chunk["response"], card_id)
 
+
     elapsed = int((time.time() - start) * 1000)
     update_citations(final_response["citations"], card_id, elapsed)
 
     logging.info(f"Completed getanswer in {elapsed} seconds")
 
     return ("Answer successfully submitted to Supabase", 200, headers)
+
