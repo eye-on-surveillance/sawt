@@ -2,17 +2,17 @@
 
 import { ICard } from "@/lib/api";
 import { CARD_SHOW_PATH } from "@/lib/paths";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { getThumbnail, getYouTubeEmbedUrl, isYouTubeURL } from "@/lib/utils";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import Link from "next/link";
-import { useState } from "react";
-import { useInterval } from "usehooks-ts";
+import { useEffect, useState } from "react";
 import CardActions from "../Card/CardActions";
 import styles from "./homeresults.module.scss";
 
-const MAX_CHARACTERS_PREVIEW = 300;
+const MAX_CHARACTERS_PREVIEW = 20000;
 
 const LOADING_MESSAGES = [
   "Processing your request...",
@@ -41,9 +41,12 @@ const LOADING_MESSAGES = [
 const WAIT_MS = 2500;
 
 export default function QueryResult({ card }: { card: ICard }) {
-  const { created_at: createdAt, citations, responses } = card;
+  const { created_at: createdAt, citations } = card;
   const [msgIndex, setMsgIndex] = useState<number>(0);
-  const isLoading = !responses || responses.length <= 0;
+  const initialLoadingState = !card.responses || card.responses.length === 0;
+  const [isLoading, setIsLoading] = useState<boolean>(initialLoadingState);
+  
+  const [responses, setResponses] = useState<{ response: string }[]>([]);
 
   const [prettyCreatedAt, setPrettyCreatedAt] = useState(
     !!createdAt && new Date(createdAt) < new Date()
@@ -52,18 +55,51 @@ export default function QueryResult({ card }: { card: ICard }) {
   );
   const thumbnail = getThumbnail(citations || []);
 
-  useInterval(
-    () => {
-      setMsgIndex((prevIndex) => (prevIndex + 1) % LOADING_MESSAGES.length);
-    },
-    isLoading ? WAIT_MS : null
-  );
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
 
-  useInterval(() => {
-    setPrettyCreatedAt(moment(card.created_at).fromNow());
-  }, 5_000);
+    if (isLoading) {
+      intervalId = setInterval(() => {
+        setMsgIndex((prevIndex) => (prevIndex + 1) % LOADING_MESSAGES.length);
+      }, WAIT_MS);
+    }
+
+    const channel = (supabase.channel(`cards:id=eq.${card.id}`) as any)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public" },
+      (payload: { new: { id: string; responses: { response: string }[] } }) => {
+        console.log("Payload received:", payload);
+        if (payload.new.id === card.id) {
+          const newResponses = payload.new.responses || [];
+          console.log("New Responses:", newResponses);
+
+          setResponses(newResponses);
+
+          if (newResponses.length > 0) {
+            setIsLoading(false);
+            if (intervalId) {
+              clearInterval(intervalId);
+            }
+          }
+        }
+      }
+    )
+    .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [card.id, isLoading]);
 
   const CardBody = () => {
+    const displayText = responses
+      .map((responseObj) => responseObj.response)
+      .join(" ")
+      .substring(0, MAX_CHARACTERS_PREVIEW);
     return (
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <div>
@@ -75,12 +111,10 @@ export default function QueryResult({ card }: { card: ICard }) {
             <span className="text-black">{prettyCreatedAt}</span>
           </h6>
 
-          {!isLoading && !!responses ? (
+          {!isLoading ? (
             <p className="my-5">
-              {responses[0].response.substring(0, MAX_CHARACTERS_PREVIEW)}
-              {responses[0].response.length > MAX_CHARACTERS_PREVIEW
-                ? "..."
-                : null}
+              {displayText}
+              {displayText.length > MAX_CHARACTERS_PREVIEW ? "..." : null}
             </p>
           ) : (
             <p className="my-5">

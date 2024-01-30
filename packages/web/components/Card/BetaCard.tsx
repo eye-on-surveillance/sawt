@@ -8,7 +8,6 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import useClipboardApi from "use-clipboard-api";
 import CardActions from "./CardActions";
-import CardResponse from "./CardResponse";
 import Citation from "./Citation";
 
 type SupabaseRealtimePayload<T = any> = {
@@ -111,6 +110,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
     }
   };
 
+  const combinedResponses = responses.map((r) => r.response).join(" ");
+
   return (
     <div className="w-full text-primary">
       {/* Card Header */}
@@ -121,10 +122,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
         </h1>
       </div>
 
-      {/* Card Responses */}
-      {responses.map((response, index) => (
-        <CardResponse response={response} key={index} />
-      ))}
+      {/* Combined Card Responses */}
+      <p className="mb-4">{combinedResponses}</p>
 
       <div>
         {isYouTubeURL(thumbnail?.source_url) && (

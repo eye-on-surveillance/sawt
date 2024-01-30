@@ -133,13 +133,13 @@ export default function NewQuery() {
           return;
         }
 
-        if (data && data.responses && data.citations) {
+        if (data && data.responses) {
           setCard(data);
           addMyCard(data);
           clearInterval(interval);
           setIsProcessing(false);
         }
-      }, 5000);
+      }, 1000);
 
       setPollingIntervalId(interval as unknown as number);
     } catch (error) {
