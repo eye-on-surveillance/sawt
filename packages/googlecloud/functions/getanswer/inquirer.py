@@ -257,7 +257,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
         )
         for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
     ]
-    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
+    retriever_names = ["fc", "cj", "pdf",]
 
     # Initialize parallel retrieval with compressed retrievers
     retrieval_chains = {
