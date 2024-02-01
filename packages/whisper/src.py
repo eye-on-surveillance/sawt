@@ -241,6 +241,11 @@ def extract_audio_from_mp4(video_file_path, output_audio_path):
     return output_audio_path
 
 
+def get_video_duration(video_path):
+    with VideoFileClip(video_path) as video:
+        return video.duration * 1000
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Read configuration from transcribe_config YAML file"
@@ -294,8 +299,11 @@ def main():
             device=model_device,
         )
 
-        start_time_ms = (1 * 60 * 60 + 10 * 60) * 1000
-        end_time_ms = (1 * 60 * 60 + 18 * 60) * 1000
+        total_duration_ms = get_video_duration(video_path)
+        last_15_minutes_ms = 15 * 60 * 1000
+
+        start_time_ms = max(total_duration_ms - last_15_minutes_ms, 0)
+        end_time_ms = total_duration_ms
 
         segment_length_ms = 60000
 
