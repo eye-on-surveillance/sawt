@@ -6,7 +6,7 @@ from langchain_openai import OpenAIEmbeddings
 
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain.vectorstores.faiss import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAI
 from pathlib import Path
 import shutil
@@ -73,7 +73,7 @@ def create_db_from_minutes_and_agendas(doc_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=1000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -103,7 +103,7 @@ def create_db_from_news_transcripts(news_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -136,7 +136,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=1000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
 
@@ -169,7 +169,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=1000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         # Append the publish date to the end of page_content
@@ -199,7 +199,7 @@ def create_db_from_public_comments(pc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
