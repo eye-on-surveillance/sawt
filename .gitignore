@@ -13,3 +13,4 @@ package.json
 *.mp3
 *.wav
 *.jpg
+packages/web/.env

@@ -14,5 +14,9 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "typescript.preferences.autoImportFileExcludePatterns": [
     "**/node_modules/next/router"
+  ],
+  "python.analysis.extraPaths": [
+    "./packages/googlecloud/functions",
+    "./packages/googlecloud/functions/getanswer"
   ]
 }

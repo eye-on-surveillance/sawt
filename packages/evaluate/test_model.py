@@ -69,3 +69,8 @@ def test_length():
     length_metric = LengthMetric(max_length=10)
     test_case = LLMTestCase(input=input, actual_output=actual_output)
     assert_test(test_case, [length_metric])
+
+
+    ## docs are extracted from inquirer.py as combined_docs_content, original_documents
+
+    
