@@ -26,7 +26,7 @@ from langchain_community.document_transformers import EmbeddingsRedundantFilter
 from langchain_openai import OpenAIEmbeddings
 
 
-from helper import sort_retrieved_documents
+#from helper import sort_retrieved_documents
 from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
@@ -234,7 +234,7 @@ def process_and_concat_documents(retrieved_docs):
     return combined_content, original_documents
 
 
-def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
+def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context = False):
     logger.info("Performing in-depth summary query...")
 
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
@@ -271,8 +271,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     combined_docs_content, original_documents = process_and_concat_documents(
         compressed_docs
     )
-    # print(combined_docs_content)
-
+   
     template = """
     ### Response Guidelines
     Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
@@ -329,7 +328,14 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     if remaining_text:
         final_result["responses"].append({"response": remaining_text})
 
-    return final_result
+
+    if return_context:
+        print("Context Data")
+        print(combined_docs_content)
+        print()
+        return (final_result, combined_docs_content)
+    else:
+        return final_result
 
 
 
@@ -358,11 +364,13 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20):
+def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20, return_context = False):
+    
+    print("RouteContextFlag")
+    print(return_context)
     if query_type == RESPONSE_TYPE_DEPTH:
         return get_indepth_response_from_query(
-            df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k
-        )
+            df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context)
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
@@ -378,8 +386,10 @@ def answer_query(
     db_pdf: any,
     db_pc: any,
     db_news: any,
+    return_context: any
 ) -> str:
+    print("AnswerQueryFlag", return_context)
     final_response = route_question(
-        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
+        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type, return_context = return_context
     )
     return final_response

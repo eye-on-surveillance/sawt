@@ -2,10 +2,12 @@ import logging
 import sys
 import os
 
+
+
 from dotenv import find_dotenv, load_dotenv
-from packages.googlecloud.functions.getanswer.inquirer import answer_query
-from packages.googlecloud.functions.getanswer.helper import get_dbs
-from packages.googlecloud.functions.getanswer.api import RESPONSE_TYPE_DEPTH
+from inquirer import answer_query
+from helper import get_dbs
+from api import RESPONSE_TYPE_DEPTH
 
 # Add the relative path of the directory where preprocessor.py is located
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../backend/src"))
@@ -46,7 +48,7 @@ def main():
             continue
 
         # Handling the query based on the response type
-        response = answer_query(
+        response= answer_query(
             query,
             response_type_map[response_type],
             voting_roll_df,
@@ -54,9 +56,12 @@ def main():
             db_cj,
             db_pdf,
             db_pc,
-            db_news
+            db_news,
+            True
         )
+        print("Output")
         print(response)
+        print(len(response))
         query_memory.append(query)
 
     print("Query memory:")
