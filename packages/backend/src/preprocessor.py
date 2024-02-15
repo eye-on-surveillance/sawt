@@ -1,14 +1,13 @@
 import logging
 import os
-from langchain.document_loaders import (
-    JSONLoader,
-)
+from langchain_community.document_loaders import JSONLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain.vectorstores.faiss import FAISS
-from langchain.llms import OpenAI
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAI
 from pathlib import Path
 import shutil
 
@@ -48,7 +47,7 @@ def create_embeddings():
         llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
     )
 
-    return base_embeddings, base_embeddings
+    return general_embeddings, in_depth_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -74,7 +73,7 @@ def create_db_from_minutes_and_agendas(doc_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000, chunk_overlap=1000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -104,7 +103,7 @@ def create_db_from_news_transcripts(news_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -137,7 +136,7 @@ def create_db_from_cj_transcripts(cj_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=15000, chunk_overlap=7500
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
 
@@ -170,7 +169,7 @@ def create_db_from_fc_transcripts(fc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=15000, chunk_overlap=7500
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         # Append the publish date to the end of page_content
@@ -200,7 +199,7 @@ def create_db_from_public_comments(pc_json_directory):
 
         data = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=5000
+            chunk_size=2000, chunk_overlap=100
         )
         docs = text_splitter.split_documents(data)
         all_docs.extend(docs)
@@ -208,55 +207,48 @@ def create_db_from_public_comments(pc_json_directory):
     return all_docs
 
 
-def create_db_from_youtube_urls_and_pdfs(
+def create_vector_dbs(
     fc_json_directory,
     cj_json_directory,
     doc_directory,
     pc_directory,
     news_directory,
-    general_embeddings,
     in_depth_embeddings,
 ):
+    # Create databases from transcripts and documents
     fc_video_docs = create_db_from_fc_transcripts(fc_json_directory)
     cj_video_docs = create_db_from_cj_transcripts(cj_json_directory)
     pdf_docs = create_db_from_minutes_and_agendas(doc_directory)
     pc_docs = create_db_from_public_comments(pc_directory)
     news_docs = create_db_from_news_transcripts(news_directory)
 
-    all_docs = fc_video_docs + cj_video_docs + news_docs + pc_docs + pdf_docs
+    # Function to create, save, and copy FAISS index
+    def create_save_and_copy_faiss(docs, embeddings, doc_type):
+        # Create FAISS index
+        db = FAISS.from_documents(docs, embeddings)
 
-    db_general = FAISS.from_documents(all_docs, general_embeddings)
-    db_in_depth = FAISS.from_documents(all_docs, in_depth_embeddings)
+        cache_dir = dir.joinpath("cache")
 
-    cache_dir = dir.joinpath("cache")
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
+        # Save locally
+        local_save_dir = cache_dir.joinpath(f"faiss_index_in_depth_{doc_type}")
+        db.save_local(local_save_dir)
+        logger.info(f"Local FAISS index for {doc_type} saved to {local_save_dir}")
 
-    save_dir_general = cache_dir.joinpath("faiss_index_general")
-    save_dir_in_depth = cache_dir.joinpath("faiss_index_in_depth")
+        # Copy to Google Cloud directory
+        cloud_dir = dir.parent.parent.joinpath(
+            f"googlecloud/functions/getanswer/cache/faiss_index_in_depth_{doc_type}"
+        )
+        shutil.copytree(local_save_dir, cloud_dir, dirs_exist_ok=True)
+        logger.info(f"FAISS index for {doc_type} copied to Google Cloud directory: {cloud_dir}")
 
-    db_general.save_local(save_dir_general)
-    db_in_depth.save_local(save_dir_in_depth)
+        return db
 
-    db_general.save_local(save_dir_general)
-    db_in_depth.save_local(save_dir_in_depth)
+    # Creating, saving, and copying FAISS indices for each document type
+    faiss_fc = create_save_and_copy_faiss(fc_video_docs, in_depth_embeddings, "fc")
+    faiss_cj = create_save_and_copy_faiss(cj_video_docs, in_depth_embeddings, "cj")
+    faiss_pdf = create_save_and_copy_faiss(pdf_docs, in_depth_embeddings, "pdf")
+    faiss_pc = create_save_and_copy_faiss(pc_docs, in_depth_embeddings, "pc")
+    faiss_news = create_save_and_copy_faiss(news_docs, in_depth_embeddings, "news")
 
-    logger.info(
-        f"Combined database for general model transcripts created frfom all video URLs and PDF files saved to {save_dir_general}"
-    )
-    logger.info(
-        f"Combined database for in-depth model transcripts created from all video URLs and PDF files saved to {save_dir_in_depth}"
-    )
-
-    # copy results to cloud function
-    dest_dir_general = dir.parent.parent.joinpath(
-        "googlecloud/functions/getanswer/cache/faiss_index_general"
-    )
-    dest_dir_in_depth = dir.parent.parent.joinpath(
-        "googlecloud/functions/getanswer/cache/faiss_index_in_depth"
-    )
-
-    shutil.copytree(save_dir_general, dest_dir_general, dirs_exist_ok=True)
-    shutil.copytree(save_dir_in_depth, dest_dir_in_depth, dirs_exist_ok=True)
-
-    return db_general, db_in_depth
+    # Return the FAISS indices
+    return faiss_fc, faiss_cj, faiss_pdf, faiss_pc, faiss_news

@@ -30,7 +30,11 @@ export function getYouTubeEmbedUrl(
 ): string | undefined {
   if (!url) return undefined;
   const videoId = url.split("v=")[1]?.split("&")[0];
-  const t = url.split("t=")[1].split("s")[0];
+  const tParts = url.split("t=");
+  let t = "";
+  if (tParts.length > 1) {
+    t = tParts[1].split("s")[0];
+  }
   if (!videoId) return undefined;
   return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${t}`;
 }

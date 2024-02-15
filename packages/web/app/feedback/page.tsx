@@ -1,13 +1,13 @@
 "use client";
 
 // Import necessary modules and components
-import ThreeCardLayout from "../../components/ThreeCardLayout";
+import ThreeCardLayout from "./ThreeCardLayout";
 // import NextButton from '@/components/NextButton';
 import { ICard } from "@/lib/api";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useEffect, useState } from "react";
-
+import styles from "./feedback.module.scss";
 export const dynamic = "force-dynamic";
 
 export default function UserFeedback() {
@@ -124,43 +124,47 @@ export default function UserFeedback() {
   }
 
   return (
-    <div className="h-full bg-blue px-6 text-primary md:flex">
-      <div className="md:grow"></div>
-      <div className="pb-24 md:w-3/4 md:max-w-2xl">
-        <div className="rounded-lg bg-blue p-6 text-primary">
-          <label className="mb-2 block text-lg font-bold text-gray-700">
-            Please Enter Your Name:
-          </label>
-          <div className="flex">
-            <input
-              className="focus:border-blue-500 w-80 appearance-none rounded px-3 py-2 text-lg leading-tight focus:outline-none"
-              type="text"
-              value={userName}
-              onChange={handleNameChange}
-              placeholder="Your Name Here"
-            />
+    <div className={styles["feedback-content"]}>
+      <div className="h-full px-6 text-primary md:flex">
+        <div className="md:grow"></div>
+        <div className="pb-24 md:w-3/4 md:max-w-2xl">
+          <div className="rounded-lg  p-6 text-primary">
+            <label className="mb-2 block text-lg font-bold text-amber-700">
+              Please Enter Your Name:
+            </label>
+            <div className="flex">
+              <input
+                className="focus:border-blue-500 w-80 appearance-none rounded px-3 py-2 text-lg leading-tight focus:outline-none"
+                type="text"
+                value={userName}
+                onChange={handleNameChange}
+                placeholder="Your Name Here"
+              />
+            </div>
           </div>
-        </div>
-        <ThreeCardLayout
-          cards={cards}
-          userName={userName}
-          answered={answered}
-          setAnswered={setAnswered}
-        />
-        {answered.size === 3 && (
-          <button
-            onClick={handleNextClick}
-            className="bg-blue-500 w-full rounded bg-secondary px-4 py-2 text-lg text-white"
-          >
-            Next question
-          </button>
-        )}
+          <ThreeCardLayout
+            cards={cards}
+            userName={userName}
+            answered={answered}
+            setAnswered={setAnswered}
+          />
+          {answered.size === 3 && (
+            <div className={styles["feedback-submit-button"]}>
+              <button
+                onClick={handleNextClick}
+                className="w-full rounded-lg p-2 text-2xl text-blue md:w-1/2"
+              >
+                Next question
+              </button>
+            </div>
+          )}
 
-        <p className="mt-6 text-right text-xs">
-          {process.env.NEXT_PUBLIC_FEEDBACK_VERSION}
-        </p>
+          <p className="mt-6 text-right text-xs">
+            {process.env.NEXT_PUBLIC_FEEDBACK_VERSION}
+          </p>
+        </div>
+        <div className="md:grow"></div>
       </div>
-      <div className="md:grow"></div>
     </div>
   );
 }

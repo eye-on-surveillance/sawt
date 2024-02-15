@@ -3,7 +3,8 @@ functions-framework
 flask
 google-cloud-error-reporting
 python-dotenv
-langchain==0.0.349
+langchain
+langchain-openai
 openai
 google-api-python-client # Google API
 google-search-results # SerpAPI
@@ -15,3 +16,4 @@ wikipedia
 pandas 
 tabulate
 supabase
+simsimd
