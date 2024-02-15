@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import SignUp from "../components/Alerts/SignUp";
 import HomeLearnMore from "../components/Footer/HomeLearnMore";
@@ -13,7 +14,7 @@ export default function Home() {
   };
 
   // Inline styles for the overlay
-  const overlayStyle = {
+  const overlayStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
     left: 0,
