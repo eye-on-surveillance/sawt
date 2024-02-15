@@ -1,0 +1,94 @@
+@use "../../app/custom-css/1-helpers/variables" as var;
+
+.alert-sign-up {
+  background-color: var.$primary;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  width: 80%;
+  max-width: 500px;
+  margin: 2rem auto;
+  box-shadow: 0px 3px 6px #00000029;
+
+  label,
+  legend {
+    color: var.$altPrimary;
+    margin-bottom: 1rem;
+  }
+
+  input[type='email'] {
+    border-radius: 5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0px 3px 6px #00000029;
+    width: calc(100% - 2rem);
+  }
+
+  .topic-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: .5rem;
+
+    & > label {
+      padding: 0.5rem 1rem;
+      background-color: transparent;
+      border-radius: 5rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+
+      &:hover {
+        background-color: var.$secondary;
+        color: var.$altPrimary;
+      }
+    }
+
+    input[type='checkbox'] {
+      display: none;
+
+      &:checked + label {
+        background-color: var.$secondary;
+        color: var.$altPrimary;
+      }
+    }
+  }
+
+  .submit-button,
+  .cancel-button {
+    background-color: var.$secondary;
+    color: var.$altPrimary;
+    border-radius: 5rem;
+    padding: 1rem 2rem;
+    border: none;
+    cursor: pointer;
+    width: calc(50% - 1rem);
+    margin-top: 1rem;
+    margin-right: 1rem;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &:hover {
+      background-color: darken(var.$secondary, 10%);
+    }
+  }
+
+  .success-message {
+    color: green;
+    font-size: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: var.$tablet) {
+  .alert-sign-up {
+    width: 90%;
+
+    .submit-button,
+    .cancel-button {
+      width: calc(50% - 1rem);
+    }
+  }
+}
