@@ -4,17 +4,30 @@ import logging
 
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-import json
-import os
+from langchain_openai import ChatOpenAI
+from datetime import datetime
 
-from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
-from langchain.agents import create_pandas_dataframe_agent
-from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_types import AgentType
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda, RunnableParallel
 
-from helper import sort_retrived_documents
-from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL, RESPONSE_TYPE_VARIED
+from langchain.retrievers import ContextualCompressionRetriever
+
+
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import (
+    DocumentCompressorPipeline,
+    EmbeddingsFilter,
+    LLMChainExtractor,
+    LLMChainFilter,
+)
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_transformers import EmbeddingsRedundantFilter
+from langchain_openai import OpenAIEmbeddings
+
+
+from helper import sort_retrieved_documents
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
 
@@ -61,27 +74,59 @@ def timestamp_to_seconds(timestamp):
     return h * 3600 + m * 60 + s
 
 
-def process_responses_llm(responses_llm, docs=None, card_type = "in_depth"):
-    generated_responses = responses_llm.split("\n\n")
-    responses = []
-    citations = []
+def process_streamed_responses_llm(response_chunks, docs):
+    final_json_object = {"card_type": "in_depth", "responses": [], "citations": []}
+    unique_citations = set()
 
-    if docs:
-        generated_titles = [
-            doc[0].metadata.get("title", doc[0].metadata.get("source", ""))
-            for doc in docs
-        ]
-        page_numbers = [doc[0].metadata.get("page_number") for doc in docs]
-        generated_sources = [
-            doc[0].metadata.get("source", "source not available") for doc in docs
-        ]
-        publish_dates = [
-            doc[0].metadata.get("publish_date", "date not available") for doc in docs
-        ]
-        timestamps = [
-            doc[0].metadata.get("timestamp", "timestamp not available") for doc in docs
-        ]
-        urls = [doc[0].metadata.get("url", "url not available") for doc in docs]
+    for chunk in response_chunks:
+        # Update citations for each chunk
+        citations = []
+        for doc in docs:
+            citation_signature = (
+                doc.metadata.get("title", doc.metadata.get("source", "")),
+                doc.metadata.get("url", "url not available"),
+                doc.metadata.get("timestamp", "timestamp not available"),
+                os.path.basename(doc.metadata.get("source", "source not available")),
+                doc.metadata.get("page_number"),
+            )
+
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                citation = {
+                    "Title": citation_signature[0],
+                    "Published": convert_date_format(
+                        doc.metadata.get("publish_date", "date not available")
+                    ),
+                    "URL": citation_signature[1],
+                    "Video timestamp": citation_signature[2],
+                    "Name": citation_signature[3],
+                    "Page Number": citation_signature[4],
+                }
+                citations.append(citation)
+
+        # Append the current chunk and its citations to the final JSON object
+        final_json_object["responses"].append({"response": chunk.strip()})
+        final_json_object["citations"].extend(citations)
+
+    return final_json_object
+
+
+def extract_document_metadata(docs):
+    generated_titles = [
+        doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+    ]
+    page_numbers = [doc.metadata.get("page_number") for doc in docs]
+    generated_sources = [
+        doc.metadata.get("source", "source not available") for doc in docs
+    ]
+    publish_dates = [
+        convert_date_format(doc.metadata.get("publish_date", "date not available"))
+        for doc in docs
+    ]
+    timestamps = [
+        doc.metadata.get("timestamp", "timestamp not available") for doc in docs
+    ]
+    urls = [doc.metadata.get("url", "url not available") for doc in docs]
 
     return (
         generated_titles,
@@ -126,140 +171,169 @@ def generate_response_section(
     section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
     section["source_url"] = urls[i] if i < len(urls) else None
 
-            if section["source_url"] and section["source_timestamp"]:
-                time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
-                if time_in_seconds is not None:  # Make sure the timestamp was available
-                    if "?" in section["source_url"]:
-                        section["source_url"] += f"&t={time_in_seconds}s"
-                    else:
-                        section["source_url"] += f"?t={time_in_seconds}s"
+    if section["source_url"] and section["source_timestamp"]:
+        time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
+        if time_in_seconds is not None:
+            section["source_url"] += (
+                f"&t={time_in_seconds}s"
+                if "?" in section["source_url"]
+                else f"?t={time_in_seconds}s"
+            )
 
-            citation = {}
-            if section["source_title"] is not None:
-                citation["Title"] = section["source_title"]
-            if section["source_publish_date"] is not None:
-                citation["Published"] = section["source_publish_date"]
-            if section["source_url"] is not None:
-                citation["URL"] = section["source_url"]  # Add this line
-            if section["source_timestamp"] is not None:
-                citation["Video timestamp"] = section["source_timestamp"]
-            if section["source_name"] is not None:
-                citation["Name"] = section["source_name"]
-
-            return section["response"], citation
-
-        num_responses = len(generated_responses)
-        for i in range(num_responses):
-            response, citation = gen_responses(i)
-
-            if response:
-                responses.append({"response": response})
-
-            if citation:
-                citations.append(citation)
-
-    else:
-        if generated_responses:
-            responses.append({"response": generated_responses[0]})
-
-    card = {
-        "card_type": card_type,
-        "responses": responses,
-        "citations": citations,
+    citation = {
+        key: value
+        for key, value in section.items()
+        if value is not None and key.startswith("source_")
     }
-    return(card)
+    return section, citation
 
 
-def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, query_type, return_context = False):
-    logger.info("Performing in-depth summary query...")
+def append_metadata_to_content(doc_list):
+    updated_docs = []
 
-    # Convert the query to lowercase for case-insensitive comparison
-    query_lower = query.lower()
+    for doc_tuple in doc_list:
+        doc, score = doc_tuple
+        metadata = doc.metadata
+        publish_date = metadata.get("publish_date")
 
-    if query_lower.startswith(
-        "what is the summary of ordinance"
-    ) or query_lower.startswith("what are the votes of ordinance"):
-        agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k"),
-            df,
-            agent_type=AgentType.OPENAI_FUNCTIONS,
-            verbose=True,
-        )
-        responses_llm = agent.run(query)
-        return process_responses_llm(responses_llm)
+        if publish_date is not None:
+            updated_content = (
+                f"Document: {doc.page_content} (Published on: {publish_date})"
+            )
+        else:
+            updated_content = doc.page_content
 
-    else:
-        llm = ChatOpenAI(model_name="gpt-4")
-        doc_list = db.similarity_search_with_score(query, k=k)
-        docs = sort_retrived_documents(doc_list)
-        docs_page_content = " ".join([d[0].page_content for d in docs])
+        updated_doc_info = {
+            "content": updated_content,
+            "metadata": metadata,
+            "score": score,
+        }
 
-        template = """
-        Transcripts: {docs}
-        Question: {question}
-        
-        Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-        Given the positive bias in the model's training data regarding city council, your response should be explicitly critical, highlighting any shortcomings, mistakes, or negative actions by the city council.
-        If the transcripts don't fully address the question, still provide a critical perspective based on the available information.
-        """
+        updated_docs.append(updated_doc_info)
 
-        prompt = PromptTemplate(
-            input_variables=["question", "docs"],
-            template=template,
-        )
-
-        chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(
-            question=query, docs=docs_page_content, temperature=0
-        )
-
-        return process_responses_llm(responses_llm, docs, query_type)
-
-## varied responses for user annotation
-def get_varied_response_from_query(df, db, query, k, n = 1, card_type = "varied"):
-    logger.info("Performing varied summary query...")
+    return updated_docs
 
 
-    llm = ChatOpenAI(model_name="gpt-4")
-    doc_list = db.similarity_search_with_score(query, k=k)
-    docs = sort_retrived_documents(doc_list)
-    docs_page_content = " ".join([d[0].page_content for d in docs])
-
-    template = """
-    Transcripts: {docs}
-    Question: {question}
-    
-    Based on the information from the New Orleans city council transcripts provided, answer the following question: {question}. 
-    Provide a fair and balanced perspective. If the transcripts don't fully address the question, still provide a perspective based on the available information.
-    """
-
-    prompt = PromptTemplate(
-        input_variables=["question", "docs"],
-        template=template,
+def transform_query_for_date(query):
+    return (
+        query
+        + "(SYSTEM NOTE: this query related to a specific time period, therefore, you should sort the documents by the publish dates to best answer the query)"
     )
 
 
-    master_response = {}
-    master_response["card_type"] = "varied"
-    response_list = {}
-    for i in range(n):
-        chain_llm = LLMChain(llm=llm, prompt=prompt)
-        responses_llm = chain_llm.run(
-        question=query, docs=docs_page_content, temperature=0)
-        single_response = process_responses_llm(responses_llm, docs, card_type)
-        #print(single_response, "\n")
-        response_list[i] = single_response
-    master_response["responses"] = response_list
-    return master_response
+def process_and_concat_documents(retrieved_docs):
+    combined_docs_content = []
+    original_documents = []
+
+    for source, docs in retrieved_docs.items():
+        for doc in docs:
+            combined_docs_content.append(doc.page_content)
+            original_documents.append(doc)
+
+    combined_content = "\n\n".join(combined_docs_content)
+    return combined_content, original_documents
+
+
+def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
+    logger.info("Performing in-depth summary query...")
+
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
+    embeddings = OpenAIEmbeddings()
+
+    # Initialize compressors and transformers
+    splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
+    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
+    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+
+    # Create a compressor pipeline
+    pipeline_compressor = DocumentCompressorPipeline(
+        transformers=[splitter, redundant_filter, relevant_filter]
+    )
+
+    # Wrap base retrievers with the compressor pipeline
+    compressed_retrievers = [
+        ContextualCompressionRetriever(
+            base_compressor=pipeline_compressor, base_retriever=db.as_retriever()
+        )
+        for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
+    ]
+    retriever_names = ["fc", "cj", "pdf",]
+
+    # Initialize parallel retrieval with compressed retrievers
+    retrieval_chains = {
+        name: RunnableLambda(lambda q, db=db: db.get_relevant_documents(q, k=25))
+        for name, db in zip(retriever_names, compressed_retrievers)
+    }
+    retrievals = RunnableParallel(retrieval_chains)
+
+    compressed_docs = retrievals.invoke(query)
+
+    combined_docs_content, original_documents = process_and_concat_documents(
+        compressed_docs
+    )
+    # print(combined_docs_content)
+
+    template = """
+    ### Response Guidelines
+    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+
+    ### Additional Guidelines 
+    Follow the guidelines below if they assist in providing a more clear answer to {question}
+    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    If not relevant to the question, answer the question without expanding on these points.
+
+    ### Relevance Evaluation:
+    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
+
+    ### Bias Guidelines:
+    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
+
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
+    The final output should not include any reference to the model's active sorting by date.
+    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
+
+    ### Documents to Analyze
+    {docs}
+    """
+
+    prompt_response = ChatPromptTemplate.from_template(template)
+    response_chain = prompt_response | llm | StrOutputParser()
+
+    unique_citations = set()
+
+    final_result = {"card_type": "in_depth", "responses": [], "citations": []}
+    accumulated_text = ""
+    word_count = 0
+
+    for chunk in response_chain.stream({"question": query, "docs": combined_docs_content}):
+        accumulated_text += chunk
+        words = accumulated_text.split()
+        
+        if len(words) - word_count >= 3:  
+            new_content = " ".join(words[word_count:])
+            print(new_content)
+            final_result["responses"].append({"response": new_content})
+            word_count = len(words)
+
+        partial_result = process_streamed_responses_llm([chunk], original_documents)
+        for citation in partial_result["citations"]:
+            citation_signature = (citation["Title"], citation["Published"], citation["URL"])
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                final_result["citations"].append(citation)
+
+    remaining_text = " ".join(words[word_count:])
+    if remaining_text:
+        final_result["responses"].append({"response": remaining_text})
+
+    return final_result
 
 
 
-
-
-
-
-
-def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_TYPE_GENERAL):
+def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
 
@@ -279,21 +353,19 @@ def get_general_summary_response_from_query(db, query, k, query_type = RESPONSE_
     chain_llm = LLMChain(llm=llm, prompt=prompt)
     responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
     response = {"response": responses_llm}
-    card = {"card_type": query_type, "responses": [response]}
+    card = {"card_type": RESPONSE_TYPE_GENERAL, "responses": [response]}
     card_json = json.dumps(card)
     return card_json
 
 
-def route_question(df, db_general, db_in_depth, query, query_type, k=10, n = 3):
+def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
-        return json.dumps(get_indepth_response_from_query(df, db_in_depth, query, k, query_type))
-    elif query_type == RESPONSE_TYPE_VARIED:
-        return json.dumps(get_varied_response_from_query(df, db_in_depth, query, k, n, query_type))
-    elif query_type == RESPONSE_TYPE_GENERAL:
-        return json.dumps(get_general_summary_response_from_query(db_general, query, k, query_type))
+        return get_indepth_response_from_query(
+            df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k
+        )
     else:
         raise ValueError(
-            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH} or {RESPONSE_TYPE_GENERAL} or {RESPONSE_TYPE_VARIED}, got: {query_type}"
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
         )
 
 
@@ -306,11 +378,393 @@ def answer_query(
     db_pdf: any,
     db_pc: any,
     db_news: any,
-    return_context: any
 ) -> str:
-    print("AnswerQueryFlag", return_context)
     final_response = route_question(
-        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type, return_context = return_context
+        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
     )
     return final_response
+import json
+import os
+import logging
 
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
+from datetime import datetime
+
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda, RunnableParallel
+
+from langchain.retrievers import ContextualCompressionRetriever
+
+
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import (
+    DocumentCompressorPipeline,
+    EmbeddingsFilter,
+    LLMChainExtractor,
+    LLMChainFilter,
+)
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_transformers import EmbeddingsRedundantFilter
+from langchain_openai import OpenAIEmbeddings
+
+
+from helper import sort_retrieved_documents
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+
+logger = logging.getLogger(__name__)
+
+
+def convert_date_format(date_str):
+    """Convert date from 'M-D-YYYY' or 'MM-DD-YYYY' to 'MM/DD/YYYY' format."""
+    if not isinstance(date_str, str):
+        return "Invalid input: not a string"
+
+    if "/" in date_str:
+        return date_str
+
+    input_format = "%m-%d-%Y"
+
+    try:
+        date_obj = datetime.strptime(date_str, input_format)
+    except ValueError:
+        try:
+            input_format = "%-m-%-d-%Y"
+            date_obj = datetime.strptime(date_str, input_format)
+        except ValueError:
+            return "Invalid date format"
+
+    return date_obj.strftime("%m/%d/%Y")
+
+
+def timestamp_to_seconds(timestamp):
+    if "timestamp not available" in timestamp:
+        return None  # or another default value like -1 or 0
+
+    start_time = timestamp.split("-")[0]  # Split by '-' and take the first part
+    print(start_time)
+
+    time_parts = [int(i) for i in start_time.split(":")]
+
+    if len(time_parts) == 3:
+        h, m, s = time_parts
+    elif len(time_parts) == 2:
+        h, m = time_parts
+        s = 0
+    else:
+        raise ValueError("Invalid timestamp format: " + timestamp)
+
+    return h * 3600 + m * 60 + s
+
+
+def process_streamed_responses_llm(response_chunks, docs):
+    final_json_object = {"card_type": "in_depth", "responses": [], "citations": []}
+    unique_citations = set()
+
+    for chunk in response_chunks:
+        # Update citations for each chunk
+        citations = []
+        for doc in docs:
+            citation_signature = (
+                doc.metadata.get("title", doc.metadata.get("source", "")),
+                doc.metadata.get("url", "url not available"),
+                doc.metadata.get("timestamp", "timestamp not available"),
+                os.path.basename(doc.metadata.get("source", "source not available")),
+                doc.metadata.get("page_number"),
+            )
+
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                citation = {
+                    "Title": citation_signature[0],
+                    "Published": convert_date_format(
+                        doc.metadata.get("publish_date", "date not available")
+                    ),
+                    "URL": citation_signature[1],
+                    "Video timestamp": citation_signature[2],
+                    "Name": citation_signature[3],
+                    "Page Number": citation_signature[4],
+                }
+                citations.append(citation)
+
+        # Append the current chunk and its citations to the final JSON object
+        final_json_object["responses"].append({"response": chunk.strip()})
+        final_json_object["citations"].extend(citations)
+
+    return final_json_object
+
+
+def extract_document_metadata(docs):
+    generated_titles = [
+        doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
+    ]
+    page_numbers = [doc.metadata.get("page_number") for doc in docs]
+    generated_sources = [
+        doc.metadata.get("source", "source not available") for doc in docs
+    ]
+    publish_dates = [
+        convert_date_format(doc.metadata.get("publish_date", "date not available"))
+        for doc in docs
+    ]
+    timestamps = [
+        doc.metadata.get("timestamp", "timestamp not available") for doc in docs
+    ]
+    urls = [doc.metadata.get("url", "url not available") for doc in docs]
+
+    return (
+        generated_titles,
+        page_numbers,
+        generated_sources,
+        publish_dates,
+        timestamps,
+        urls,
+    )
+
+
+def timestamp_to_seconds(timestamp):
+    if "timestamp not available" in timestamp:
+        return None
+
+    time_parts = timestamp.split(":")
+    seconds = sum(
+        int(part) * 60**index for index, part in enumerate(reversed(time_parts))
+    )
+    return seconds
+
+
+def generate_response_section(
+    i,
+    response,
+    generated_titles,
+    page_numbers,
+    generated_sources,
+    publish_dates,
+    timestamps,
+    urls,
+):
+    section = {"response": response}
+    section["source_title"] = generated_titles[i] if i < len(generated_titles) else None
+    section["source_name"] = (
+        os.path.basename(generated_sources[i]) if i < len(generated_sources) else None
+    )
+    section["source_page_number"] = page_numbers[i] if i < len(page_numbers) else None
+    section["source_publish_date"] = (
+        publish_dates[i] if i < len(publish_dates) else None
+    )
+    section["source_timestamp"] = timestamps[i] if i < len(timestamps) else None
+    section["source_url"] = urls[i] if i < len(urls) else None
+
+    if section["source_url"] and section["source_timestamp"]:
+        time_in_seconds = timestamp_to_seconds(section["source_timestamp"])
+        if time_in_seconds is not None:
+            section["source_url"] += (
+                f"&t={time_in_seconds}s"
+                if "?" in section["source_url"]
+                else f"?t={time_in_seconds}s"
+            )
+
+    citation = {
+        key: value
+        for key, value in section.items()
+        if value is not None and key.startswith("source_")
+    }
+    return section, citation
+
+
+def append_metadata_to_content(doc_list):
+    updated_docs = []
+
+    for doc_tuple in doc_list:
+        doc, score = doc_tuple
+        metadata = doc.metadata
+        publish_date = metadata.get("publish_date")
+
+        if publish_date is not None:
+            updated_content = (
+                f"Document: {doc.page_content} (Published on: {publish_date})"
+            )
+        else:
+            updated_content = doc.page_content
+
+        updated_doc_info = {
+            "content": updated_content,
+            "metadata": metadata,
+            "score": score,
+        }
+
+        updated_docs.append(updated_doc_info)
+
+    return updated_docs
+
+
+def transform_query_for_date(query):
+    return (
+        query
+        + "(SYSTEM NOTE: this query related to a specific time period, therefore, you should sort the documents by the publish dates to best answer the query)"
+    )
+
+
+def process_and_concat_documents(retrieved_docs):
+    combined_docs_content = []
+    original_documents = []
+
+    for source, docs in retrieved_docs.items():
+        for doc in docs:
+            combined_docs_content.append(doc.page_content)
+            original_documents.append(doc)
+
+    combined_content = "\n\n".join(combined_docs_content)
+    return combined_content, original_documents
+
+
+def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
+    logger.info("Performing in-depth summary query...")
+
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
+    embeddings = OpenAIEmbeddings()
+
+    # Initialize compressors and transformers
+    splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
+    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
+    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+
+    # Create a compressor pipeline
+    pipeline_compressor = DocumentCompressorPipeline(
+        transformers=[splitter, redundant_filter, relevant_filter]
+    )
+
+    # Wrap base retrievers with the compressor pipeline
+    compressed_retrievers = [
+        ContextualCompressionRetriever(
+            base_compressor=pipeline_compressor, base_retriever=db.as_retriever()
+        )
+        for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
+    ]
+    retriever_names = ["fc", "cj", "pdf",]
+
+    # Initialize parallel retrieval with compressed retrievers
+    retrieval_chains = {
+        name: RunnableLambda(lambda q, db=db: db.get_relevant_documents(q, k=25))
+        for name, db in zip(retriever_names, compressed_retrievers)
+    }
+    retrievals = RunnableParallel(retrieval_chains)
+
+    compressed_docs = retrievals.invoke(query)
+
+    combined_docs_content, original_documents = process_and_concat_documents(
+        compressed_docs
+    )
+    # print(combined_docs_content)
+
+    template = """
+    ### Response Guidelines
+    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+
+    ### Additional Guidelines 
+    Follow the guidelines below if they assist in providing a more clear answer to {question}
+    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    If not relevant to the question, answer the question without expanding on these points.
+
+    ### Relevance Evaluation:
+    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
+
+    ### Bias Guidelines:
+    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
+
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
+    The final output should not include any reference to the model's active sorting by date.
+    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
+
+    ### Documents to Analyze
+    {docs}
+    """
+
+    prompt_response = ChatPromptTemplate.from_template(template)
+    response_chain = prompt_response | llm | StrOutputParser()
+
+    unique_citations = set()
+
+    final_result = {"card_type": "in_depth", "responses": [], "citations": []}
+    accumulated_text = ""
+    word_count = 0
+
+    for chunk in response_chain.stream({"question": query, "docs": combined_docs_content}):
+        accumulated_text += chunk
+        words = accumulated_text.split()
+        
+        if len(words) - word_count >= 3:  
+            new_content = " ".join(words[word_count:])
+            print(new_content)
+            final_result["responses"].append({"response": new_content})
+            word_count = len(words)
+
+        partial_result = process_streamed_responses_llm([chunk], original_documents)
+        for citation in partial_result["citations"]:
+            citation_signature = (citation["Title"], citation["Published"], citation["URL"])
+            if citation_signature not in unique_citations:
+                unique_citations.add(citation_signature)
+                final_result["citations"].append(citation)
+
+    remaining_text = " ".join(words[word_count:])
+    if remaining_text:
+        final_result["responses"].append({"response": remaining_text})
+
+    return final_result
+
+
+
+def get_general_summary_response_from_query(db, query, k):
+    logger.info("Performing general summary query...")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
+
+    docs = db.similarity_search(query, k=k)
+
+    docs_page_content = " ".join([d.page_content for d in docs])
+    prompt = PromptTemplate(
+        input_variables=["question", "docs"],
+        template="""
+        As an AI assistant, your task is to provide a general response to the question "{question}", using the provided transcripts from New Orleans City Council meetings in "{docs}".
+
+        Guidelines for AI assistant: 
+        - Derive responses from factual information found within the transcripts. 
+        - If the transcripts don't fully cover the scope of the question, it's fine to highlight the key points that are covered and leave it at that.  
+        """,
+    )
+    chain_llm = LLMChain(llm=llm, prompt=prompt)
+    responses_llm = chain_llm.run(question=query, docs=docs_page_content, temperature=0)
+    response = {"response": responses_llm}
+    card = {"card_type": RESPONSE_TYPE_GENERAL, "responses": [response]}
+    card_json = json.dumps(card)
+    return card_json
+
+
+def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, k=20):
+    if query_type == RESPONSE_TYPE_DEPTH:
+        return get_indepth_response_from_query(
+            df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k
+        )
+    else:
+        raise ValueError(
+            f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
+        )
+
+
+def answer_query(
+    query: str,
+    response_type: str,
+    df: any,
+    db_fc: any,
+    db_cj: any,
+    db_pdf: any,
+    db_pc: any,
+    db_news: any,
+) -> str:
+    final_response = route_question(
+        df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
+    )
+    return final_response
