@@ -2,24 +2,24 @@
 
 .alert-sign-up {
   background-color: var.$primary;
-  padding: 1rem;
+  padding: 0.8rem; 
   text-align: center;
   border-radius: 0.5rem;
   width: 80%;
-  max-width: 500px;
-  margin: 2rem auto;
+  max-width: 400px; 
+  margin: 1rem auto; 
   box-shadow: 0px 3px 6px #00000029;
 
   label,
   legend {
     color: var.$altPrimary;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem; 
   }
 
   input[type='email'] {
     border-radius: 5rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.8rem; 
+    margin-bottom: 0.8rem; 
     border: none;
     box-shadow: 0px 3px 6px #00000029;
     width: calc(100% - 2rem);
@@ -28,10 +28,10 @@
   .topic-checkbox {
     display: flex;
     align-items: center;
-    margin-bottom: .5rem;
+    margin-bottom: 0.3rem;
 
     & > label {
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.8rem; 
       background-color: transparent;
       border-radius: 5rem;
       cursor: pointer;
@@ -58,12 +58,12 @@
     background-color: var.$secondary;
     color: var.$altPrimary;
     border-radius: 5rem;
-    padding: 1rem 2rem;
+    padding: 0.8rem 1.5rem;
     border: none;
     cursor: pointer;
-    width: calc(50% - 1rem);
-    margin-top: 1rem;
-    margin-right: 1rem;
+    width: calc(50% - 0.8rem); 
+    margin-top: 0.8rem; 
+    margin-right: 0.8rem; 
 
     &:last-child {
       margin-right: 0;
@@ -76,19 +76,19 @@
 
   .success-message {
     color: green;
-    font-size: 1rem;
-    margin-top: 1rem;
+    font-size: 0.9rem; 
+    margin-top: 0.8rem; 
     width: 100%;
   }
 }
 
 @media (max-width: var.$tablet) {
   .alert-sign-up {
-    width: 90%;
+    width: 80%; 
 
     .submit-button,
     .cancel-button {
-      width: calc(50% - 1rem);
+      width: calc(50% - 0.8rem);
     }
   }
 }
