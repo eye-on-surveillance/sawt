@@ -14,7 +14,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-load_dotenv(find_dotenv("../../../web/.env", raise_error_if_not_found=True))
+load_dotenv(find_dotenv())
 
 
 def main():
