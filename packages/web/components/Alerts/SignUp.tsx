@@ -5,10 +5,14 @@ import styles from "./alertsignup.module.scss";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 
-export default function AlertSignUp({ onSignUpComplete }) {
+interface AlertSignUpProps {
+  onSignUpComplete: () => void;
+}
+
+export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
   const [email, setEmail] = useState("");
-  const [selectedTopics, setSelectedTopics] = useState([]);
-  const topics = [
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const topics: string[] = [
     "Community Development",
     "Environment",
     "Budget",
@@ -17,13 +21,15 @@ export default function AlertSignUp({ onSignUpComplete }) {
     "Palestine",
   ];
   const [successMessage, setSuccessMessage] = useState("");
-  const emailInputRef = useRef(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    emailInputRef.current.focus();
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
   }, []);
 
-  const handleTopicChange = (topic) => {
+  const handleTopicChange = (topic: string) => {
     if (selectedTopics.includes(topic)) {
       setSelectedTopics(selectedTopics.filter((t) => t !== topic));
     } else {
@@ -31,13 +37,13 @@ export default function AlertSignUp({ onSignUpComplete }) {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSuccessMessage("");
     await handleSubscription(email, selectedTopics);
   };
 
-  const handleSubscription = async (email, topics) => {
+  const handleSubscription = async (email: string, topics: string[]) => {
     try {
       const { data, error } = await supabase
         .from(TABLES.ALERTS)
