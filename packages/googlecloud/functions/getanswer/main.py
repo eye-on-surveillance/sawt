@@ -2,7 +2,7 @@ import logging
 import time
 import math
 
-import google.cloud.logging
+#import google.cloud.logging
 import functions_framework
 from supabase import create_client
 from dotenv import find_dotenv, load_dotenv
@@ -105,6 +105,7 @@ def getanswer(request):
     start = time.time()
 
     # Parse args
+    #print(request.headers)
     content_type = request.headers["Content-Type"]
     if content_type == "application/json":
         request_json = request.get_json(silent=True)

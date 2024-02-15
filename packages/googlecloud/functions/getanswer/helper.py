@@ -41,6 +41,9 @@ def get_dbs():
     db_news = FAISS.load_local(faiss_news_index_path, in_depth_embeddings)
 
     voting_roll_df_path = dir.joinpath("cache/parsed_voting_rolls.csv")
+    db_general = FAISS.load_local(general_faiss_index_path, general_embeddings)
+    db_in_depth = FAISS.load_local(in_depth_faiss_index_path, in_depth_embeddings)
+    logger.info("Loaded databases from faiss_index_general and faiss_index_in_depth")
     voting_roll_df = pd.read_csv(voting_roll_df_path)
 
     logger.info("Loaded databases from specific FAISS indices")

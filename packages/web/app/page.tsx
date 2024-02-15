@@ -1,12 +1,7 @@
-import { getPageMetadata } from "@/lib/paths";
-import HomeLearnMore from "../components/Footer/HomeLearnMore";
-import HomeBanner from "../components/HomeBanner/HomeBanner";
-import HomeResults from "../components/HomeResults/HomeResults";
-
+import HomeBanner from "../components/HomeBanner";
+import HomeLearnMore from "../components/HomeLearnMore";
+import HomeResults from "../components/HomeResults";
 export const dynamic = "force-dynamic";
-
-export const metadata = getPageMetadata("Eye on Surveillance");
-
 export default async function Home() {
   return (
     <>

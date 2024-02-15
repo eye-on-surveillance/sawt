@@ -1,9 +1,11 @@
 export const RESPONSE_TYPE_DEPTH = "in_depth";
 export const RESPONSE_TYPE_GENERAL = "general";
+export const RESPONSE_TYPE_VARIED = "varied";
 
 export enum ECardType {
   QUERY_IN_DEPTH = "in_depth",
   QUERY_GENERAL = "general",
+  QUERY_VARIED = 'varied'
 }
 
 export enum ECardStatus {
