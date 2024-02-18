@@ -56,3 +56,4 @@ def test_answer_relevancy():
         answer_relevancy_metric = AnswerRelevancyMetric(threshold=0.5)
         test_case = LLMTestCase(input=raw_input, actual_output=str(actual_output), retrieval_context=retrieval_context)
         assert_test(test_case, [answer_relevancy_metric])
+        print("-="*10)
