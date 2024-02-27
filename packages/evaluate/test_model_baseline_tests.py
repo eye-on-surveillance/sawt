@@ -12,7 +12,7 @@ from googlecloud.functions.getanswer.inquirer import answer_query
 from googlecloud.functions.getanswer.helper import get_dbs
 from googlecloud.functions.getanswer.api import RESPONSE_TYPE_DEPTH
 from deepeval import evaluate
-from deepeval.metrics import AnswerRelevancyMetric
+from deepeval.metrics import AnswerRelevancyMetric, LatencyMetric
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import FaithfulnessMetric
 from deepeval.metrics import SummarizationMetric
@@ -74,7 +74,11 @@ def get_response_and_context(input):
         return_context = True
     )
 
-    return actual_output, retrieval_context
+
+    response_parts = [response['response'] for response in actual_output['responses']]
+    response_string = ' '.join(response_parts)
+
+    return response_string, retrieval_context
 
 
 #generates close-end yes or no questions for the retreival context and calculates the percentage of them that are a yes for both the response and retrieval context

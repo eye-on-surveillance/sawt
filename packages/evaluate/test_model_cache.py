@@ -32,7 +32,7 @@ def test_answer_relevancy():
         headers = next(csv_reader)
 
         for row in csv_reader:
-            raw_input, response_type, evaluation_goal = row[0], row[1], row[2]
+            raw_input = row[0]
         
             # Handling the query based on the response type
             actual_output, retrieval_context = answer_query(
@@ -50,9 +50,10 @@ def test_answer_relevancy():
 
             retrieval_context = [retrieval_context]
 
+            response_parts = [response['response'] for response in actual_output['responses']]
+            response_string = ' '.join(response_parts)
 
-            if evaluation_goal == "AnswerRelevancy":
-                eval_metric = AnswerRelevancyMetric(threshold=0.2)
+            eval_metric = AnswerRelevancyMetric(threshold=0.2)
 
-            test_case = LLMTestCase(input=raw_input, actual_output=str(actual_output), retrieval_context=retrieval_context)
+            test_case = LLMTestCase(input=raw_input, actual_output=response_string, retrieval_context=retrieval_context)
             assert_test(test_case, [eval_metric])
