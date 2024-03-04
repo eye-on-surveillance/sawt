@@ -26,8 +26,8 @@ from langchain_community.document_transformers import EmbeddingsRedundantFilter
 from langchain_openai import OpenAIEmbeddings
 
 
-from .helper import sort_retrieved_documents
-from .api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+from helper import sort_retrieved_documents
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
 
@@ -240,6 +240,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
     embeddings = OpenAIEmbeddings()
 
+
     # Initialize compressors and transformers
     splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
     redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
@@ -331,7 +332,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
 
     if return_context:
         # docs retrieved here
-        return (final_result, combined_docs_content)
+        return (final_result, combined_docs_content), template
     
     return final_result
 
@@ -364,11 +365,12 @@ def get_general_summary_response_from_query(db, query, k):
 
 def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, return_context, k=20):
     if query_type == RESPONSE_TYPE_DEPTH:
-        depth_response = get_indepth_response_from_query(
+        depth_response, template = get_indepth_response_from_query(
             df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context
         )
 
-        return depth_response
+        return depth_response, templ
+    
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"

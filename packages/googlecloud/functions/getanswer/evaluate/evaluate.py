@@ -5,11 +5,13 @@ This will read test queries from queries.csv or take a live query, get the sawt 
 to several metrics as implemented by the deepeval library <https://github.com/confident-ai/deepeval/>
 
 """
+import deepeval
 import logging
 import sys
 import os
 from dotenv import find_dotenv, load_dotenv
 import argparse
+from langchain.prompts import PromptTemplate
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -40,7 +42,9 @@ args = parser.parse_args()
 l = args.l
 d = args.d
 
-    
+prompt_template = ""
+
+
 def get_test_cases():
     """
     Run sawt on all test queries and create LLMTestCases for each.
@@ -53,8 +57,9 @@ def get_test_cases():
         sys.exit()
 
     if l:
-        query = input("Enter your query:")
-        actual_output, retrieval_context = route_question(
+        query = input("Enter your query: ")
+        
+        actual_output, retrieval_context, template = route_question(
             voting_roll_df,
             db_fc,
             db_cj,
@@ -66,16 +71,22 @@ def get_test_cases():
             k=5,
             return_context=True
         )
+
+        prompt_template = PromptTemplate(
+        input_variables=["question", "docs"],
+        template=template
+        )
+
         actual_output = ' '.join(i['response'] for i in actual_output['responses'])    
         test_cases.append(LLMTestCase(input=query, actual_output=actual_output, retrieval_context=[retrieval_context]))
     else:
         pass
 
     if d:
-        csv = input("Enter the name or path of your csv file of queries (ex: queries.csv):")
+        csv_file_name = input("Enter the name or path of your csv file of queries (ex: queries.csv):")
         logger.info('generating answers to all test queries...')
 
-        for query in open(csv):
+        for query in open(csv_file_name):
             query = query.strip()
             actual_output, retrieval_context = route_question(
                 voting_roll_df,
@@ -93,27 +104,41 @@ def get_test_cases():
             actual_output = ' '.join(i['response'] for i in actual_output['responses'])    
             test_cases.append(LLMTestCase(input=query, actual_output=actual_output, retrieval_context=[retrieval_context]))
     elif not os.path.exists(d):
-        print("\nThe file ", csv, " doesn't exist, check the path and name.")
+        print("\nThe file ", csv_file_name, " doesn't exist, check the path or name.")
         sys.exit()
     else:
         pass
 
-    return EvaluationDataset(test_cases=test_cases)
+    return prompt_template, EvaluationDataset(test_cases=test_cases)
 
 
-dataset = get_test_cases()
+template, dataset = get_test_cases()
+print(template)
+
 dataset.evaluate([
                     SummarizationMetric(threshold=0.5, include_reason=True, model=MODEL),
                     AnswerRelevancyMetric(threshold=0.2, model=MODEL),
                     BiasMetric(threshold=0.5, model=MODEL),
                     ContextualRelevancyMetric(threshold=0.7, include_reason=True, model=MODEL),
                     FaithfulnessMetric(threshold=0.7, include_reason=True, model=MODEL),
+                    
                     GEval(name="Readability",
                         criteria="Determine whether the text in 'actual output' is easy to read for those with a high school reading level.",
                         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
                         model=MODEL),
+
                     GEval(name="Punctuation",
                         criteria="Determine whether the text in 'actual output' has proper punctuation.",
                         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+                        model=MODEL),
+                    
+                    GEval(name="Number of Opinions",
+                        criteria="Determine whether the text in 'actual output' expresses all major opinions on the topic of the query.",
+                        evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
                         model=MODEL)
                   ])
+
+# Log hyperparameters so we can compare across different test runs in deepeval login
+@deepeval.log_hyperparameters(model="gpt-4", prompt_template=template.template)
+def hyperparameters():
+    return {"chunk_size": 500, "temperature": 0, 'k': 10}
