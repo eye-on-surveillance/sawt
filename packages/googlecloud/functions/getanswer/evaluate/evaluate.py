@@ -59,7 +59,7 @@ def get_test_cases():
     if l:
         query = input("Enter your query: ")
         
-        actual_output, retrieval_context, template = route_question(
+        (actual_output, retrieval_context), template = route_question(
             voting_roll_df,
             db_fc,
             db_cj,
@@ -113,7 +113,6 @@ def get_test_cases():
 
 
 template, dataset = get_test_cases()
-print(template)
 
 dataset.evaluate([
                     SummarizationMetric(threshold=0.5, include_reason=True, model=MODEL),
@@ -139,6 +138,6 @@ dataset.evaluate([
                   ])
 
 # Log hyperparameters so we can compare across different test runs in deepeval login
-@deepeval.log_hyperparameters(model="gpt-4", prompt_template=template.template)
+@deepeval.log_hyperparameters(model="gpt-4", prompt_template=template)
 def hyperparameters():
     return {"chunk_size": 500, "temperature": 0, 'k': 10}
