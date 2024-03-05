@@ -5,13 +5,18 @@ This will read test queries from queries.csv or take a live query, get the sawt 
 to several metrics as implemented by the deepeval library <https://github.com/confident-ai/deepeval/>
 
 """
+import pytest
+import deepeval
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+from deepeval.metrics import BaseMetric, GEval, AnswerRelevancyMetric
+
 import deepeval
 import logging
 import sys
 import os
 from dotenv import find_dotenv, load_dotenv
 import argparse
-from langchain.prompts import PromptTemplate
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 
@@ -22,6 +27,9 @@ from deepeval.metrics import AnswerRelevancyMetric, BiasMetric, ContextualReleva
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from inquirer import route_question
 from helper import get_dbs
+from inquirer import INDEPTH_RESPONSE_LLM, INDEPTH_RESPONSE_PROMPT_TEMPLATE, INDEPTH_RESPONSE_K
+# from helper import indepth_response_prompt_template
+# from helper import indepth_resonse_k
 from api import RESPONSE_TYPE_DEPTH
 from tqdm import tqdm
 
@@ -42,7 +50,6 @@ args = parser.parse_args()
 l = args.l
 d = args.d
 
-prompt_template = ""
 
 
 def get_test_cases():
@@ -59,7 +66,7 @@ def get_test_cases():
     if l:
         query = input("Enter your query: ")
         
-        (actual_output, retrieval_context), template = route_question(
+        (actual_output, retrieval_context) = route_question(
             voting_roll_df,
             db_fc,
             db_cj,
@@ -68,13 +75,8 @@ def get_test_cases():
             db_news,
             query,
             RESPONSE_TYPE_DEPTH,
-            k=5,
+            k=INDEPTH_RESPONSE_K,
             return_context=True
-        )
-
-        prompt_template = PromptTemplate(
-        input_variables=["question", "docs"],
-        template=template
         )
 
         actual_output = ' '.join(i['response'] for i in actual_output['responses'])    
@@ -109,10 +111,10 @@ def get_test_cases():
     else:
         pass
 
-    return prompt_template, EvaluationDataset(test_cases=test_cases)
+    return EvaluationDataset(test_cases=test_cases)
 
 
-template, dataset = get_test_cases()
+dataset = get_test_cases()
 
 dataset.evaluate([
                     SummarizationMetric(threshold=0.5, include_reason=True, model=MODEL),
@@ -137,7 +139,21 @@ dataset.evaluate([
                         model=MODEL)
                   ])
 
+# def test_coherence():
+#     coherence_metric = GEval(
+#         name="Coherence",
+#         criteria="Coherence - determine if the actual output is logical, has flow, and is easy to understand and follow.",
+#         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+#         threshold=0.5,
+#     )
+#     test_case = LLMTestCase(
+#         input="What if these shoes don't fit? I want a full refund.",
+#         # Replace this with the actual output from your LLM application
+#         actual_output="If the shoes don't fit, the customer wants a full refund.",
+#     )
+#     assert_test(test_case, [coherence_metric])
+
 # Log hyperparameters so we can compare across different test runs in deepeval login
-@deepeval.log_hyperparameters(model="gpt-4", prompt_template=template)
+@deepeval.log_hyperparameters(model=INDEPTH_RESPONSE_LLM.model_name, prompt_template=INDEPTH_RESPONSE_PROMPT_TEMPLATE.template)
 def hyperparameters():
-    return {"chunk_size": 500, "temperature": 0, 'k': 10}
+    return {'temperature':0, 'k': INDEPTH_RESPONSE_K}
