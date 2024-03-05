@@ -369,7 +369,7 @@ def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, 
             df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context
         )
 
-        return depth_response, templ
+        return depth_response, template
     
     else:
         raise ValueError(
