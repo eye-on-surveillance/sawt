@@ -1,10 +1,15 @@
 from langchain.vectorstores.faiss import FAISS
 from pathlib import Path
-from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain import OpenAI
+# from langchain.chat_models import ChatOpenAI
+# from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+# from langchain import OpenAI
+from langchain_community.llms import OpenAI
+
 import logging
 import pandas as pd
 
