@@ -26,10 +26,42 @@ from langchain_community.document_transformers import EmbeddingsRedundantFilter
 from langchain_openai import OpenAIEmbeddings
 
 
-from .helper import sort_retrieved_documents
-from .api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
+from helper import sort_retrieved_documents
+from api import RESPONSE_TYPE_DEPTH, RESPONSE_TYPE_GENERAL
 
 logger = logging.getLogger(__name__)
+
+#Global variables representing prompt and hyperparams of indepth_response
+INDEPTH_RESPONSE_LLM = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
+INDEPTH_RESPONSE_K = 20
+INDEPTH_RESPONSE_PROMPT_TEMPLATE = PromptTemplate(
+        input_variables=["question", "docs"],
+        template="""
+    ### Response Guidelines
+    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+
+    ### Additional Guidelines 
+    Follow the guidelines below if they assist in providing a more clear answer to {question}
+    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    If not relevant to the question, answer the question without expanding on these points.
+
+    ### Relevance Evaluation:
+    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
+
+    ### Bias Guidelines:
+    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
+
+    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
+    The final output should not include any reference to the model's active sorting by date.
+    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
+
+    ### Documents to Analyze
+    {docs}
+    """,
+    )
 
 
 def convert_date_format(date_str):
@@ -237,8 +269,9 @@ def process_and_concat_documents(retrieved_docs):
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
+    llm = INDEPTH_RESPONSE_LLM
     embeddings = OpenAIEmbeddings()
+
 
     # Initialize compressors and transformers
     splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
@@ -273,33 +306,9 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     )
     # print(combined_docs_content)
 
-    template = """
-    ### Response Guidelines
-    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+    template = INDEPTH_RESPONSE_PROMPT_TEMPLATE
 
-    ### Additional Guidelines 
-    Follow the guidelines below if they assist in providing a more clear answer to {question}
-    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
-    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
-    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
-    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
-    If not relevant to the question, answer the question without expanding on these points.
-
-    ### Relevance Evaluation:
-    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
-
-    ### Bias Guidelines:
-    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
-
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
-    The final output should not include any reference to the model's active sorting by date.
-    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
-
-    ### Documents to Analyze
-    {docs}
-    """
-
-    prompt_response = ChatPromptTemplate.from_template(template)
+    prompt_response = ChatPromptTemplate.from_template(template.template)
     response_chain = prompt_response | llm | StrOutputParser()
 
     unique_citations = set()
@@ -362,13 +371,14 @@ def get_general_summary_response_from_query(db, query, k):
     return card_json
 
 
-def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, return_context, k=20):
+def route_question(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, query_type, return_context, k=INDEPTH_RESPONSE_K):
     if query_type == RESPONSE_TYPE_DEPTH:
         depth_response = get_indepth_response_from_query(
             df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k, return_context
         )
 
         return depth_response
+    
     else:
         raise ValueError(
             f"Invalid query_type. Expected {RESPONSE_TYPE_DEPTH}, got: {query_type}"
