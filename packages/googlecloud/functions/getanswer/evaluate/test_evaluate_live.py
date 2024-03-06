@@ -58,6 +58,7 @@ dataset = EvaluationDataset(test_cases=[test_case])
     dataset,
 )
 def test_live_query(test_case: LLMTestCase):
+    ansRel = AnswerRelevancyMetric(threshold=0.2, model=MODEL)
     bias = BiasMetric(threshold=0.5, model=MODEL)
     contRel = ContextualRelevancyMetric(threshold=0.7, include_reason=True, model=MODEL)
     faithMet = FaithfulnessMetric(threshold=0.7, include_reason=True, model=MODEL)
@@ -76,7 +77,7 @@ def test_live_query(test_case: LLMTestCase):
         criteria="Determine whether the text in 'actual output' expresses more than one opinion on the topic of the query.",
         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
         model=MODEL)
-    assert_test(test_case, [bias, contRel, faithMet, readability, punctuation, opinions])
+    assert_test(test_case, [ansRel, bias, contRel, faithMet, readability, punctuation, opinions])
 
 # Log hyperparameters so we can compare across different test runs in deepeval login
 @deepeval.log_hyperparameters(model=INDEPTH_RESPONSE_LLM.model_name, prompt_template=INDEPTH_RESPONSE_PROMPT_TEMPLATE.template)
