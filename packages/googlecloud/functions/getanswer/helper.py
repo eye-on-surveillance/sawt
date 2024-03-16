@@ -39,11 +39,11 @@ def get_dbs():
     faiss_news_index_path = dir.joinpath("cache/faiss_index_in_depth_news")
 
     # Loading new FAISS indices for each document type
-    db_fc = FAISS.load_local(faiss_fc_index_path, in_depth_embeddings)
-    db_cj = FAISS.load_local(faiss_cj_index_path, in_depth_embeddings)
-    db_pdf = FAISS.load_local(faiss_pdf_index_path, in_depth_embeddings)
-    db_pc = FAISS.load_local(faiss_pc_index_path, in_depth_embeddings)
-    db_news = FAISS.load_local(faiss_news_index_path, in_depth_embeddings)
+    db_fc = FAISS.load_local(faiss_fc_index_path, in_depth_embeddings, allow_dangerous_deserialization=True)
+    db_cj = FAISS.load_local(faiss_cj_index_path, in_depth_embeddings, allow_dangerous_deserialization=True)
+    db_pdf = FAISS.load_local(faiss_pdf_index_path, in_depth_embeddings, allow_dangerous_deserialization=True)
+    db_pc = FAISS.load_local(faiss_pc_index_path, in_depth_embeddings, allow_dangerous_deserialization=True)
+    db_news = FAISS.load_local(faiss_news_index_path, in_depth_embeddings, allow_dangerous_deserialization=True)
 
     voting_roll_df_path = dir.joinpath("cache/parsed_voting_rolls.csv")
     voting_roll_df = pd.read_csv(voting_roll_df_path)

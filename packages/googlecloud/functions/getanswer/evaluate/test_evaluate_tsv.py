@@ -1,5 +1,5 @@
 """
-usage: 'deepeval test run test_evaluate_csv.py
+usage: 'deepeval test run test_evaluate_gold_dataset.py'
 
 
 This will read test queries from file inputted by user, then evaluate the responses according
@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 
 from deepeval import assert_test
 from deepeval.dataset import EvaluationDataset
-from deepeval.metrics import AnswerRelevancyMetric, BiasMetric, ContextualRelevancyMetric, FaithfulnessMetric, GEval
+from deepeval.metrics import AnswerRelevancyMetric, BiasMetric, ContextualRelevancyMetric, FaithfulnessMetric, GEval, ContextualPrecisionMetric, ContextualRecallMetric
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from inquirer import route_question
 from helper import get_dbs
@@ -39,30 +39,37 @@ def get_test_cases():
     test_cases = []
     db_fc, db_cj, db_pdf, db_pc, db_news, voting_roll_df = get_dbs()
 
-    csv_file_name = input("Enter the name or path of your csv file of queries (ex: queries.csv):")
-    if not os.path.exists(csv_file_name):
-        print("\nThe file ", csv_file_name, " doesn't exist, check the path or name.")
+    tsv_file_name = input("Enter the name or path of your tsv file of queries (ex: queries.tsv):")
+    if not os.path.exists(tsv_file_name):
+        print("\nThe file ", tsv_file_name, " doesn't exist, check the path or name.")
         sys.exit()
     logger.info('generating answers to all test queries...')
 
+    with open(tsv_file_name) as file:
+        next(file)
+        for row in file:
+            row_obj = row.strip().split('\t')
+            if len(row_obj) == 1:
+                query = row_obj[0]
+                expected_output = ''
+            else:
+                query, expected_output = row_obj
 
-    for query in open(csv_file_name):
-        query = query.strip()
-        actual_output, retrieval_context = route_question(
-            voting_roll_df,
-            db_fc,
-            db_cj,
-            db_pdf,
-            db_pc,
-            db_news,
-            query,
-            RESPONSE_TYPE_DEPTH,
-            k=5,
-            return_context=True
-        )
-        # get single string for text response.
-        actual_output = ' '.join(i['response'] for i in actual_output['responses'])    
-        test_cases.append(LLMTestCase(input=query, actual_output=actual_output, retrieval_context=[retrieval_context]))
+            actual_output, retrieval_context = route_question(
+                voting_roll_df,
+                db_fc,
+                db_cj,
+                db_pdf,
+                db_pc,
+                db_news,
+                query,
+                RESPONSE_TYPE_DEPTH,
+                k=5,
+                return_context=True
+            )
+            # get single string for text response
+            actual_output = ' '.join(i['response'] for i in actual_output['responses'])    
+            test_cases.append(LLMTestCase(input=query, actual_output=actual_output, expected_output=expected_output, retrieval_context=[retrieval_context]))
 
     return EvaluationDataset(test_cases=test_cases)
 
@@ -74,10 +81,13 @@ dataset = get_test_cases()
     dataset,
 )
 def test_dataset(test_case: LLMTestCase):
-    ansRel = AnswerRelevancyMetric(threshold=0.2, model=MODEL)
+    contextual_precision = ContextualPrecisionMetric(threshold=0.2, model=MODEL)
+    contextual_recall = ContextualRecallMetric(threshold=0.2, model=MODEL)
+    
+    answer_relevancy = AnswerRelevancyMetric(threshold=0.2, model=MODEL)
     bias = BiasMetric(threshold=0.5, model=MODEL)
-    contRel = ContextualRelevancyMetric(threshold=0.7, include_reason=True, model=MODEL)
-    faithMet = FaithfulnessMetric(threshold=0.7, include_reason=True, model=MODEL)
+    contextual_relevancy = ContextualRelevancyMetric(threshold=0.7, include_reason=True, model=MODEL)
+    faithfulness = FaithfulnessMetric(threshold=0.7, include_reason=True, model=MODEL)
    
     readability = GEval(name="Readability",
         criteria="Determine whether the text in 'actual output' is easy to read for those with a high school reading level.",
@@ -95,7 +105,7 @@ def test_dataset(test_case: LLMTestCase):
         evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
         model=MODEL)
 
-    assert_test(test_case, [ansRel, bias, contRel, faithMet,readability, punctuation, opinions])
+    assert_test(test_case, [contextual_recall, contextual_precision, answer_relevancy, bias, contextual_relevancy, faithfulness,readability, punctuation, opinions])
 
 
 # Log hyperparameters so we can compare across different test runs in deepeval login
