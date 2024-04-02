@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import logging
@@ -75,6 +73,7 @@ def timestamp_to_seconds(timestamp):
 
     return h * 3600 + m * 60 + s
 
+
 def extract_document_metadata(docs):
     generated_titles = [
         doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
@@ -111,6 +110,8 @@ def timestamp_to_seconds(timestamp):
         int(part) * 60**index for index, part in enumerate(reversed(time_parts))
     )
     return seconds
+
+
 def process_streamed_responses_llm(response_llm, docs):
     final_json_object = {"card_type": "in_depth", "response": "", "citations": []}
     unique_citations = set()
@@ -146,6 +147,7 @@ def process_streamed_responses_llm(response_llm, docs):
     final_json_object["citations"].extend(citations)
 
     return final_json_object
+
 
 def generate_response_section(
     i,
@@ -219,13 +221,19 @@ def transform_query_for_date(query):
     )
 
 
-
 def process_and_concat_documents(retrieved_docs):
+    """
+    Process and combine documents from multiple sources.
+
+    :param retrieved_docs: Dictionary with keys as source names and values as lists of (Document, score) tuples.
+    :return: Tuple of combined string of all processed documents and list of original Document objects.
+    """
     combined_docs_content = []
     original_documents = []
 
     for source, docs in retrieved_docs.items():
-        for doc in docs:
+        sorted_docs = sort_retrieved_documents(docs)
+        for doc, score in sorted_docs:
             combined_docs_content.append(doc.page_content)
             original_documents.append(doc)
 
@@ -236,41 +244,21 @@ def process_and_concat_documents(retrieved_docs):
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", streaming=True)
-    embeddings = OpenAIEmbeddings()
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
 
-    # Initialize compressors and transformers
-    splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
-    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
-    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+    retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
+    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
 
-    # Create a compressor pipeline
-    pipeline_compressor = DocumentCompressorPipeline(
-        transformers=[splitter, redundant_filter, relevant_filter]
-    )
-
-    # Wrap base retrievers with the compressor pipeline
-    compressed_retrievers = [
-        ContextualCompressionRetriever(
-            base_compressor=pipeline_compressor, base_retriever=db.as_retriever()
-        )
-        for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
-    ]
-    retriever_names = ["fc", "cj", "pdf",]
-
-    # Initialize parallel retrieval with compressed retrievers
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.get_relevant_documents(q, k=25))
-        for name, db in zip(retriever_names, compressed_retrievers)
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=5))
+        for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
-
-    compressed_docs = retrievals.invoke(query)
+    retrieved_docs = retrievals.invoke(query)
 
     combined_docs_content, original_documents = process_and_concat_documents(
-        compressed_docs
+        retrieved_docs
     )
-    # print(combined_docs_content)
 
     template = """
     ### Response Guidelines
@@ -290,6 +278,16 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     ### Bias Guidelines:
     Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
 
+    ### Additional Instructions
+
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
+
+    Definitions:
+
+    Word: Definition
+    Word: Definition
+    Word: Definition
+
     The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
     The final output should not include any reference to the model's active sorting by date.
     The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
@@ -301,14 +299,12 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     prompt_response = ChatPromptTemplate.from_template(template)
     response_chain = prompt_response | llm | StrOutputParser()
 
-    unique_citations = set()
+    responses_llm = response_chain.invoke(
+        {"question": query, "docs": combined_docs_content}
+    )
+    print(responses_llm)
 
-    response_llm = response_chain.invoke({"question": query, "docs": combined_docs_content})
-    print(response_llm)
-
-
-    return process_streamed_responses_llm(response_llm, original_documents)
-
+    return process_streamed_responses_llm(responses_llm, original_documents)
 
 
 def get_general_summary_response_from_query(db, query, k):
@@ -361,4 +357,3 @@ def answer_query(
         df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
     )
     return final_response
-
