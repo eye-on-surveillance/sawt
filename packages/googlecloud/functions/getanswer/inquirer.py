@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import logging
@@ -75,6 +73,7 @@ def timestamp_to_seconds(timestamp):
 
     return h * 3600 + m * 60 + s
 
+
 def extract_document_metadata(docs):
     generated_titles = [
         doc.metadata.get("title", doc.metadata.get("source", "")) for doc in docs
@@ -111,6 +110,8 @@ def timestamp_to_seconds(timestamp):
         int(part) * 60**index for index, part in enumerate(reversed(time_parts))
     )
     return seconds
+
+
 def process_streamed_responses_llm(response_llm, docs):
     final_json_object = {"card_type": "in_depth", "response": "", "citations": []}
     unique_citations = set()
@@ -146,6 +147,7 @@ def process_streamed_responses_llm(response_llm, docs):
     final_json_object["citations"].extend(citations)
 
     return final_json_object
+
 
 def generate_response_section(
     i,
@@ -217,8 +219,6 @@ def transform_query_for_date(query):
         query
         + "(SYSTEM NOTE: this query related to a specific time period, therefore, you should sort the documents by the publish dates to best answer the query)"
     )
-
-
 
 
 def process_and_concat_documents(retrieved_docs):
@@ -307,7 +307,6 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     return process_streamed_responses_llm(responses_llm, original_documents)
 
 
-
 def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
     llm = ChatOpenAI(model_name="gpt-3.5-turbo-0613")
@@ -358,4 +357,3 @@ def answer_query(
         df, db_fc, db_cj, db_pdf, db_pc, db_news, query, response_type
     )
     return final_response
-
