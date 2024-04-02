@@ -34,44 +34,27 @@ if not supabase_url or not supabase_key:
 
 supabase = create_client(supabase_url, supabase_key)
 
-
-def update_responses(response_chunk, card_id):
-    try:
-        current_data = supabase.table("cards").select("responses").eq("id", card_id).execute()
-
-        if current_data.data and "responses" in current_data.data[0]:
-            updated_responses = current_data.data[0]["responses"]
-            updated_responses.append({"response": response_chunk})
-        else:
-            updated_responses = [{"response": response_chunk}]
-
-        supabase.table("cards").update({"responses": updated_responses}).eq("id", card_id).execute()
-        logging.info("Response data successfully updated in Supabase")
-    except Exception as e:
-        logging.error(f"Failed to update Supabase responses: {e}")
-
-
-def update_citations(citations, card_id, processing_time_ms):
-    transformed_citations = [
-        {
-            "source_title": cit["Title"],
-            "source_name": cit["Name"],
-            "source_publish_date": cit["Published"],
-            "source_url": cit["URL"],
-            "source_page_number": cit["Page Number"],
-        }
-        for cit in citations
-    ]
+def update_supabase(responses, citations, card_id, processing_time_ms):
+    transformed_citations = []
+    for citation in citations:
+        transformed_citations.append({
+            "source_title": citation.get("Title"),
+            "source_name": citation.get("Name"),
+            "source_publish_date": citation.get("Published"),
+            "source_url": citation.get("URL"),
+            "source_page_number": citation.get("Page Number")
+        })
 
     try:
         supabase.table("cards").update(
-            {
-                "citations": transformed_citations,
-                "processing_time_ms": processing_time_ms,
-            }
+            {"responses": responses, 
+             "citations": transformed_citations,
+             "processing_time_ms": processing_time_ms}  # Update this line
         ).eq("id", card_id).execute()
+        logging.info("Data successfully updated in Supabase")
     except Exception as e:
-        logging.error(f"Failed to update Supabase citations: {e}")
+        logging.error(f"Failed to update Supabase: {e}")
+
 
 
 @functions_framework.http
@@ -118,16 +101,21 @@ def getanswer(request):
 
     logging.info("Request parsed")
 
-    final_response = answer_query(
-        query, response_type, voting_roll_df, db_fc, db_cj, db_pdf, db_pc, db_news
-    )
+    answer = answer_query(query, response_type, voting_roll_df, db_fc, db_cj, db_pdf, db_pc, db_news)
 
-    for response_chunk in final_response["responses"]:
-        update_responses(response_chunk["response"], card_id)
+    print(f"Answer: {answer}")
+    responses_data = answer.get("responses")
+    print(f"Responses: {responses_data}")
+    citations_data = answer.get("citations")
+    print(f"Citations: {citations_data}")
 
-    elapsed = int((time.time() - start) * 1000)
-    update_citations(final_response["citations"], card_id, elapsed)
+    print(f"Citations: {citations_data}")
 
+    end = time.time()
+    elapsed = int((end - start) * 1000)
+
+    update_supabase(responses_data, citations_data, card_id, elapsed)
     logging.info(f"Completed getanswer in {elapsed} seconds")
+    print(f"\n\t--------- Completed getanswer in {elapsed} seconds --------\n")
 
     return ("Answer successfully submitted to Supabase", 200, headers)
