@@ -122,11 +122,12 @@ def getanswer(request):
         query, response_type, voting_roll_df, db_fc, db_cj, db_pdf, db_pc, db_news
     )
 
-    for response_chunk in final_response["responses"]:
-        update_responses(response_chunk["response"], card_id)
+    response_chunk = final_response.get('response')
+    if response_chunk:
+        update_responses(response_chunk, card_id)
 
     elapsed = int((time.time() - start) * 1000)
-    update_citations(final_response["citations"], card_id, elapsed)
+    update_citations(final_response.get('citations', []), card_id, elapsed)
 
     logging.info(f"Completed getanswer in {elapsed} seconds")
 
