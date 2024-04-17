@@ -4,7 +4,7 @@ usage: 'deepeval test run test_evaluate_live.py'
 This will read a live test query from user input, get the sawt response, then evaluate the response according
 to several metrics as implemented by the deepeval library <https://github.com/confident-ai/deepeval/> and gpt-3.5-turbo-1106
 
-All hyperparameters used by current model are logged in deepeval login
+Test results and hyperparameters used by current model are logged in deepeval login.
 
 """
 import pytest

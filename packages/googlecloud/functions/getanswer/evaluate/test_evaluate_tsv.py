@@ -1,11 +1,12 @@
 """
 usage: 'deepeval test run test_evaluate_gold_dataset.py'
 
+Reads test queries from tsv file inputted by user, gets the sawt responses, evaluates the responses according to several metrics as implemented by the deepeval library <https://github.com/confident-ai/deepeval/> and gpt-3.5-turbo-1106
 
-This will read test queries from file inputted by user, then evaluate the responses according
-to several metrics as implemented by the deepeval library <https://github.com/confident-ai/deepeval/> and gpt-3.5-turbo-1106
+This file can contain be a gold data set with feature 'expected response', a list of queries without expected responses, or a mix of both. 
+Queries with specified expected responses will be eveluated on 2 more metrics than queries without expected responses.
 
-All hyperparameters used by current model are logged in deepeval login
+Test results and hyperparameters used by current model are logged in deepeval login.
 
 """
 import pytest
@@ -81,9 +82,11 @@ dataset = get_test_cases()
     dataset,
 )
 def test_dataset(test_case: LLMTestCase):
+    #require expected_output
     contextual_precision = ContextualPrecisionMetric(threshold=0.2, model=MODEL)
     contextual_recall = ContextualRecallMetric(threshold=0.2, model=MODEL)
     
+    #don't require expected_output
     answer_relevancy = AnswerRelevancyMetric(threshold=0.2, model=MODEL)
     bias = BiasMetric(threshold=0.5, model=MODEL)
     contextual_relevancy = ContextualRelevancyMetric(threshold=0.7, include_reason=True, model=MODEL)
