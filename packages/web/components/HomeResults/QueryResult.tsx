@@ -96,10 +96,11 @@ export default function QueryResult({ card }: { card: ICard }) {
   }, [card.id, isLoading]);
 
   const CardBody = () => {
-    const displayText = responses
+    const combinedResponses = responses
       .map((responseObj) => responseObj.response)
-      .join(" ")
-      .substring(0, MAX_CHARACTERS_PREVIEW);
+      .join(" ");
+    const previewText = combinedResponses.split(" ").slice(0, 100).join(" ");
+
     return (
       <Link href={`${CARD_SHOW_PATH}/${card.id}`}>
         <div>
@@ -110,12 +111,24 @@ export default function QueryResult({ card }: { card: ICard }) {
             </span>
             <span className="text-black">{prettyCreatedAt}</span>
           </h6>
-
+  
           {!isLoading ? (
-            <p className="my-5">
-              {displayText}
-              {displayText.length > MAX_CHARACTERS_PREVIEW ? "..." : null}
-            </p>
+            <>
+              {/* Response Preview */}
+              <div className="my-5 overflow-hidden" style={{ height: "4.5em" }}>
+                <p>{previewText}...</p>
+              </div>
+  
+              {/* YouTube Preview */}
+              {isYouTubeURL(thumbnail?.source_url) && (
+                <iframe
+                  id="ytplayer"
+                  src={getYouTubeEmbedUrl(thumbnail?.source_url)}
+                  frameBorder="0"
+                  className="h-64 w-full lg:h-96"
+                ></iframe>
+              )}
+            </>
           ) : (
             <p className="my-5">
               <FontAwesomeIcon
@@ -124,15 +137,6 @@ export default function QueryResult({ card }: { card: ICard }) {
               />
               {LOADING_MESSAGES[msgIndex]}
             </p>
-          )}
-
-          {isYouTubeURL(thumbnail?.source_url) && (
-            <iframe
-              id="ytplayer"
-              src={getYouTubeEmbedUrl(thumbnail?.source_url)}
-              frameBorder="0"
-              className="h-64 w-full lg:h-96"
-            ></iframe>
           )}
         </div>
       </Link>

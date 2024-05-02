@@ -123,8 +123,8 @@ const BetaCard = ({ card }: { card: ICard }) => {
       </div>
 
       {/* Combined Card Responses */}
-      <p className="mb-4">{combinedResponses}</p>
-
+      <div className="mb-4 whitespace-pre-wrap font-sans">{combinedResponses}</div>
+      
       <div>
         {isYouTubeURL(thumbnail?.source_url) && (
           <iframe
