@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import styles from "./alertsignup.module.scss";
-
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
 
@@ -11,15 +10,6 @@ interface AlertSignUpProps {
 
 export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
   const [email, setEmail] = useState("");
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const topics: string[] = [
-    "Community Development",
-    "Environment",
-    "Budget",
-    "Budget/Audit/Board of Review",
-    "Surveillance",
-    "Palestine",
-  ];
   const [successMessage, setSuccessMessage] = useState("");
   const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,25 +19,17 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
     }
   }, []);
 
-  const handleTopicChange = (topic: string) => {
-    if (selectedTopics.includes(topic)) {
-      setSelectedTopics(selectedTopics.filter((t) => t !== topic));
-    } else {
-      setSelectedTopics([...selectedTopics, topic]);
-    }
-  };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSuccessMessage("");
-    await handleSubscription(email, selectedTopics);
+    await handleSubscription(email);
   };
 
-  const handleSubscription = async (email: string, topics: string[]) => {
+  const handleSubscription = async (email: string) => {
     try {
-      const { data, error } = await supabase
-        .from(TABLES.ALERTS)
-        .insert([{ email: email, topics: topics.join(", ") }]);
+      const { data, error } = await supabase.from(TABLES.ALERTS).insert([
+        { email: email, topics: "" },
+      ]);
 
       if (error) {
         console.error("Error inserting subscription", error.message);
@@ -82,23 +64,6 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
           placeholder="Enter your email"
           required
         />
-
-        <fieldset>
-          <legend>Select topics</legend>
-          {topics.map((topic, index) => (
-            <div key={index} className={styles["topic-checkbox"]}>
-              <input
-                type="checkbox"
-                id={topic}
-                name={topic}
-                checked={selectedTopics.includes(topic)}
-                onChange={() => handleTopicChange(topic)}
-              />
-              <label htmlFor={topic}>{topic}</label>
-            </div>
-          ))}
-        </fieldset>
-
         <button type="submit" className={styles["submit-button"]}>
           Subscribe
         </button>
