@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import styles from "./alertsignup.module.scss";
 import { TABLES } from "@/lib/supabase/db";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { useEffect, useRef, useState } from "react";
+import styles from "./alertsignup.module.scss";
 
 interface AlertSignUpProps {
   onSignUpComplete: () => void;
@@ -27,10 +27,9 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
 
   const handleSubscription = async (email: string) => {
     try {
-      const { data, error } = await supabase.from(TABLES.ALERTS).insert([
-        { email: email, topics: "" },
-      ]);
-
+      const { data, error } = await supabase
+        .from(TABLES.ALERTS)
+        .insert([{ email: email, topics: "" }]);
       if (error) {
         console.error("Error inserting subscription", error.message);
         setSuccessMessage(`Error: ${error.message}. Please try again.`);
@@ -54,7 +53,10 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
   return (
     <div className={styles["alert-sign-up"]}>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="email">Sign up for email alerts:</label>
+        <label htmlFor="email" className={styles["label"]}>
+          Sign up to receive alerts about new ordinances on first reading at city
+          council.
+        </label>
         <input
           ref={emailInputRef}
           type="email"
@@ -63,6 +65,7 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
           required
+          className={styles["input"]}
         />
         <button type="submit" className={styles["submit-button"]}>
           Subscribe

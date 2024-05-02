@@ -201,8 +201,8 @@ export default function NewQuery() {
         ) : (
           <button
             className={`w-full rounded-lg md:w-1/2 ${
-              isProcessing ? "cursor-wait bg-primary" : "bg-primary"
-            } p-2 text-2xl text-blue`}
+              isProcessing ? "cursor-wait bg-[#6b93c3]" : "bg-[#6b93c3]"
+            } p-2 text-2xl text-white`}
             onClick={() => scrollToQuery()}
             type="submit"
             disabled={isProcessing}
