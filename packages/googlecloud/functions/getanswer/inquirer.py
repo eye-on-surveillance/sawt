@@ -244,13 +244,13 @@ def process_and_concat_documents(retrieved_docs):
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview")
+    llm = ChatOpenAI(model_name="gpt-4-turbo")
 
     retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
-    retriever_names = ["fc", "cj", "pdf", "pc", "news"]
+    retriever_names = ["fc", "cj", "pdf",]
 
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=5))
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
         for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
@@ -261,10 +261,15 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     )
 
     template = """
-    ### Response Guidelines
-    Your primary task is to answer the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+    ### Task
+    Focus exclusively on answering the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
 
-    ### Additional Guidelines 
+    ### Relevance Guidelines
+    Directly relevant information must explicitly pertain to the question.
+    Information that is indirectly relevant should only be used to clarify the context necessary for understanding the direct answer.
+    Omit any information that is irrelevant or tangential to the question.
+
+    ### Summary Guidelines
     Follow the guidelines below if they assist in providing a more clear answer to {question}
     If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
     highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
@@ -272,13 +277,13 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
     If not relevant to the question, answer the question without expanding on these points.
 
-    ### Relevance Evaluation:
-    When analyzing documents, critically assess whether each piece of information improves the response's relevance and accuracy. Include information only if it directly answers or is essential to understanding the context of the question. Disregard information that is tangential or unrelated.
-
     ### Bias Guidelines:
-    Be mindful of biases in the document corpus. Prioritize and analyze documents that are most likely to contain direct and relevant information to the question. Avoid including details from documents that do not substantively contribute to a focused and accurate response.
+    Be mindful of biases in the document corpus. These documents were produced by city council, therefore, you must be aware of the inherent biases toward its behavior.
 
-    ### Additional Instructions
+    ### Formatting Instructions
+    Deliver the response in unformatted paragraph form.
+    Avoid any lists or bullet points.
+    Do not mention document analysis methods or publication dates.
 
     If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
 
@@ -287,10 +292,6 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     Word: Definition
     Word: Definition
     Word: Definition
-
-    The final output should be in paragraph form without any formatting, such as prefixing your points with "a.", "b.", or "c.", "-", or "1."
-    The final output should not include any reference to the model's active sorting by date.
-    The final output should not include any reference to the publish date. For example, all references to "(published on mm/dd/yyyy)" should be omitted. 
 
     ### Documents to Analyze
     {docs}
