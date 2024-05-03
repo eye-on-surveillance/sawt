@@ -247,10 +247,10 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     llm = ChatOpenAI(model_name="gpt-4-turbo")
 
     retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
-    retriever_names = ["fc", "cj", "pdf",]
+    retriever_names = ["fc"]
 
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=30))
         for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
@@ -262,7 +262,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
 
     template = """
     ### Task
-    Focus exclusively on answering the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+    Focus exclusively on answering the specific question: '{question}'. 
 
     ### Relevance Guidelines
     Directly relevant information must explicitly pertain to the question.
@@ -270,11 +270,10 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     Omit any information that is irrelevant or tangential to the question.
 
     ### Summary Guidelines
-    Follow the guidelines below if they assist in providing a more clear answer to {question}
-    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
-    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
-    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
-    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    1. Extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    2. Highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    3. Elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    4. Investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
     If not relevant to the question, answer the question without expanding on these points.
 
     ### Bias Guidelines:
@@ -285,7 +284,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     Avoid any lists or bullet points.
     Do not mention document analysis methods or publication dates.
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
+    If your response includes technical terms provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
 
     Definitions:
 
