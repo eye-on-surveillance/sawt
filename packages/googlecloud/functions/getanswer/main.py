@@ -59,6 +59,7 @@ def update_citations(citations, card_id, processing_time_ms):
             "source_publish_date": cit["Published"],
             "source_url": cit["URL"],
             "source_page_number": cit["Page Number"],
+            "source_timestamp": cit["Video timestamp"],  # Add this line
         }
         for cit in citations
     ]

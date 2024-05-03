@@ -26,15 +26,19 @@ export function getYouTubeThumbnail(url: string): string | undefined {
 }
 
 export function getYouTubeEmbedUrl(
-  url: string | undefined
+  url: string | undefined,
+  timestamp: string | undefined
 ): string | undefined {
   if (!url) return undefined;
+
   const videoId = url.split("v=")[1]?.split("&")[0];
-  const tParts = url.split("t=");
-  let t = "";
-  if (tParts.length > 1) {
-    t = tParts[1].split("s")[0];
-  }
   if (!videoId) return undefined;
-  return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${t}`;
+
+  let startTime = 0;
+  if (timestamp) {
+    const [minutes, seconds] = timestamp.split(":").map(Number);
+    startTime = minutes * 60 + seconds;
+  }
+
+  return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${startTime}`;
 }

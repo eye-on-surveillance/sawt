@@ -125,7 +125,7 @@ export default function QueryResult({ card }: { card: ICard }) {
               {isYouTubeURL(thumbnail?.source_url) && (
                 <iframe
                   id="ytplayer"
-                  src={getYouTubeEmbedUrl(thumbnail?.source_url)}
+                  src={getYouTubeEmbedUrl(thumbnail?.source_url, thumbnail?.source_timestamp)}
                   frameBorder="0"
                   className="h-64 w-full lg:h-96"
                 ></iframe>

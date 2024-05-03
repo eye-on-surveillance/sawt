@@ -1,8 +1,4 @@
-import {
-  getYouTubeEmbedUrl,
-  getYouTubeThumbnail,
-  isYouTubeURL,
-} from "@/lib/utils";
+import { getYouTubeEmbedUrl, getYouTubeThumbnail, isYouTubeURL } from "@/lib/utils";
 import moment from "moment";
 import "./Citation.css";
 
@@ -22,12 +18,12 @@ const Citation = ({
     source_url,
     source_page_number: pageNumber,
     source_publish_date: publishedAt,
+    source_timestamp: timestamp,
     score: ignore,
     ...otherMetadata
   } = originalCitation;
 
-  const isYoutube =
-    source_url && isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
+  const isYoutube = source_url && isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
   const isUrlAvailable = source_url && source_url !== "url not available";
 
   return (
@@ -37,9 +33,7 @@ const Citation = ({
       }`}
     >
       <div>
-        <p className="font-bold lg:text-lg">
-          #{index + 1}: {title}
-        </p>
+        <p className="font-bold lg:text-lg">#{index + 1}: {title}</p>
         <p className="text-black">{moment(publishedAt).fromNow()}</p>
       </div>
 
@@ -48,7 +42,7 @@ const Citation = ({
           {isYoutube ? (
             <iframe
               id="ytplayer"
-              src={getYouTubeEmbedUrl(source_url)}
+              src={getYouTubeEmbedUrl(source_url, timestamp)}
               frameBorder="0"
               className="h-64 w-full lg:h-96"
             ></iframe>
