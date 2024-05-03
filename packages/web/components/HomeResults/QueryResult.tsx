@@ -51,12 +51,12 @@ export default function QueryResult({ card }: { card: ICard }) {
   const thumbnail = getThumbnail(citations || []);
 
   useEffect(() => {
-    let intervalId = null;
+    let intervalId: NodeJS.Timeout | null = null;
 
     if (isLoading) {
       intervalId = setInterval(() => {
         setMsgIndex(prevIndex => (prevIndex + 1) % LOADING_MESSAGES.length);
-      }, WAIT_MS);
+      }, 2500);
     }
 
     const channel = supabase.channel(`cards:id=eq.${card.id}`)
