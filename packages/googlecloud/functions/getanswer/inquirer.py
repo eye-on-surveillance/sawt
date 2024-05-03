@@ -250,7 +250,7 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     retriever_names = ["fc"]
 
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=30))
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
         for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
