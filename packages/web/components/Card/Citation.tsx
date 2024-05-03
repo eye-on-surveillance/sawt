@@ -1,4 +1,8 @@
-import { getYouTubeEmbedUrl, getYouTubeThumbnail, isYouTubeURL } from "@/lib/utils";
+import {
+  getYouTubeEmbedUrl,
+  getYouTubeThumbnail,
+  isYouTubeURL,
+} from "@/lib/utils";
 import moment from "moment";
 import "./Citation.css";
 
@@ -23,7 +27,8 @@ const Citation = ({
     ...otherMetadata
   } = originalCitation;
 
-  const isYoutube = source_url && isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
+  const isYoutube =
+    source_url && isYouTubeURL(source_url) && getYouTubeThumbnail(source_url);
   const isUrlAvailable = source_url && source_url !== "url not available";
 
   return (
@@ -33,7 +38,9 @@ const Citation = ({
       }`}
     >
       <div>
-        <p className="font-bold lg:text-lg">#{index + 1}: {title}</p>
+        <p className="font-bold lg:text-lg">
+          #{index + 1}: {title}
+        </p>
         <p className="text-black">{moment(publishedAt).fromNow()}</p>
       </div>
 

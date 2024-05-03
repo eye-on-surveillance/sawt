@@ -23,7 +23,7 @@ export default function HomeBanner() {
         <div className="md:grow"></div>
         <div className="md:w-3/4 md:max-w-2xl">
           <h1 className="text-lg font-bold">
-            What is New Orleans' City Council doing about
+            What is New Orleans&apos; City Council doing about
           </h1>
           <h2 className="mt-3 text-4xl">
             <span className="bg-brighter-blue text-secondary">{word}?</span>

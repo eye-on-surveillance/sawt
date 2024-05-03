@@ -54,8 +54,8 @@ export default function AlertSignUp({ onSignUpComplete }: AlertSignUpProps) {
     <div className={styles["alert-sign-up"]}>
       <form onSubmit={handleSubmit}>
         <label htmlFor="email" className={styles["label"]}>
-          Sign up to receive alerts about new ordinances on first reading at city
-          council.
+          Sign up to receive alerts about new ordinances on first reading at
+          city council.
         </label>
         <input
           ref={emailInputRef}
