@@ -221,32 +221,19 @@ def transform_query_for_date(query):
     )
 
 
-# def process_and_concat_documents(retrieved_docs):
-#     """
-#     Process and combine documents from multiple sources.
-
-#     :param retrieved_docs: Dictionary with keys as source names and values as lists of (Document, score) tuples.
-#     :return: Tuple of combined string of all processed documents and list of original Document objects.
-#     """
-#     combined_docs_content = []
-#     original_documents = []
-
-#     for source, docs in retrieved_docs.items():
-#         sorted_docs = sort_retrieved_documents(docs)
-#         for doc, score in sorted_docs:
-#             combined_docs_content.append(doc.page_content)
-#             original_documents.append(doc)
-
-#     combined_content = "\n\n".join(combined_docs_content)
-#     return combined_content, original_documents
-
-
 def process_and_concat_documents(retrieved_docs):
+    """
+    Process and combine documents from multiple sources.
+
+    :param retrieved_docs: Dictionary with keys as source names and values as lists of (Document, score) tuples.
+    :return: Tuple of combined string of all processed documents and list of original Document objects.
+    """
     combined_docs_content = []
     original_documents = []
 
     for source, docs in retrieved_docs.items():
-        for doc in docs:
+        sorted_docs = sort_retrieved_documents(docs)
+        for doc, score in sorted_docs:
             combined_docs_content.append(doc.page_content)
             original_documents.append(doc)
 
@@ -256,75 +243,68 @@ def process_and_concat_documents(retrieved_docs):
 
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
+
     llm = ChatOpenAI(model_name="gpt-4-turbo")
 
-    embeddings = OpenAIEmbeddings()
+    retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
+    retriever_names = ["fc", "cj", "pdf",]
 
-    # Initialize compressors and transformers
-    splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0, separator=". ")
-    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
-    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.7)
-
-    # Create a compressor pipeline
-    pipeline_compressor = DocumentCompressorPipeline(transformers=[redundant_filter])
-
-    # Wrap base retrievers with the compressor pipeline
-    compressed_retrievers = [
-        ContextualCompressionRetriever(
-            base_compressor=pipeline_compressor, base_retriever=db.as_retriever()
-        )
-        for db in [db_fc, db_cj, db_pdf, db_pc, db_news]
-    ]
-    retriever_names = [
-        "fc",
-        "cj",
-        "pdf",
-    ]
-
-    # Initialize parallel retrieval with compressed retrievers
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.get_relevant_documents(q, k=25))
-        for name, db in zip(retriever_names, compressed_retrievers)
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
+        for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
-
-    compressed_docs = retrievals.invoke(query)
+    retrieved_docs = retrievals.invoke(query)
 
     combined_docs_content, original_documents = process_and_concat_documents(
-        compressed_docs
+        retrieved_docs
     )
 
     template = """
     ### Task
-    Focus exclusively on answering the specific question: '{question}' using only the information provided in the documents below.
-    
+    Focus exclusively on answering the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+
+    ### Relevance Guidelines
+    Directly relevant information must explicitly pertain to the question.
+    Information that is indirectly relevant should only be used to clarify the context necessary for understanding the direct answer.
+    Omit any information that is irrelevant or tangential to the question.
+
     ### Summary Guidelines
-    1. Extract the key points, decisions, and actions from the provided documents that are relevant to the question.
-    2. Identify any immediate shortcomings, mistakes, or negative actions mentioned in the documents that are relevant to the question.
-    3. Discuss the implications and broader societal or community impacts of the identified issues as stated in the documents, if they are relevant to the question.
-    4. Highlight any underlying biases or assumptions present in the documents' content that are relevant to the question.
-    
+    Follow the guidelines below if they assist in providing a more clear answer to {question}
+    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
+    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
+    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
+    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
+    If not relevant to the question, answer the question without expanding on these points.
+
+    ### Bias Guidelines:
+    Be mindful of biases in the document corpus. These documents were produced by city council, therefore, you must be aware of the inherent biases toward its behavior.
+
     ### Formatting Instructions
-    1. Provide the response in concise, unformatted paragraphs.
-    2. Avoid lists, bullet points, or mentioning document analysis methods or publication dates.
-    3. If your response includes technical terms, provide a brief definition for those terms at the end of your response, with each definition on a new line, formatted as follows:
+    Deliver the response in unformatted paragraph form.
+    Avoid any lists or bullet points.
+    Do not mention document analysis methods or publication dates.
+
+    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
 
     Definitions:
-    Term 1: Definition
-    Term 2: Definition
-    Term 3: Definition
-    
+
+    Word: Definition
+    Word: Definition
+    Word: Definition
+
     ### Documents to Analyze
     {docs}
     """
 
     prompt_response = ChatPromptTemplate.from_template(template)
     response_chain = prompt_response | llm | StrOutputParser()
+
     responses_llm = response_chain.invoke(
         {"question": query, "docs": combined_docs_content}
     )
-
     print(responses_llm)
+
     return process_streamed_responses_llm(responses_llm, original_documents)
 
 
