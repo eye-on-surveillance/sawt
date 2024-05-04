@@ -1,15 +1,17 @@
 import logging
 import os
-from langchain_community.document_loaders import JSONLoader
+from langchain_community.document_loaders.json_loader import JSONLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 
-from langchain.chains import LLMChain, HypotheticalDocumentEmbedder
 from langchain.prompts import PromptTemplate
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAI
 from pathlib import Path
 import shutil
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain.docstore.document import Document
+
 
 logger = logging.getLogger(__name__)
 dir = Path(__file__).parent.absolute()
@@ -35,19 +37,19 @@ def create_embeddings():
         input_variables=["user_query"], template=in_depth_prompt_template
     )
 
-    llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
-    llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
+    # llm_chain_general = LLMChain(llm=llm, prompt=general_prompt)
+    # llm_chain_in_depth = LLMChain(llm=llm, prompt=in_depth_prompt)
 
-    general_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_general,
-        base_embeddings=base_embeddings,
-    )
+    # general_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_general,
+    #     base_embeddings=base_embeddings,
+    # )
 
-    in_depth_embeddings = HypotheticalDocumentEmbedder(
-        llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
-    )
+    # in_depth_embeddings = HypotheticalDocumentEmbedder(
+    #     llm_chain=llm_chain_in_depth, base_embeddings=base_embeddings
+    # )
 
-    return general_embeddings, in_depth_embeddings
+    return base_embeddings, base_embeddings
 
 
 def metadata_func_minutes_and_agendas(record: dict, metadata: dict) -> dict:
@@ -72,11 +74,15 @@ def create_db_from_minutes_and_agendas(doc_directory):
         )
 
         data = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(data)
-        all_docs.extend(docs)
+        text_splitter = SemanticChunker(OpenAIEmbeddings())
+        for doc in data:
+            chunks = text_splitter.split_text(doc.page_content)
+            for chunk in chunks:
+                new_doc = Document(page_content=chunk, metadata=doc.metadata)
+                print(
+                    f"Content: {new_doc.page_content}\nMetadata: {new_doc.metadata}\n"
+                )
+                all_docs.append(new_doc)
     logger.info("Finished database from minutes...")
     return all_docs
 
@@ -102,11 +108,15 @@ def create_db_from_news_transcripts(news_json_directory):
         )
 
         data = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(data)
-        all_docs.extend(docs)
+        text_splitter = SemanticChunker(OpenAIEmbeddings())
+        for doc in data:
+            chunks = text_splitter.split_text(doc.page_content)
+            for chunk in chunks:
+                new_doc = Document(page_content=chunk, metadata=doc.metadata)
+                print(
+                    f"Content: {new_doc.page_content}\nMetadata: {new_doc.metadata}\n"
+                )
+                all_docs.append(new_doc)
     logger.info("Finished database from news transcripts...")
     return all_docs
 
@@ -135,19 +145,15 @@ def create_db_from_cj_transcripts(cj_json_directory):
         )
 
         data = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(data)
-
-        for doc in docs:
-            publish_date = doc.metadata.get("publish_date")
-            if publish_date:
-                doc.page_content += f" -- publish_date: {publish_date}"
-            else:
-                logger.warning(f"No publish date found for document: {doc}")
-
-        all_docs.extend(docs)
+        text_splitter = SemanticChunker(OpenAIEmbeddings())
+        for doc in data:
+            chunks = text_splitter.split_text(doc.page_content)
+            for chunk in chunks:
+                new_doc = Document(page_content=chunk, metadata=doc.metadata)
+                print(
+                    f"Content: {new_doc.page_content}\nMetadata: {new_doc.metadata}\n"
+                )
+                all_docs.append(new_doc)
 
     logger.info("Finished database from CJ transcripts...")
     return all_docs
@@ -168,17 +174,15 @@ def create_db_from_fc_transcripts(fc_json_directory):
         )
 
         data = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(data)
-        # Append the publish date to the end of page_content
-        for doc in docs:
-            publish_date = doc.metadata.get("publish_date")
-            if publish_date:
-                doc.page_content += f" -- publish_date: {publish_date}"
-
-        all_docs.extend(docs)
+        text_splitter = SemanticChunker(OpenAIEmbeddings())
+        for doc in data:
+            chunks = text_splitter.split_text(doc.page_content)
+            for chunk in chunks:
+                new_doc = Document(page_content=chunk, metadata=doc.metadata)
+                print(
+                    f"Content: {new_doc.page_content}\nMetadata: {new_doc.metadata}\n"
+                )
+                all_docs.append(new_doc)
     logger.info("Finished database from news transcripts...")
     return all_docs
 
@@ -198,11 +202,15 @@ def create_db_from_public_comments(pc_json_directory):
         )
 
         data = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000, chunk_overlap=100
-        )
-        docs = text_splitter.split_documents(data)
-        all_docs.extend(docs)
+        text_splitter = SemanticChunker(OpenAIEmbeddings())
+        for doc in data:
+            chunks = text_splitter.split_text(doc.page_content)
+            for chunk in chunks:
+                new_doc = Document(page_content=chunk, metadata=doc.metadata)
+                print(
+                    f"Content: {new_doc.page_content}\nMetadata: {new_doc.metadata}\n"
+                )
+                all_docs.append(new_doc)
     logger.info("Finished database from Public Comments...")
     return all_docs
 
@@ -239,7 +247,9 @@ def create_vector_dbs(
             f"googlecloud/functions/getanswer/cache/faiss_index_in_depth_{doc_type}"
         )
         shutil.copytree(local_save_dir, cloud_dir, dirs_exist_ok=True)
-        logger.info(f"FAISS index for {doc_type} copied to Google Cloud directory: {cloud_dir}")
+        logger.info(
+            f"FAISS index for {doc_type} copied to Google Cloud directory: {cloud_dir}"
+        )
 
         return db
 
