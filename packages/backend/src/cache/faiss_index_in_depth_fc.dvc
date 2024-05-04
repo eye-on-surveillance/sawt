@@ -1,6 +1,6 @@
 outs:
-- md5: 5429df81ded37a05e2b635a7a17f9c85.dir
-  size: 104396613
+- md5: 1fb1758a0371e1646b7097027a19bf96.dir
+  size: 104365424
   nfiles: 2
   hash: md5
   path: faiss_index_in_depth_fc
