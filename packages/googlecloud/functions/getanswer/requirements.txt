@@ -5,6 +5,7 @@ google-cloud-error-reporting
 python-dotenv
 langchain
 langchain-openai
+langchain-community
 openai
 google-api-python-client # Google API
 google-search-results # SerpAPI
