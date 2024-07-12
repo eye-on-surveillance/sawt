@@ -221,7 +221,7 @@ def transform_query_for_date(query):
     )
 
 
-def process_and_concat_documents(retrieved_docs):
+def process_and_concat_documents(retrieved_docs, max_docs=5):
     """
     Process and combine documents from multiple sources.
 
@@ -230,18 +230,18 @@ def process_and_concat_documents(retrieved_docs):
     """
     combined_docs_content = []
     original_documents = []
+    all_docs = []
 
     for source, docs in retrieved_docs.items():
         sorted_docs = sort_retrieved_documents(docs)
-        print("Sorted Docs:", sorted_docs)
-        
-        # Filter the top 5 docs with the highest similarity scores
-        top_5_docs = sorted(sorted_docs, key=lambda x: x[1], reverse=True)[:5]
-        print("Top 5 Docs:", top_5_docs)
-        
-        for doc, score in top_5_docs:
-            combined_docs_content.append(doc.page_content)
-            original_documents.append(doc)
+        all_docs.extend(sorted_docs)
+
+    # Sort all documents by score and take the top max_docs
+    top_docs = sorted(all_docs, key=lambda x: x[1], reverse=True)[:max_docs]
+
+    for doc, score in top_docs:
+        combined_docs_content.append(doc.page_content)
+        original_documents.append(doc)
 
     combined_content = "\n\n".join(combined_docs_content)
     return combined_content, original_documents
