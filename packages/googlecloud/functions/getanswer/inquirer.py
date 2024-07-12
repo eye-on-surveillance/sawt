@@ -233,24 +233,29 @@ def process_and_concat_documents(retrieved_docs):
 
     for source, docs in retrieved_docs.items():
         sorted_docs = sort_retrieved_documents(docs)
-        for doc, score in sorted_docs:
+        print("Sorted Docs:", sorted_docs)
+        
+        # Filter the top 5 docs with the highest similarity scores
+        top_5_docs = sorted(sorted_docs, key=lambda x: x[1], reverse=True)[:5]
+        print("Top 5 Docs:", top_5_docs)
+        
+        for doc, score in top_5_docs:
             combined_docs_content.append(doc.page_content)
             original_documents.append(doc)
 
     combined_content = "\n\n".join(combined_docs_content)
     return combined_content, original_documents
 
-
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4-turbo")
+    llm = ChatOpenAI(model_name="gpt-4o")
 
     retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
-    retriever_names = ["fc", "cj", "pdf",]
+    retriever_names = ["fc", "cj",]
 
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=25))
         for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
