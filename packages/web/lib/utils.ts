@@ -36,8 +36,10 @@ export function getYouTubeEmbedUrl(
 
   let startTime = 0;
   if (timestamp) {
-    const [minutes, seconds] = timestamp.split(":").map(Number);
-    startTime = minutes * 60 + seconds;
+    // Split the timestamp if it's a range and take the start time
+    const startTimestamp = timestamp.split('-')[0];
+    const [hours, minutes, seconds] = startTimestamp.split(':').map(Number);
+    startTime = (hours * 3600) + (minutes * 60) + seconds;
   }
 
   return `https://www.youtube.com/embed/${videoId}?autoplay=0&start=${startTime}`;

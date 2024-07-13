@@ -221,7 +221,7 @@ def transform_query_for_date(query):
     )
 
 
-def process_and_concat_documents(retrieved_docs):
+def process_and_concat_documents(retrieved_docs, max_docs=10):
     """
     Process and combine documents from multiple sources.
 
@@ -230,27 +230,35 @@ def process_and_concat_documents(retrieved_docs):
     """
     combined_docs_content = []
     original_documents = []
+    all_docs = []
 
     for source, docs in retrieved_docs.items():
         sorted_docs = sort_retrieved_documents(docs)
-        for doc, score in sorted_docs:
-            combined_docs_content.append(doc.page_content)
-            original_documents.append(doc)
+        all_docs.extend(sorted_docs)
+
+    # Sort all documents by score and take the top max_docs
+    top_docs = sorted(all_docs, key=lambda x: x[1], reverse=False)[:max_docs]
+
+    for doc, score in top_docs:
+        combined_docs_content.append(doc.page_content)
+        original_documents.append(doc)
 
     combined_content = "\n\n".join(combined_docs_content)
     return combined_content, original_documents
-
-
 def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, query, k):
     logger.info("Performing in-depth summary query...")
 
-    llm = ChatOpenAI(model_name="gpt-4-turbo")
+    llm = ChatOpenAI(model_name="gpt-4o")
+
+    # New function to edit the query for document retrieval
+    def edit_query_for_retrieval(query):
+        return query + "If relevant, include source information that support and that do not support the query. Additionally, include perspectives from city council, civil society, and the public"
 
     retrievers = [db_fc, db_cj, db_pdf, db_pc, db_news]
-    retriever_names = ["fc", "cj", "pdf",]
+    retriever_names = ["fc", "cj"]
 
     retrieval_chains = {
-        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(q, k=10))
+        name: RunnableLambda(lambda q, db=db: db.similarity_search_with_score(edit_query_for_retrieval(q), k=50))
         for name, db in zip(retriever_names, retrievers)
     }
     retrievals = RunnableParallel(retrieval_chains)
@@ -261,40 +269,48 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     )
 
     template = """
-    ### Task
-    Focus exclusively on answering the specific question: '{question}'. Extract and include information from the New Orleans city council documents provided that is directly relevant to this question. Refrain from including any additional analysis, context, or details that do not contribute to a concise and direct answer to the question.
+    You are an AI assistant tasked with analyzing New Orleans city council transcripts to answer specific questions. Your goal is to provide accurate, relevant, and concise responses based on the information contained in the provided documents. Follow these instructions carefully:
+    1. You will be given two inputs:
+    <question>{question}</question>
+    This is the specific question you need to answer based on the city council documents.
 
-    ### Relevance Guidelines
-    Directly relevant information must explicitly pertain to the question.
-    Information that is indirectly relevant should only be used to clarify the context necessary for understanding the direct answer.
-    Omit any information that is irrelevant or tangential to the question.
+    <docs>{docs}</docs>
+    These are the New Orleans city council documents you will analyze to answer the question.
 
-    ### Summary Guidelines
-    Follow the guidelines below if they assist in providing a more clear answer to {question}
-    If relevant, extract the key points, decisions, and actions discussed during the city council meetings relevant to {question};
-    highlight any immediate shortcomings, mistakes, or negative actions by the city council relevant to {question}; 
-    elaborate on the implications and broader societal or community impacts of the identified issues relevant to {question};
-    investigate any underlying biases or assumptions present in the city council's discourse or actions relevant to {question}. 
-    If not relevant to the question, answer the question without expanding on these points.
+    2. Read and analyze the documents provided in the <docs> tags. Focus exclusively on finding information that is directly relevant to answering the question in the <question> tags.
 
-    ### Bias Guidelines:
-    Be mindful of biases in the document corpus. These documents were produced by city council, therefore, you must be aware of the inherent biases toward its behavior.
+    3. When analyzing the documents, adhere to these guidelines:
+    a. Relevance criteria:
+        - Include only information that explicitly pertains to the question.
+        - Use indirectly relevant information only if it's necessary to clarify the context of the direct answer.
+        - Omit any information that is irrelevant or tangential to the question.
 
-    ### Formatting Instructions
-    Deliver the response in unformatted paragraph form.
-    Avoid any lists or bullet points.
-    Do not mention document analysis methods or publication dates.
+    b. Summary guidelines (apply these only if they help answer the specific question):
+        - Extract key points, decisions, and actions from the city council meetings.
+        - Highlight any immediate shortcomings, mistakes, or negative actions by the city council.
+        - Elaborate on the implications and broader societal or community impacts of the identified issues.
+        - Investigate any underlying biases or assumptions present in the city council's discourse or actions.
 
-    If your response includes technical or uncommon terms related to city council that may not be widely understood, provide a brief definition for those terms at the end of your response. Ensure each definition is on a new line, formatted as follows:
+    c. Bias awareness:
+        - Be mindful that the documents were produced by the city council and may contain inherent biases toward its own behavior.
+
+    4. If the documents do not contain any relevant information in response to the <question> then return 'The documents do not provide sufficient information to respond to this query'. 
+
+    5. Format your response as follows:
+    - Deliver your answer in unformatted paragraph form.
+    - Do not use lists or bullet points.
+    - Do not mention document analysis methods or publication dates.
+
+    5. If your response includes technical or uncommon terms related to city council that may not be widely understood, provide definitions at the end of your response in this format:
 
     Definitions:
-
     Word: Definition
     Word: Definition
     Word: Definition
 
-    ### Documents to Analyze
-    {docs}
+    Ensure each definition is on a new line.
+
+    6. Remember to focus solely on answering the specific question provided, using only the information from the given documents.
     """
 
     prompt_response = ChatPromptTemplate.from_template(template)
@@ -306,7 +322,6 @@ def get_indepth_response_from_query(df, db_fc, db_cj, db_pdf, db_pc, db_news, qu
     print(responses_llm)
 
     return process_streamed_responses_llm(responses_llm, original_documents)
-
 
 def get_general_summary_response_from_query(db, query, k):
     logger.info("Performing general summary query...")
