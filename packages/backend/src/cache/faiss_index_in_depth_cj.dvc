@@ -1,6 +1,6 @@
 outs:
-- md5: 0b60967184b16042af19d7a5e668d976.dir
-  size: 23052882
+- md5: 65b210e1673a8820bc41b0f21d06912c.dir
+  size: 22992595
   nfiles: 2
   hash: md5
   path: faiss_index_in_depth_cj

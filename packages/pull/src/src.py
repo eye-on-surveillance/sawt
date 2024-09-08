@@ -16,7 +16,8 @@ video_data = [
     ['https://www.youtube.com/watch?v=kDUWcHJHE-U', 'City Council Meeting 3/21/2024', '3/21/2024'],
     ['https://www.youtube.com/watch?v=5ZOofdp8XH8', 'City Council Meeting 4/4/2024', '4/4/2024'],
     ['https://www.youtube.com/watch?v=FF8FfduEA1Q', 'City Council Meeting 4/18/2024', '4/18/2024'],
-    ['https://www.youtube.com/watch?v=yeJuIsl8od0', 'City Council Meeting 5/2/2024', '5/2/2024']
+    ['https://www.youtube.com/watch?v=yeJuIsl8od0', 'City Council Meeting 5/2/2024', '5/2/2024'],
+    ['https://www.youtube.com/watch?v=Q2ocfAFWgd0', 'City Council Meeting 6/6/2024', '6/6/2024'],
 ]
 
 all_segments = []
