@@ -1,0 +1,275 @@
+import logging
+import pandas as pd
+import os
+import smtplib
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.header import Header
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from dotenv import find_dotenv, load_dotenv
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+
+load_dotenv(find_dotenv())
+SENDER_EMAIL = os.getenv('SENDER_EMAIL')
+SENDER_PASSWORD = os.getenv('SENDER_PASSWORD')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def load_llm():
+    """Initialize LLM with structured output capability"""
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0)
+    return llm.with_structured_output
+
+def read_data():
+    """Read the input data without dropping any rows."""
+    df = pd.read_csv("../data/input/Sawt Transcriptions - Pauline - First Readings.csv")
+    return df
+
+class OrdinanceSummary(BaseModel):
+    """Model for structured ordinance summaries"""
+    topic: str = Field(description="Primary topic of the ordinance in three keywords or less")
+    summary: str = Field(description="Detailed summary of the ordinance")
+
+summary_template = """
+<task_description>
+As a legal clerk, your task is to generate a summary of the first reading of an ordinance. 
+</task_description>
+
+<guidelines>
+- Focus on the key points and main purpose of the ordinance
+- Include any specific requirements, changes, or regulations proposed
+- Note any specific locations, departments, or entities affected
+</guidelines>
+
+<essential_information>
+- Tone: Maintain a neutral and factual tone, focusing on delivering information as presented in the chunk
+- Specificity: Ensure the summary is specific to the content of each ordinance, avoiding general statements
+</essential_information>
+
+<thinking_process>
+Before summarizing, consider:
+1. What is the main objective of this ordinance?
+</thinking_process>
+
+<output_instruction>
+Provide a structured summary with the following elements:
+- topic: A three keyword or less description of the primary focus
+- summary: A detailed summary of the ordinance
+</output_instruction>
+
+<input_documents_to_review>
+{first_reading}
+</input_documents_to_review>
+"""
+
+def get_council_sponsors(row):
+    """Extract council members who sponsored the ordinance."""
+    council_members = {
+        'Moreno?': 'Moreno',
+        'Thomas?': 'Thomas',
+        'Harris?': 'Harris',
+        'King?': 'King',
+        'Giarrusso?': 'Giarrusso',
+        'Morrell?': 'Morrell'
+    }
+    
+    sponsors = [member for col, member in council_members.items() 
+               if pd.notna(row[col]) and str(row[col]).upper() == 'Y']
+    return sponsors
+
+def format_summary(summary_result: OrdinanceSummary, ordinance_number: str, council_members: List[str]) -> str:
+    """Format the summary with headers for ordinance number and council sponsors."""
+    council_members_str = ", ".join(council_members) if council_members else "None"
+    
+    formatted_summary = f"Ordinance number: {ordinance_number}\n"
+    formatted_summary += f"Council sponsors: {council_members_str}\n\n"
+    formatted_summary += f"Topic: {summary_result.topic}\n\n"
+    formatted_summary += summary_result.summary
+    
+    return formatted_summary
+
+def condense_batch(first_reading: str, llm) -> Optional[OrdinanceSummary]:
+    """Generate structured summary for an ordinance."""
+    try:
+        # Handle potentially missing data
+        first_reading_str = str(first_reading) if pd.notna(first_reading) else "Content not available"
+        
+        # Create messages for the LLM
+        messages = [
+            SystemMessage(content=summary_template.format(
+                first_reading=first_reading_str,
+            )),
+            HumanMessage(content="Please provide a structured summary of this ordinance.")
+        ]
+        
+        # Get structured response using the OrdinanceSummary model
+        response = llm(OrdinanceSummary).invoke(messages)
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error generating summary: {str(e)}")
+        return None
+
+
+
+def send_email(recipient_email: str, date_str: str, file_path: str):
+    """Send email with Word document attachment."""
+    try:
+        # Create message container
+        msg = MIMEMultipart()
+        msg['From'] = SENDER_EMAIL
+        msg['To'] = recipient_email
+        msg['Subject'] = f'Summary of Ordinances on First Reading - {date_str}'
+
+        # Add body text
+        body = f"""
+        Please find attached the summary of ordinances on first reading for {date_str}.
+        
+        This is an automated email generated by the ordinance processing system.
+        """
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Add attachment
+        with open(file_path, 'rb') as attachment:
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(attachment.read())
+            
+        # Encode attachment
+        encoders.encode_base64(part)
+        
+        # Add header
+        part.add_header(
+            'Content-Disposition',
+            f'attachment; filename= {os.path.basename(file_path)}'
+        )
+
+        # Add attachment to message
+        msg.attach(part)
+
+        # Create SMTP session
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.send_message(msg)
+
+        logger.info(f"Email sent successfully to {recipient_email}")
+        
+    except Exception as e:
+        logger.error(f"Error sending email: {str(e)}")
+        raise
+
+def process_ordinances(df: pd.DataFrame, llm) -> pd.DataFrame:
+    """Process ordinances, add summaries to DataFrame, and create Word document."""
+    # Create Word document
+    doc = Document()
+    
+    # Get the date from the first row (assuming all rows are from same date)
+    date_str = pd.to_datetime(df['Date'].iloc[0]).strftime('%B %d, %Y')
+    
+    # Add title to document
+    title = doc.add_heading(f'Summary of Ordinances on First Reading\nDate: {date_str}', level=1)
+    title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    doc.add_paragraph()  # Add some space after title
+    
+    # Initialize DataFrame columns
+    df['topic'] = None
+    df['structured_summary'] = None
+    df['formatted_summary'] = None
+    
+    for idx, row in df.iterrows():
+        try:
+            ordinance_number = row['Cal Number']
+            council_members = get_council_sponsors(row)
+            first_reading = row['Actual ordinance']
+            
+            summary_result = condense_batch(
+                first_reading=first_reading,
+                llm=llm
+            )
+            
+            if summary_result:
+                # Format summary
+                formatted_summary = format_summary(
+                    summary_result=summary_result,
+                    ordinance_number=ordinance_number,
+                    council_members=council_members
+                )
+                
+                # Update DataFrame
+                df.at[idx, 'topic'] = summary_result.topic
+                df.at[idx, 'structured_summary'] = summary_result.summary
+                df.at[idx, 'formatted_summary'] = formatted_summary
+                
+                # Add to Word document with proper formatting
+                summary_text = doc.add_paragraph()
+                for line in formatted_summary.split('\n'):
+                    if line.startswith('Ordinance number:'):
+                        # Make ordinance number bold
+                        p = summary_text.add_run(line + '\n')
+                        p.bold = True
+                    elif line.startswith('Council sponsors:'):
+                        # Make council sponsors bold
+                        p = summary_text.add_run(line + '\n')
+                        p.bold = True
+                    elif line.startswith('Topic:'):
+                        # Make topic bold
+                        p = summary_text.add_run(line + '\n')
+                        p.bold = True
+                    elif line:  # Only add non-empty lines
+                        summary_text.add_run(line + '\n')
+                
+                # Add spacing between summaries
+                doc.add_paragraph()
+                
+                logger.info(f"Successfully processed ordinance {ordinance_number}")
+            else:
+                logger.warning(f"No summary generated for ordinance {ordinance_number}")
+            
+        except Exception as e:
+            logger.error(f"Error processing ordinance at index {idx}: {str(e)}")
+    
+    # Save the Word document
+    doc_path = "../data/output/ordinance_summaries.docx"
+    doc.save(doc_path)
+    logger.info("Word document saved as ordinance_summaries.docx")
+    
+    return df, date_str, doc_path
+
+
+def main():
+    try:
+        df = read_data()
+        llm = load_llm()
+
+        recipient_email= "info@eyeonsurveillance.org"
+
+        clean_df = df.copy()
+
+        clean_df = clean_df[~((clean_df["Cal Number"].fillna("") == ""))]
+
+        clean_df, date_str, doc_path = process_ordinances(clean_df, llm)
+        clean_df = clean_df[['Cal Number', 'formatted_summary']]
+
+        df = pd.merge(df, clean_df, on='Cal Number', how='left')
+        
+        df.to_csv("../data/output/ordinance_summaries.csv", index=False)
+        logger.info("Processing completed. Results saved to ordinance_summaries.csv")
+
+        send_email(recipient_email, date_str, doc_path)
+        
+        return df
+            
+    except Exception as e:
+        logger.error(f"Error in main process: {str(e)}")
+        return pd.DataFrame()
+
+if __name__ == "__main__":
+    main()
