@@ -1,0 +1,22 @@
+youtube:
+  channel_url: "https://www.youtube.com/@NOLACityCouncil/videos"
+  date_filter: "now-1month"
+
+paths:
+  raw_audio: "../data/raw/audio"
+  raw_captions: "../data/raw/captions"
+  output_structured: "../data/output/structured"
+  output_metadata: "../data/output/metadata"
+  logs: "../logs"
+
+whisper:
+  model: "openai/whisper-tiny"
+  device: "cuda"
+  torch_dtype: "float16"
+  batch_size: 8
+  chunk_length_s: 30
+  language: "en"
+  return_timestamps: true
+
+processing:
+  keep_audio: true
